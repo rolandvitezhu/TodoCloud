@@ -1,0 +1,90 @@
+<resources>
+
+    <style name="MyMaterialTheme" parent="MyMaterialTheme.Base">
+
+    </style>
+
+    <style name="MyMaterialTheme.Base" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+        <!--Az appCompatCheckBox unTicked állapotában a textColorSecondary színű keretet kap,
+        ticked állapotában pedig colorAccent színűt.-->
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        <item name="android:itemBackground">@color/windowBackground</item>
+        <!--A textViewStyle a contextMenu menüpontjainak szövegszínét állítja be, az
+        itemBackGround pedig a contextMenu háttérszínét.-->
+        <item name="android:textViewStyle">@style/MyTextViewStyle</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="android:listSeparatorTextViewStyle">@style/ListSeparatorTextView</item>
+        <item name="actionModeStyle">@style/Widget.ActionMode</item>
+        <item name="actionBarSize">@dimen/toolbar_height</item>
+    </style>
+
+    <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowTitleStyle">@style/DialogWindowTitle</item>
+    </style>
+
+    <style name="DialogWindowTitle" parent="Base.DialogWindowTitle.AppCompat">
+        <item name="android:textAppearance">@style/DialogWindowTitleText</item>
+        <item name="android:padding">24dp</item>
+    </style>
+
+    <style name="DialogWindowTitleText" parent="@android:style/TextAppearance.DialogWindowTitle">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="MyTextViewStyle" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">@color/textColorSecondary</item>
+    </style>
+
+    <style name="MyPickerDialogTheme" parent="Base.Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="MyEditTextTheme">
+        <item name="colorControlNormal">@color/colorControlNormal</item>
+    </style>
+
+    <style name="PreferenceThemeOverlay">
+        <item name="preferenceScreenStyle">@style/Preference.PreferenceScreen</item>
+        <item name="preferenceFragmentStyle">@style/PreferenceFragment</item>
+        <item name="preferenceCategoryStyle">@style/Preference.Category</item>
+        <item name="preferenceStyle">@style/Preference</item>
+        <item name="preferenceInformationStyle">@style/Preference.Information</item>
+        <item name="checkBoxPreferenceStyle">@style/Preference.CheckBoxPreference</item>
+        <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
+        <item name="dialogPreferenceStyle">@style/Preference.DialogPreference</item>
+        <item name="editTextPreferenceStyle">
+            @style/Preference.DialogPreference.EditTextPreference</item>
+        <item name="preferenceFragmentListStyle">@style/PreferenceFragmentList</item>
+        <item name="android:textColorPrimary">@color/textColorSecondary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:colorForeground">@color/colorControlNormal</item>
+    </style>
+
+    <style name="ListSeparatorTextView">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:paddingTop">16dp</item>
+    </style>
+
+    <style name="Widget.ActionMode" parent="@style/Widget.AppCompat.ActionMode">
+        <item name="titleTextStyle">@style/TitleTextStyle</item>
+    </style>
+
+    <style name="TitleTextStyle" parent="Base.TextAppearance.AppCompat.Widget.ActionMode.Title">
+
+    </style>
+
+    <style name="MyAppCompatSwitchTheme" parent="Base.Widget.AppCompat.CompoundButton.Switch">
+        <item name="android:colorForeground">@color/colorControlNormal</item>
+    </style>
+
+</resources>

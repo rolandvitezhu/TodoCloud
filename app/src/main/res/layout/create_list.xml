@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:gravity="center_horizontal">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp">
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/tilTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColorHint="@color/colorControlNormal"
+            android:theme="@style/MyMaterialTheme">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/tietTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="@string/title_create_list"
+                android:textColor="@color/textColorSecondary"
+                android:theme="@style/MyEditTextTheme"/>
+        </android.support.design.widget.TextInputLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:text="@string/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/borderlessButtonStyle"/>
+        <Button
+            android:id="@+id/btnOK"
+            android:text="@string/btnOK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/btnCancel"
+            android:layout_toRightOf="@+id/btnCancel"
+            style="?attr/borderlessButtonStyle"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

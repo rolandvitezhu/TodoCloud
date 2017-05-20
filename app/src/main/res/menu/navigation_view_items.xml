@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/itemSettings"
+        android:title="@string/itemSettings"
+        android:icon="@drawable/ic_settings_black_24dp"/>
+
+    <item
+        android:id="@+id/itemLogout"
+        android:title="@string/itemLogout"
+        android:icon="@drawable/ic_power_settings_new_black_24dp"/>
+
+</menu>

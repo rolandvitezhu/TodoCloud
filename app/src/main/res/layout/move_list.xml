@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:gravity="center_horizontal">
+
+    <TextView
+        android:text="@string/lblListCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:paddingBottom="8dp"
+        android:textSize="12sp"
+        android:textColor="@color/colorControlNormal"/>
+    <Spinner
+        android:id="@+id/listCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnCancelMoveList"
+            android:text="@string/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/borderlessButtonStyle"/>
+        <Button
+            android:id="@+id/btnOKMoveList"
+            android:text="@string/btnOK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/btnCancelMoveList"
+            android:layout_toRightOf="@+id/btnCancelMoveList"
+            style="?attr/borderlessButtonStyle"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

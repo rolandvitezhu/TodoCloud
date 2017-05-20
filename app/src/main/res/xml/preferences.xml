@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/title_reminders">
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="reminder_sound_preference"
+            android:title="@string/title_reminder_sound_preference"
+            android:defaultValue="true"/>
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="vibration_preference"
+            android:title="@string/title_vibration_preference"
+            android:defaultValue="true"/>
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="led_light_preference"
+            android:title="@string/title_led_light_preference"
+            android:defaultValue="true"/>
+
+    </android.support.v7.preference.PreferenceCategory>
+
+</android.support.v7.preference.PreferenceScreen>

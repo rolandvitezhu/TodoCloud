@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="windowBackground">#FFFFFF</color>
+    <color name="textColorSecondary">#000000</color>
+    <color name="colorControlNormal">#a8a8a8</color>
+    <color name="navigationViewItemIconTint">#717171</color>
+    <color name="tvFormSubmissionErrorsBackground">#E9E9E9</color>
+    <color name="tvFormSubmissionErrorsTextColor">#FFDD2C00</color>
+</resources>
