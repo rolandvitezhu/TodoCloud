@@ -220,24 +220,28 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
   public void onListItemClick(ListView l, View v, int position, long id) {
 	  super.onListItemClick(l, v, position, id);
     if (!isActionMode()) {
-      // Todo módosítása.
-      Todo clickedTodo = todoAdapter.getItem(position);
-      listener.onTodoClicked(clickedTodo, this);
+      openTodoModifyFragment(position);
     } else {
-      // ActionMode-hoz tartozó ActionBar beállítása.
       actionMode.invalidate();
 
-      // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor
-      // ActionMode kikapcsolása.
-      if (getListView().getCheckedItemCount() == 0) {
+      if (isNoSelectedItems()) {
         actionMode.finish();
       }
-      // TodoListItem kijelölése (Automatikusan történik, mivel az ActionMode aktív és a
-      // ChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE).
+      // The selection of TodoListItems happening automatically, because the ActionMode is active
+      // and ChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE
     }
   }
 
-	@Override
+  private boolean isNoSelectedItems() {
+    return getListView().getCheckedItemCount() == 0;
+  }
+
+  private void openTodoModifyFragment(int position) {
+    Todo clickedTodo = todoAdapter.getItem(position);
+    listener.onTodoClicked(clickedTodo, this);
+  }
+
+  @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 	  inflater.inflate(R.menu.todo_options_menu, menu);
   }
