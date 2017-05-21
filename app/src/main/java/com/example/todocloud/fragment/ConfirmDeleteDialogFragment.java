@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
+import com.example.todocloud.data.Todo;
 
 import java.util.ArrayList;
 
@@ -53,12 +54,14 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     if (type != null) {
       switch (type) {
         case "todo":
-          if (many) {
+          if (isMany()) {
             getDialog().setTitle(R.string.delete_todos);
             tvTitle.setText(getString(R.string.title_delete_todos));
           } else {
             getDialog().setTitle(R.string.delete_todo);
             title = getString(R.string.title_delete_todo);
+            ArrayList<Todo> todos = items;
+            itemTitle = todos.get(0).getTitle();
             title = title + "\"" + itemTitle + "\"?";
             tvTitle.setText(title);
           }
@@ -122,6 +125,10 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
     });
     return view;
+  }
+
+  private boolean isMany() {
+    return items.size() > 1;
   }
 
   /**
