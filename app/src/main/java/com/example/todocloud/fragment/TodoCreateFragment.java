@@ -154,7 +154,7 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
       todo.setDirty(true);
 
       // Tennivaló létrehozása.
-      listener.onTodoCreated(todo);
+      listener.onCreateTodo(todo);
       actionBarListener.onBackPressed();
     }
     return super.onOptionsItemSelected(item);
@@ -246,11 +246,8 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
     tvReminderDateTime.setText(reminderDateFormat.format(date));
   }
 
-  /**
-   * Interfész a TodoListFragment-tel való kommunikációra.
-   */
-	public interface ITodoCreateFragment {
-		void onTodoCreated(Todo todo);
+  public interface ITodoCreateFragment {
+		void onCreateTodo(Todo todoToCreate);
 	}
 
   /**
