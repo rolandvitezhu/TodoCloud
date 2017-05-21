@@ -166,14 +166,19 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-      for (int i = 0; i < getListAdapter().getCount(); i++) {
-        getListView().setItemChecked(i, false);
-      }
+      deselectItems();
       actionMode = null;
       getListView().setChoiceMode(AbsListView.CHOICE_MODE_NONE);
     }
 
   };
+
+  private void deselectItems() {
+    int itemCount = getListAdapter().getCount();
+    for (int i = 0; i < itemCount; i++) {
+      getListView().setItemChecked(i, false);
+    }
+  }
 
   private String prepareTitle() {
     int selectedItemCount = getListView().getCheckedItemCount();
