@@ -221,8 +221,8 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 	  super.onListItemClick(l, v, position, id);
     if (!isActionMode()) {
       // Todo módosítása.
-      Todo todo = todoAdapter.getItem(position);
-      listener.onTodoClicked(todo, this);
+      Todo clickedTodo = todoAdapter.getItem(position);
+      listener.onTodoClicked(clickedTodo, this);
     } else {
       // ActionMode-hoz tartozó ActionBar beállítása.
       actionMode.invalidate();
@@ -391,7 +391,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
   public interface ITodoListFragment {
     void setActionBarTitle(String title);
     void startActionMode(ActionMode.Callback callback);
-    void onTodoClicked(Todo todo, TodoListFragment todoListFragment);
+    void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment);
     void openTodoCreateFragment(TodoListFragment targetFragment);
   }
 

@@ -362,18 +362,18 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
   /**
    * A megadott Todo megnyitása/módosítása a TodoModifyFragment-en.
-   * @param todo A megadott Todo.
+   * @param clickedTodo A megadott Todo.
    */
   @Override
-  public void onTodoClicked(Todo todo, TodoListFragment todoListFragment) {
+  public void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
     TodoModifyFragment todoModifyFragment = new TodoModifyFragment();
-    todoModifyFragment.setTargetFragment(todoListFragment, 0);
+    todoModifyFragment.setTargetFragment(targetFragment, 0);
 
     Bundle bundle = new Bundle();
-    bundle.putParcelable("todo", todo);
+    bundle.putParcelable("todo", clickedTodo);
     todoModifyFragment.setArguments(bundle);
 
     fragmentTransaction.replace(R.id.FragmentContainer, todoModifyFragment,
