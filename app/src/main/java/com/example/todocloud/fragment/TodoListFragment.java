@@ -30,7 +30,7 @@ import com.example.todocloud.service.AlarmService;
 import java.util.ArrayList;
 
 public class TodoListFragment extends ListFragment implements ITodoCreateFragment,
-    ITodoModifyFragment, DeleteFragment.IDeleteFragment {
+    ITodoModifyFragment, ConfirmDeleteDialogFragment.IDeleteFragment {
 
 	private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
@@ -153,31 +153,11 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-      ListView listView = getListView();
+      int actionItemId = item.getItemId();
 
-      switch (item.getItemId()) {
+      switch (actionItemId) {
         case R.id.itemDelete:
-          if (listView.getCheckedItemCount() < 2) {
-
-            // Egy Todo-t törlünk.
-            for (int i = 0; i < getListAdapter().getCount(); i++) {
-              if (listView.isItemChecked(i)) {
-                Todo todo = (Todo) getListView().getItemAtPosition(i);
-                deleteTodo(todo.getTodoOnlineId(), todo.getTitle());
-              }
-            }
-          } else {
-
-            // Több Todo-t törlünk.
-            ArrayList<Todo> todos = new ArrayList<>();
-            for (int i = 0; i < getListAdapter().getCount(); i++) {
-              if (listView.isItemChecked(i)) {
-                Todo todo = (Todo) getListView().getItemAtPosition(i);
-                todos.add(todo);
-              }
-            }
-            deleteTodos(todos);
-          }
+          confirmDeletion();
           break;
       }
 
@@ -196,34 +176,34 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
   };
 
-  /**
-   * DeleteFragment-et nyit meg, az adott Todo törléséhez.
-   * @param onlineId Az adott Todo onlineId-ja.
-   * @param title Az adott Todo title-je.
-   */
-  private void deleteTodo(String onlineId, String title) {
-    DeleteFragment deleteFragment = new DeleteFragment();
-    deleteFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "todo");
-    bundle.putString("title", title);
-    bundle.putString("onlineId", onlineId);
-    deleteFragment.setArguments(bundle);
-    deleteFragment.show(getFragmentManager(), "DeleteFragment");
+  private void confirmDeletion() {
+    ArrayList<Todo> selectedTodos = getSelectedTodos();
+    openConfirmDeleteDialogFragment(selectedTodos);
   }
 
-  /**
-   * DeleteFragment-et nyit meg, a megadott Todo-k törléséhez.
-   * @param todos A megadott Todo-kat tartalmazó ArrayList.
-   */
-  private void deleteTodos(ArrayList<Todo> todos) {
-    DeleteFragment deleteFragment = new DeleteFragment();
-    deleteFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "todo");
-    bundle.putParcelableArrayList("items", todos);
-    deleteFragment.setArguments(bundle);
-    deleteFragment.show(getFragmentManager(), "DeleteFragment");
+  private ArrayList<Todo> getSelectedTodos() {
+    int itemCount = getListAdapter().getCount();
+    ListView todoList = getListView();
+    ArrayList<Todo> selectedTodos = new ArrayList<>();
+
+    for (int i = 0; i < itemCount; i++) {
+      if (todoList.isItemChecked(i)) {
+        Todo todo = (Todo) todoList.getItemAtPosition(i);
+        selectedTodos.add(todo);
+      }
+    }
+
+    return selectedTodos;
+  }
+
+  private void openConfirmDeleteDialogFragment(ArrayList<Todo> todosToDelete) {
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "todo");
+    arguments.putParcelableArrayList("items", todosToDelete);
+    confirmDeleteDialogFragment.setArguments(arguments);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
 	@Override
@@ -360,7 +340,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
   @Override
   public void onDelete(String onlineId, String type) {
     Todo todo = dbLoader.getTodo(onlineId);
-    dbLoader.deleteTodo(onlineId);
+    dbLoader.softDeleteTodo(onlineId);
     updateTodoAdapter();
 
     // Emlékeztető törlése.
@@ -378,9 +358,11 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
    */
   @Override
   public void onDelete(ArrayList items, String type) {
+    // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
+    // variable here and in the arguments also to "itemsToDelete".
     ArrayList<Todo> todos = items;
     for (Todo todo:todos) {
-      dbLoader.deleteTodo(todo.getTodoOnlineId());
+      dbLoader.softDeleteTodo(todo.getTodoOnlineId());
 
       // Emlékeztető törlése.
       Intent service = new Intent(getActivity(), AlarmService.class);
