@@ -248,10 +248,14 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
 	@Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.itemCreateTodo) {
-      // TodoCreateFragment megnyitása.
-      listener.openTodoCreateFragment(this);
+    int optionsItemId = item.getItemId();
+
+    switch (optionsItemId) {
+      case R.id.itemCreateTodo:
+        listener.openTodoCreateFragment(this);
+        break;
     }
+
 	  return super.onOptionsItemSelected(item);
   }
 
