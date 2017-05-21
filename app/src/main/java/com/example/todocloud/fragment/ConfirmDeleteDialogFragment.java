@@ -14,7 +14,7 @@ import com.example.todocloud.R;
 
 import java.util.ArrayList;
 
-public class DeleteDialogFragment extends AppCompatDialogFragment {
+public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
   private String type;
   private boolean many;
@@ -125,7 +125,7 @@ public class DeleteDialogFragment extends AppCompatDialogFragment {
   }
 
   /**
-   * Interfész, a DeleteDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
+   * Interfész, a ConfirmDeleteDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
    */
   public interface IDeleteFragment {
     void onDelete(String onlineId, String type);

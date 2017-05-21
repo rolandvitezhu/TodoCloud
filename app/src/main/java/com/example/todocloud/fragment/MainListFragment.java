@@ -58,7 +58,7 @@ public class MainListFragment extends ListFragment implements
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    DeleteDialogFragment.IDeleteFragment, LogoutFragment.ILogoutFragment {
+    ConfirmDeleteDialogFragment.IDeleteFragment, LogoutFragment.ILogoutFragment {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -424,33 +424,33 @@ public class MainListFragment extends ListFragment implements
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, Category-hez rendelt List-t törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, Category-hez rendelt List-t törléséhez.
    */
   private void deleteListInCategory() {
     com.example.todocloud.data.List list = listsInCategory.get(0);
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "listInCategory");
     bundle.putString("title", title);
     bundle.putString("onlineId", onlineId);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, Category-hez rendelt List-ek törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, Category-hez rendelt List-ek törléséhez.
    */
   private void deleteListsInCategory() {
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "listInCategory");
     bundle.putParcelableArrayList("items", listsInCategory);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
@@ -484,63 +484,63 @@ public class MainListFragment extends ListFragment implements
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, Category törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, Category törléséhez.
    */
   private void deleteCategory() {
     Category category = categories.get(0);
     String onlineId = category.getCategoryOnlineId();
     String title = category.getTitle();
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "category");
     bundle.putString("title", title);
     bundle.putString("onlineId", onlineId);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, a kijelölt Category-k törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt Category-k törléséhez.
    */
   private void deleteCategories() {
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "category");
     bundle.putParcelableArrayList("items", categories);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, a kijelölt List törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt List törléséhez.
    */
   private void deleteList() {
     com.example.todocloud.data.List list = lists.get(0);
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "list");
     bundle.putString("title", title);
     bundle.putString("onlineId", onlineId);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
-   * DeleteDialogFragment-et nyit meg, a kijelölt List-ek törléséhez.
+   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt List-ek törléséhez.
    */
   private void deleteLists() {
-    DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-    deleteDialogFragment.setTargetFragment(this, 0);
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "list");
     bundle.putParcelableArrayList("items", lists);
-    deleteDialogFragment.setArguments(bundle);
-    deleteDialogFragment.show(getFragmentManager(), "DeleteDialogFragment");
+    confirmDeleteDialogFragment.setArguments(bundle);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   /**
