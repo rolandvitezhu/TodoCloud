@@ -137,15 +137,14 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
       // azt élesben.
       actionMode = mode;
       mode.getMenuInflater().inflate(R.menu.todo, menu);
+
       return true;
     }
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-
-      int checkedItemCount = getListView().getCheckedItemCount();
-      actionMode.setTitle(
-          checkedItemCount + " " + getString(R.string.selected));
+      String title = prepareTitle();
+      actionMode.setTitle(title);
 
       return true;
     }
@@ -175,6 +174,12 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     }
 
   };
+
+  private String prepareTitle() {
+    int selectedItemCount = getListView().getCheckedItemCount();
+    String title = selectedItemCount + " " + getString(R.string.selected);
+    return title;
+  }
 
   private void confirmDeletion() {
     ArrayList<Todo> selectedTodos = getSelectedTodos();
