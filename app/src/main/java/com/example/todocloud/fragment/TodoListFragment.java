@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ListFragment;
 import android.support.v7.view.ActionMode;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -284,7 +283,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     updateTodoAdapter();
 
     if (isSetReminder(todoToCreate) && isNotCompleted(todoToCreate)) {
-      setReminderService(todoToCreate);
+      createReminderService(todoToCreate);
     }
   }
 
@@ -292,21 +291,13 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
   public void onModifyTodo(Todo todoToModify) {
 	  dbLoader.updateTodo(todoToModify);
     updateTodoAdapter();
-    todoAdapter.notifyDataSetChanged();
 
-    // Emlékeztető élesítése, feltéve hogy lett beállítva.
-    // Egyébként emlékeztető törlése.
     if (isSetReminder(todoToModify)) {
-      if (isNotCompleted(todoToModify) && !todoToModify.getDeleted()) {
-        // Emlékeztető élesítése, ha a Todo nem elvégzett és nem törölt.
-        setReminderService(todoToModify);
+      if (isNotCompleted(todoToModify) && isNotDeleted(todoToModify)) {
+        createReminderService(todoToModify);
       }
     } else {
-      // Emlékeztető törlése.
-      Intent service = new Intent(getActivity(), AlarmService.class);
-      service.putExtra("todo", todoToModify);
-      service.setAction(AlarmService.CANCEL);
-      getActivity().startService(service);
+      cancelReminderService(todoToModify);
     }
   }
 
@@ -321,10 +312,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     updateTodoAdapter();
 
     // Emlékeztető törlése.
-    Intent service = new Intent(getActivity(), AlarmService.class);
-    service.putExtra("todo", todo);
-    service.setAction(AlarmService.CANCEL);
-    getActivity().startService(service);
+    cancelReminderService(todo);
 
     actionMode.finish();
   }
@@ -342,17 +330,14 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
       dbLoader.softDeleteTodo(todo.getTodoOnlineId());
 
       // Emlékeztető törlése.
-      Intent service = new Intent(getActivity(), AlarmService.class);
-      service.putExtra("todo", todo);
-      service.setAction(AlarmService.CANCEL);
-      getActivity().startService(service);
+      cancelReminderService(todo);
     }
     updateTodoAdapter();
 
     actionMode.finish();
   }
 
-  private void setReminderService(Todo todo) {
+  private void createReminderService(Todo todo) {
     Intent reminderService = new Intent(getActivity(), AlarmService.class);
     reminderService.putExtra("todo", todo);
     reminderService.setAction(AlarmService.CREATE);
@@ -412,6 +397,17 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
             0;
 
     return selectFromArguments != null && selectFromArguments.equals(selectPredefinedListCompleted);
+  }
+
+  private boolean isNotDeleted(Todo todo) {
+    return !todo.getDeleted();
+  }
+
+  private void cancelReminderService(Todo todo) {
+    Intent reminderService = new Intent(getActivity(), AlarmService.class);
+    reminderService.putExtra("todo", todo);
+    reminderService.setAction(AlarmService.CANCEL);
+    getActivity().startService(reminderService);
   }
 
   public interface ITodoListFragment {
