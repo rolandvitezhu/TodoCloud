@@ -541,6 +541,17 @@ public class DbLoader {
     return response;
   }
 
+  public boolean softDeleteTodo(Todo todoToSoftDelete) {
+    String todoOnlineId = todoToSoftDelete.getTodoOnlineId();
+    open();
+    ContentValues contentValues = new ContentValues();
+    contentValues.put(DbConstants.Todo.KEY_DELETED, 1);
+    contentValues.put(DbConstants.Todo.KEY_DIRTY, 1);
+    boolean response = sqLiteDatabase.update(DbConstants.Todo.DATABASE_TABLE, contentValues,
+        DbConstants.Todo.KEY_TODO_ONLINE_ID + "='" + todoOnlineId + "'", null) > 0;
+    return response;
+  }
+
   // ----------------- List tábla metódusai. ------------------------------------------------- //
 
   /**

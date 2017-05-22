@@ -301,39 +301,25 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     }
   }
 
-  /**
-   * Törli a megadott onlineId-hoz tartozó Todo-t.
-   * @param onlineId A törlendő Todo onlineId-ja.
-   */
   @Override
   public void onSoftDelete(String onlineId, String type) {
-    Todo todo = dbLoader.getTodo(onlineId);
-    dbLoader.softDeleteTodo(onlineId);
+    Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
+    dbLoader.softDeleteTodo(todoToSoftDelete);
     updateTodoAdapter();
-
-    // Emlékeztető törlése.
-    cancelReminderService(todo);
-
+    cancelReminderService(todoToSoftDelete);
     actionMode.finish();
   }
 
-  /**
-   * Törli a megadott Todo-kat.
-   * @param items A megadott Todo-kat tartalmazó ArrayList.
-   */
   @Override
   public void onSoftDelete(ArrayList items, String type) {
     // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
     // variable here and in the arguments also to "itemsToDelete".
-    ArrayList<Todo> todos = items;
-    for (Todo todo:todos) {
-      dbLoader.softDeleteTodo(todo.getTodoOnlineId());
-
-      // Emlékeztető törlése.
-      cancelReminderService(todo);
+    ArrayList<Todo> todosToSoftDelete = items;
+    for (Todo todoToSoftDelete:todosToSoftDelete) {
+      dbLoader.softDeleteTodo(todoToSoftDelete);
+      cancelReminderService(todoToSoftDelete);
     }
     updateTodoAdapter();
-
     actionMode.finish();
   }
 
