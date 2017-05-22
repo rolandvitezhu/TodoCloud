@@ -261,7 +261,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
   public void updateTodoAdapter() {
     if (todoAdapter == null) {
-      todoAdapter = new TodoAdapter(new ArrayList<Todo>(), dbLoader, getActivity());
+      todoAdapter = new TodoAdapter(dbLoader, getActivity());
     }
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
     updateAdapterTask.execute(getArguments());

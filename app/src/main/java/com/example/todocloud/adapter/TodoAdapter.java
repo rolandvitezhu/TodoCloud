@@ -23,12 +23,12 @@ import java.util.List;
 
 public class TodoAdapter extends BaseAdapter {
 
-	private final List<Todo> todos;
+	private List<Todo> todos;
   private DbLoader dbLoader;
   private Context context;
 
-  public TodoAdapter(final ArrayList<Todo> todos, DbLoader dbLoader, Context context) {
-    this.todos = todos;
+  public TodoAdapter(DbLoader dbLoader, Context context) {
+    this.todos = new ArrayList<>();
     this.dbLoader = dbLoader;
     this.context = context;
   }
