@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ListFragment;
 import android.support.v7.view.ActionMode;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -277,45 +278,17 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
   };
 
-	@Override
+  @Override
   public void onCreateTodo(Todo todoToCreate) {
-    // Ha az "Elvégzettek" listán veszünk fel tennivalót, akkor az elvégzett lesz.
-    // noinspection ConstantConditions
-    if (getArguments().getString("selectFromDB") != null &&
-    getArguments().getString("selectFromDB").equals(DbConstants.Todo.KEY_COMPLETED + "=" + 1 +
-        " AND " + DbConstants.Todo.KEY_USER_ONLINE_ID + "='" + dbLoader.getUserOnlineId() + "'")) {
-      todoToCreate.setCompleted(true);
-    }
-    String listOnlineId = getArguments().getString("listOnlineId");
-    // Ha a listOnlineId == null, akkor valamelyik fő lista lett megnyitva, egyébként pedig
-    // valamelyik egyedi lista, e szerint vesszük fel az adatbázisba az új tennivalót.
-    if (listOnlineId == null) {
-      todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
-      todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
-      todoToCreate.setTodoOnlineId(OnlineIdGenerator.generateOnlineId(getActivity(),
-          DbConstants.Todo.DATABASE_TABLE, todoToCreate.get_id(), dbLoader.getApiKey()));
-      dbLoader.updateTodo(todoToCreate);
-    } else {
-      todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
-      todoToCreate.setListOnlineId(listOnlineId);
-      todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
-      todoToCreate.setTodoOnlineId(OnlineIdGenerator.generateOnlineId(getActivity(),
-          DbConstants.Todo.DATABASE_TABLE, todoToCreate.get_id(), dbLoader.getApiKey()));
-      dbLoader.updateTodo(todoToCreate);
-    }
+    createTodoInLocalDatabase(todoToCreate);
     updateTodoAdapter();
-		todoAdapter.notifyDataSetChanged();
 
-    // Emlékeztető élesítése, feltéve hogy lett beállítva és a todo nem elvégzett.
-    if (!todoToCreate.getReminderDateTime().equals("-1") && !todoToCreate.getCompleted()) {
-      Intent service = new Intent(getActivity(), AlarmService.class);
-      service.putExtra("todo", todoToCreate);
-      service.setAction(AlarmService.CREATE);
-      getActivity().startService(service);
+    if (isSetReminder(todoToCreate) && isNotCompleted(todoToCreate)) {
+      setReminderService(todoToCreate);
     }
   }
 
-	/**
+  /**
    * Módosítja a megadott Todo-t.
    * @param todo A megadott Todo.
    */
@@ -327,13 +300,10 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     // Emlékeztető élesítése, feltéve hogy lett beállítva.
     // Egyébként emlékeztető törlése.
-    if (!todo.getReminderDateTime().equals("-1")) {
-      if (!todo.getCompleted() && !todo.getDeleted()) {
+    if (isSetReminder(todo)) {
+      if (isNotCompleted(todo) && !todo.getDeleted()) {
         // Emlékeztető élesítése, ha a Todo nem elvégzett és nem törölt.
-        Intent service = new Intent(getActivity(), AlarmService.class);
-        service.putExtra("todo", todo);
-        service.setAction(AlarmService.CREATE);
-        getActivity().startService(service);
+        setReminderService(todo);
       }
     } else {
       // Emlékeztető törlése.
@@ -384,6 +354,68 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     updateTodoAdapter();
 
     actionMode.finish();
+  }
+
+  private void setReminderService(Todo todo) {
+    Intent reminderService = new Intent(getActivity(), AlarmService.class);
+    reminderService.putExtra("todo", todo);
+    reminderService.setAction(AlarmService.CREATE);
+    getActivity().startService(reminderService);
+  }
+
+  private boolean isNotCompleted(Todo todo) {
+    return !todo.getCompleted();
+  }
+
+  private boolean isSetReminder(Todo todo) {
+    return !todo.getReminderDateTime().equals("-1");
+  }
+
+  private void createTodoInLocalDatabase(Todo todoToCreate) {
+    Bundle arguments = getArguments();
+
+    if (isPredefinedListCompleted(arguments)) {
+      todoToCreate.setCompleted(true);
+    }
+
+    String listOnlineId = arguments.getString("listOnlineId");
+    if (!isPredefinedList(listOnlineId)) {
+      todoToCreate.setListOnlineId(listOnlineId);
+    }
+
+    todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
+    todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
+    String todoOnlineId = OnlineIdGenerator.generateOnlineId(
+        getActivity(),
+        DbConstants.Todo.DATABASE_TABLE,
+        todoToCreate.get_id(),
+        dbLoader.getApiKey()
+    );
+    todoToCreate.setTodoOnlineId(todoOnlineId);
+    dbLoader.updateTodo(todoToCreate);
+  }
+
+  private boolean isPredefinedList(String listOnlineId) {
+    return listOnlineId == null;
+  }
+
+  private boolean isPredefinedListCompleted(Bundle arguments) {
+    String selectFromArguments = arguments.getString("selectFromDB");
+    String selectPredefinedListCompleted =
+        DbConstants.Todo.KEY_COMPLETED +
+            "=" +
+            1 +
+            " AND " +
+            DbConstants.Todo.KEY_USER_ONLINE_ID +
+            "='" +
+            dbLoader.getUserOnlineId() +
+            "'" +
+            " AND " +
+            DbConstants.Todo.KEY_DELETED +
+            "=" +
+            0;
+
+    return selectFromArguments != null && selectFromArguments.equals(selectPredefinedListCompleted);
   }
 
   public interface ITodoListFragment {
