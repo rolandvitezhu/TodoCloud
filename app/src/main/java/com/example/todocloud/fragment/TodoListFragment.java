@@ -30,7 +30,7 @@ import com.example.todocloud.service.AlarmService;
 import java.util.ArrayList;
 
 public class TodoListFragment extends ListFragment implements ITodoCreateFragment,
-    ITodoModifyFragment, ConfirmDeleteDialogFragment.IDeleteFragment {
+    ITodoModifyFragment, ConfirmDeleteDialogFragment.IConfirmDeleteFragment {
 
 	private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
@@ -306,7 +306,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
    * @param onlineId A törlendő Todo onlineId-ja.
    */
   @Override
-  public void onDelete(String onlineId, String type) {
+  public void onSoftDelete(String onlineId, String type) {
     Todo todo = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(onlineId);
     updateTodoAdapter();
@@ -322,7 +322,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
    * @param items A megadott Todo-kat tartalmazó ArrayList.
    */
   @Override
-  public void onDelete(ArrayList items, String type) {
+  public void onSoftDelete(ArrayList items, String type) {
     // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
     // variable here and in the arguments also to "itemsToDelete".
     ArrayList<Todo> todos = items;

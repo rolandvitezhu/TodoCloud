@@ -20,12 +20,12 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   private String type;
   private boolean many;
   private ArrayList items;
-  private IDeleteFragment listener;
+  private IConfirmDeleteFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IDeleteFragment) getTargetFragment();
+    listener = (IConfirmDeleteFragment) getTargetFragment();
   }
 
   @Override
@@ -108,9 +108,9 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
       public void onClick(View v) {
         if (!many) {
           String onlineId = getArguments().getString("onlineId");
-          listener.onDelete(onlineId, type);
+          listener.onSoftDelete(onlineId, type);
         } else {
-          listener.onDelete(items, type);
+          listener.onSoftDelete(items, type);
         }
         dismiss();
       }
@@ -131,12 +131,9 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     return items.size() > 1;
   }
 
-  /**
-   * Interfész, a ConfirmDeleteDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
-   */
-  public interface IDeleteFragment {
-    void onDelete(String onlineId, String type);
-    void onDelete(ArrayList items, String type);
+  public interface IConfirmDeleteFragment {
+    void onSoftDelete(String onlineId, String type);
+    void onSoftDelete(ArrayList items, String type);
   }
 
 }

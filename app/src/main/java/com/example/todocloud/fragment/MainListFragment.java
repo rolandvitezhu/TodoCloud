@@ -58,7 +58,7 @@ public class MainListFragment extends ListFragment implements
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IDeleteFragment, LogoutFragment.ILogoutFragment {
+    ConfirmDeleteDialogFragment.IConfirmDeleteFragment, LogoutFragment.ILogoutFragment {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -1847,7 +1847,7 @@ public class MainListFragment extends ListFragment implements
    * @param type Az objektum típusa.
    */
   @Override
-  public void onDelete(String onlineId, String type) {
+  public void onSoftDelete(String onlineId, String type) {
     if (type != null) {
       switch (type) {
         case "list":
@@ -1875,7 +1875,7 @@ public class MainListFragment extends ListFragment implements
    * @param type A megadott objektumok típusa.
    */
   @Override
-  public void onDelete(ArrayList items, String type) {
+  public void onSoftDelete(ArrayList items, String type) {
     if (type != null) {
       switch (type) {
         case "list":
