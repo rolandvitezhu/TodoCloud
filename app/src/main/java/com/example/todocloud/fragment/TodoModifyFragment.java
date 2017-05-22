@@ -155,7 +155,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
           todo.setDirty(true);
 
           // A Todo frissítése az sqlitedb-ben és a TodoListFragment frissítése.
-          listener.onTodoModified(todo);
+          listener.onModifyTodo(todo);
 
           shouldNavigateBack = true;
           actionBarListener.onBackPressed();
@@ -240,11 +240,8 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
     tvReminderDateTime.setText(reminderDateFormat.format(date));
   }
 
-  /**
-   * Interfész a TodoListFragment-tel való kommunikációra.
-   */
-	public interface ITodoModifyFragment {
-		void onTodoModified(Todo todo);
+  public interface ITodoModifyFragment {
+		void onModifyTodo(Todo todoToModify);
 	}
 
   /**

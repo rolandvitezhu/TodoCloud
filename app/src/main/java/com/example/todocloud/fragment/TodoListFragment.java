@@ -288,27 +288,23 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     }
   }
 
-  /**
-   * Módosítja a megadott Todo-t.
-   * @param todo A megadott Todo.
-   */
-	@Override
-  public void onTodoModified(Todo todo) {
-	  dbLoader.updateTodo(todo);
+  @Override
+  public void onModifyTodo(Todo todoToModify) {
+	  dbLoader.updateTodo(todoToModify);
     updateTodoAdapter();
     todoAdapter.notifyDataSetChanged();
 
     // Emlékeztető élesítése, feltéve hogy lett beállítva.
     // Egyébként emlékeztető törlése.
-    if (isSetReminder(todo)) {
-      if (isNotCompleted(todo) && !todo.getDeleted()) {
+    if (isSetReminder(todoToModify)) {
+      if (isNotCompleted(todoToModify) && !todoToModify.getDeleted()) {
         // Emlékeztető élesítése, ha a Todo nem elvégzett és nem törölt.
-        setReminderService(todo);
+        setReminderService(todoToModify);
       }
     } else {
       // Emlékeztető törlése.
       Intent service = new Intent(getActivity(), AlarmService.class);
-      service.putExtra("todo", todo);
+      service.putExtra("todo", todoToModify);
       service.setAction(AlarmService.CANCEL);
       getActivity().startService(service);
     }
