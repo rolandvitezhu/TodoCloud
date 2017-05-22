@@ -531,7 +531,7 @@ public class DbLoader {
    * @param todoOnlineId A törlendő Todo-hoz tartozó todoOnlineId.
    * @return Siker esetén true-t, egyébként false-t ad vissza.
    */
-  public boolean deleteTodo(String todoOnlineId) {
+  public boolean softDeleteTodo(String todoOnlineId) {
     open();
     ContentValues contentValues = new ContentValues();
     contentValues.put(DbConstants.Todo.KEY_DELETED, 1);
@@ -595,7 +595,7 @@ public class DbLoader {
     // Ha az adott List-hez tartozik Todo, akkor töröljük azt.
     if (!todoOnlineIds.isEmpty()) {
       for (String todoOnlineId : todoOnlineIds) {
-        deleteTodo(todoOnlineId);
+        softDeleteTodo(todoOnlineId);
       }
     }
     deleteList(listOnlineId);
