@@ -27,10 +27,6 @@ public class DbLoader {
     sqLiteDatabase = dbHelper.getWritableDatabase();
   }
 
-  private void close() {
-		dbHelper.close();
-	}
-
   /**
    * Törli, majd újra létrehozza az adatbázist.
    */
