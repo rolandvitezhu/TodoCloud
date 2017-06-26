@@ -27,9 +27,6 @@ public class DbLoader {
     sqLiteDatabase = dbHelper.getWritableDatabase();
   }
 
-  /**
-   * Törli, majd újra létrehozza az adatbázist.
-   */
   public void reCreateDb() {
     open();
     sqLiteDatabase.execSQL(DbConstants.User.DATABASE_DROP);
