@@ -22,18 +22,12 @@ public class DbLoader {
 		this.context = context;
 	}
 
-  /**
-   * Adatbáziskapcsolatot nyit.
-   */
   private void open() {
     dbHelper = new DbHelper(context);
     sqLiteDatabase = dbHelper.getWritableDatabase();
   }
 
-  /**
-   * Adatbáziskapcsolatot zár.
-   */
-	private void close() {
+  private void close() {
 		dbHelper.close();
 	}
 
