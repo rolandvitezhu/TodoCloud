@@ -6,7 +6,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-	public DbHelper(Context context) {
+  private static DbHelper instance;
+
+  public static synchronized DbHelper getInstance(Context context) {
+    if (instance == null) instance = new DbHelper(context.getApplicationContext());
+    return instance;
+  }
+
+	private DbHelper(Context context) {
 	  super(context, DbConstants.DATABASE_NAME, null, DbConstants.DATABASE_VERSION);
   }
 
