@@ -23,7 +23,7 @@ public class DbLoader {
 	}
 
   private void open() {
-    dbHelper = new DbHelper(context);
+    dbHelper = DbHelper.getInstance(context);
     sqLiteDatabase = dbHelper.getWritableDatabase();
   }
 
