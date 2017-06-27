@@ -15,6 +15,10 @@ public class TodoAdapterTest extends RecyclerView.Adapter<TodoAdapterTest.MyView
 
   private List<Todo> todosList;
 
+  public TodoAdapterTest(List<Todo> todosList) {
+    this.todosList = todosList;
+  }
+
   @Override
   public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     View itemView = LayoutInflater.from(parent.getContext())
