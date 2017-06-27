@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.example.todocloud.R;
 import com.example.todocloud.data.Todo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TodoAdapterTest extends RecyclerView.Adapter<TodoAdapterTest.MyViewHolder> {
@@ -17,6 +18,11 @@ public class TodoAdapterTest extends RecyclerView.Adapter<TodoAdapterTest.MyView
 
   public TodoAdapterTest(List<Todo> todosList) {
     this.todosList = todosList;
+  }
+
+  public void updateDataSet(ArrayList<Todo> todosList) {
+    this.todosList.clear();
+    this.todosList.addAll(todosList);
   }
 
   @Override
