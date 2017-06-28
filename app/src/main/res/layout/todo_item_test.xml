@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+              android:background="?android:attr/activatedBackgroundIndicator">
+	
+	<android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/completed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:focusable="false"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        app:buttonTint="@color/navigationViewItemIconTint"/>
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="48dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:gravity="center_vertical">
+
+		<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:layout_marginRight="@dimen/activity_horizontal_margin_double"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin_double">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"
+                android:lines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/dueDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"/>
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/priority"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_priority_high_black_24dp"
+            android:contentDescription="@string/priority_create_todo"
+            android:visibility="invisible"/>
+
+	</RelativeLayout>
+
+</LinearLayout>
