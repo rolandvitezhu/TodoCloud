@@ -69,6 +69,36 @@ public class TodoListFragmentTest extends Fragment implements
     return view;
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+    setActionBarTitle();
+  }
+
+  private void setActionBarTitle() {
+    String title = getArguments().getString("title");
+    if (title != null) {
+      if (!getArguments().getBoolean("isPredefinedList")) { // List
+        listener.setActionBarTitle(title);
+      } else { // PredefinedList
+        switch (title) {
+          case "0":
+            listener.setActionBarTitle(getString(R.string.MainListToday));
+            break;
+          case "1":
+            listener.setActionBarTitle(getString(R.string.MainListNext7Days));
+            break;
+          case "2":
+            listener.setActionBarTitle(getString(R.string.MainListAll));
+            break;
+          case "3":
+            listener.setActionBarTitle(getString(R.string.MainListCompleted));
+            break;
+        }
+      }
+    }
+  }
+
   private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
 
     @Override
