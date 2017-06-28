@@ -271,7 +271,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     @Override
     public void onClick(View v) {
-      if (actionMode != null) actionMode.finish();
+      if (isActionMode()) actionMode.finish();
       listener.openTodoCreateFragment(TodoListFragment.this);
     }
 
