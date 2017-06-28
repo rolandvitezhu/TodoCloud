@@ -17,6 +17,10 @@
     <string name="itemMainListAll">Összes</string>
     <string name="itemMainListCompleted">Elvégzettek</string>
     <string name="itemMainListNext7Days">Következő 7 nap</string>
+    <string name="MainListToday">Mai</string>
+    <string name="MainListAll">Összes</string>
+    <string name="MainListCompleted">Elvégzettek</string>
+    <string name="MainListNext7Days">Következő 7 nap</string>
     <string name="txtNoReminders">Nincs emlékeztető</string>
     <string name="btnTime">Időpont</string>
     <string name="btnDeleteReminder">Törlés</string>
