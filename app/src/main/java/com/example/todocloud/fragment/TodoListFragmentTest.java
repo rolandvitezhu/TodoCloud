@@ -13,12 +13,15 @@ import android.view.ViewGroup;
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.TodoAdapterTest;
 import com.example.todocloud.data.Todo;
+import com.example.todocloud.datastorage.DbLoader;
+import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TodoListFragmentTest extends Fragment {
 
+  private DbLoader dbLoader;
   private List<Todo> todosList = new ArrayList<>();
   private TodoAdapterTest todoAdapterTest;
   private RecyclerView recyclerView;
@@ -28,6 +31,7 @@ public class TodoListFragmentTest extends Fragment {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     todoAdapterTest = new TodoAdapterTest(todosList);
+    dbLoader = new DbLoader(getActivity());
     updateTodoAdapterTest();
   }
 
@@ -46,19 +50,8 @@ public class TodoListFragmentTest extends Fragment {
   }
 
   private void updateTodoAdapterTest() {
-    Todo todo = new Todo(1, "test", "test", "test", "Test1", false,
-        "test", "test", "test", false, 1, false, false);
-    todosList.add(todo);
-
-    todo = new Todo(1, "test", "test", "test", "Test2", false,
-        "test", "test", "test", false, 1, false, false);
-    todosList.add(todo);
-
-    todo = new Todo(1, "test", "test", "test", "Test3", false,
-        "test", "test", "test", false, 1, false, false);
-    todosList.add(todo);
-
-    todoAdapterTest.notifyDataSetChanged();
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapterTest);
+    updateAdapterTask.execute(getArguments());
   }
 
 }
