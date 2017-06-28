@@ -76,5 +76,6 @@
     <string name="itemSettings">Beállítások</string>
     <string name="open_drawer">Megnyitás</string>
     <string name="close_drawer">Bezárás</string>
+    <string name="createTodo">Új tennivaló létrehozása</string>
 
 </resources>
