@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
@@ -62,8 +63,22 @@ public class TodoListFragmentTest extends Fragment implements
     );
     recyclerView.setLayoutManager(layoutManager);
     recyclerView.setAdapter(todoAdapterTest);
+    FloatingActionButton floatingActionButton =
+        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
+    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
     return view;
   }
+
+  private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
+
+    @Override
+    public void onClick(View v) {
+      // Uncomment the below line, if ActionMode is implemented
+      // if (isActionMode()) actionMode.finish();
+      listener.openTodoCreateFragment(TodoListFragmentTest.this);
+    }
+
+  };
 
   private void updateTodoAdapterTest() {
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapterTest);
