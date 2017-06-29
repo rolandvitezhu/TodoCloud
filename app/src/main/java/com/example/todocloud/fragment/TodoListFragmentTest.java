@@ -23,16 +23,17 @@ import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.example.todocloud.helper.OnlineIdGenerator;
+import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.service.AlarmService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TodoListFragmentTest extends Fragment implements
-    TodoCreateFragment.ITodoCreateFragment {
+    TodoCreateFragment.ITodoCreateFragment,
+    TodoModifyFragment.ITodoModifyFragment {
 
   private DbLoader dbLoader;
-  private List<Todo> todosList = new ArrayList<>();
   private TodoAdapterTest todoAdapterTest;
   private RecyclerView recyclerView;
   private ITodoListFragmentTest listener;
@@ -47,7 +48,6 @@ public class TodoListFragmentTest extends Fragment implements
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    todoAdapterTest = new TodoAdapterTest(todosList);
     dbLoader = new DbLoader(getActivity());
     updateTodoAdapterTest();
   }
@@ -63,10 +63,45 @@ public class TodoListFragmentTest extends Fragment implements
     );
     recyclerView.setLayoutManager(layoutManager);
     recyclerView.setAdapter(todoAdapterTest);
+    recyclerView.addOnItemTouchListener(new RecyclerViewOnItemTouchListener(
+        getContext().getApplicationContext(),
+        recyclerView,
+        new RecyclerViewOnItemTouchListener.ClickListener() {
+
+          @Override
+          public void onClick(View childView, int childViewAdapterPosition) {
+            openTodoModifyFragment(childViewAdapterPosition);
+            // Uncomment the below code, if ActionMode is implemented and also delete the above
+//            if (!isActionMode()) {
+//              openTodoModifyFragment(position);
+//            } else {
+//              actionMode.invalidate();
+//
+//              if (isNoSelectedItems()) {
+//                actionMode.finish();
+//              }
+//              // The selection of TodoListItems happening automatically, because the ActionMode is active
+//              // and ChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE
+//            }
+          }
+
+          @Override
+          public void onLongClick(View childView, int childViewAdapterPosition) {
+
+          }
+
+        }
+        )
+    );
     FloatingActionButton floatingActionButton =
         (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
     floatingActionButton.setOnClickListener(floatingActionButtonClicked);
     return view;
+  }
+
+  private void openTodoModifyFragment(int childViewAdapterPosition) {
+    Todo clickedTodo = todoAdapterTest.getItem(childViewAdapterPosition);
+    listener.onTodoClicked(clickedTodo, this);
   }
 
   @Override
@@ -111,6 +146,9 @@ public class TodoListFragmentTest extends Fragment implements
   };
 
   private void updateTodoAdapterTest() {
+    if (todoAdapterTest == null) {
+      todoAdapterTest = new TodoAdapterTest();
+    }
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapterTest);
     updateAdapterTask.execute(getArguments());
   }
@@ -202,6 +240,31 @@ public class TodoListFragmentTest extends Fragment implements
     Intent reminderService = new Intent(getActivity(), AlarmService.class);
     reminderService.putExtra("todo", todo);
     reminderService.setAction(AlarmService.CREATE);
+    getActivity().startService(reminderService);
+  }
+
+  @Override
+  public void onModifyTodo(Todo todoToModify) {
+    dbLoader.updateTodo(todoToModify);
+    updateTodoAdapterTest();
+
+    if (isSetReminder(todoToModify)) {
+      if (isNotCompleted(todoToModify) && isNotDeleted(todoToModify)) {
+        createReminderService(todoToModify);
+      }
+    } else {
+      cancelReminderService(todoToModify);
+    }
+  }
+
+  private boolean isNotDeleted(Todo todo) {
+    return !todo.getDeleted();
+  }
+
+  private void cancelReminderService(Todo todo) {
+    Intent reminderService = new Intent(getActivity(), AlarmService.class);
+    reminderService.putExtra("todo", todo);
+    reminderService.setAction(AlarmService.CANCEL);
     getActivity().startService(reminderService);
   }
 
