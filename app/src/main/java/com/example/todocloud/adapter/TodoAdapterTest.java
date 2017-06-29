@@ -18,8 +18,8 @@ public class TodoAdapterTest extends RecyclerView.Adapter<TodoAdapterTest.MyView
 
   private List<Todo> todosList;
 
-  public TodoAdapterTest(List<Todo> todosList) {
-    this.todosList = todosList;
+  public TodoAdapterTest() {
+    todosList = new ArrayList<>();
   }
 
   public void updateDataSet(ArrayList<Todo> todosList) {
@@ -47,6 +47,10 @@ public class TodoAdapterTest extends RecyclerView.Adapter<TodoAdapterTest.MyView
   @Override
   public int getItemCount() {
     return todosList.size();
+  }
+
+  public Todo getItem(int position) {
+    return todosList.get(position);
   }
 
   public class MyViewHolder extends RecyclerView.ViewHolder {
