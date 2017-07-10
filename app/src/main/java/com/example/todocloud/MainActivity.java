@@ -467,7 +467,15 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
   @Override
   public void openTodoCreateFragment(TodoListFragmentTest targetFragment) {
-    // TODO
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+    TodoCreateFragment todoCreateFragment = new TodoCreateFragment();
+    todoCreateFragment.setTargetFragment(targetFragment, 0);
+
+    fragmentTransaction.replace(R.id.FragmentContainer, todoCreateFragment);
+    fragmentTransaction.addToBackStack(null);
+    fragmentTransaction.commit();
   }
 
   /**
