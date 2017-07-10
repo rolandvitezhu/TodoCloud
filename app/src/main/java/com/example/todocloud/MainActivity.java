@@ -30,6 +30,7 @@ import com.example.todocloud.fragment.RegisterFragment;
 import com.example.todocloud.fragment.SettingsFragment;
 import com.example.todocloud.fragment.TodoCreateFragment;
 import com.example.todocloud.fragment.TodoListFragment;
+import com.example.todocloud.fragment.TodoListFragmentTest;
 import com.example.todocloud.fragment.TodoModifyFragment;
 import com.example.todocloud.helper.SessionManager;
 import com.example.todocloud.service.AlarmService;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements MainListFragment.IMainListFragment,
     LoginFragment.ILoginFragment, RegisterFragment.IRegisterFragment,
     FragmentManager.OnBackStackChangedListener, TodoListFragment.ITodoListFragment,
+    TodoListFragmentTest.ITodoListFragmentTest,
     TodoModifyFragment.ITodoModifyFragmentActionBar,
     TodoCreateFragment.ITodoCreateFragmentActionBar, SettingsFragment.ISettingsFragment,
     LogoutFragment.ILogoutFragment {
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
           fragmentTransaction.commit();
 
           // Az "Összes" listát nyitjuk meg.
-          TodoListFragment todoListFragment = new TodoListFragment();
+          TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
           Bundle args = new Bundle();
           args.putString("selectFromDB", null);
           todoListFragment.setArguments(args);
@@ -273,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    */
   @Override
   public void onItemSelected(PredefinedListItem predefinedListItem) {
-    TodoListFragment todoListFragment = new TodoListFragment();
+    TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
     Bundle args = new Bundle();
     args.putString("selectFromDB", predefinedListItem.getSelectFromDB());
     args.putString("title", predefinedListItem.getTitle());
@@ -293,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    */
   @Override
   public void onItemSelected(List list) {
-    TodoListFragment todoListFragment = new TodoListFragment();
+    TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
     Bundle args = new Bundle();
     args.putString("listOnlineId", list.getListOnlineId());
     args.putString("title", list.getTitle());
@@ -439,6 +441,33 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   @Override
   public void startActionMode(ActionMode.Callback callback) {
     startSupportActionMode(callback);
+  }
+
+  @Override
+  public void onTodoClicked(Todo clickedTodo, TodoListFragmentTest targetFragment) {
+    openTodoModifyFragment(clickedTodo, targetFragment);
+  }
+
+  private void openTodoModifyFragment(Todo clickedTodo, TodoListFragmentTest targetFragment) {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+    TodoModifyFragment todoModifyFragment = new TodoModifyFragment();
+    todoModifyFragment.setTargetFragment(targetFragment, 0);
+
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("todo", clickedTodo);
+    todoModifyFragment.setArguments(arguments);
+
+    fragmentTransaction.replace(R.id.FragmentContainer, todoModifyFragment,
+        "TodoModifyFragment");
+    fragmentTransaction.addToBackStack(null);
+    fragmentTransaction.commit();
+  }
+
+  @Override
+  public void openTodoCreateFragment(TodoListFragmentTest targetFragment) {
+    // TODO
   }
 
   /**
