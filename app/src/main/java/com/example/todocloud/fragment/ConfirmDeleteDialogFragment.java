@@ -20,12 +20,12 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   private String type;
   private boolean many;
   private ArrayList items;
-  private IConfirmDeleteFragment listener;
+  private IConfirmDeleteDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IConfirmDeleteFragment) getTargetFragment();
+    listener = (IConfirmDeleteDialogFragment) getTargetFragment();
   }
 
   @Override
@@ -131,7 +131,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     return items.size() > 1;
   }
 
-  public interface IConfirmDeleteFragment {
+  public interface IConfirmDeleteDialogFragment {
     void onSoftDelete(String onlineId, String type);
     void onSoftDelete(ArrayList items, String type);
   }

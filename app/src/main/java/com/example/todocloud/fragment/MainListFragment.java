@@ -58,7 +58,7 @@ public class MainListFragment extends ListFragment implements
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IConfirmDeleteFragment, LogoutFragment.ILogoutFragment {
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 

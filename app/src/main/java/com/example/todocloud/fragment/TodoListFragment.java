@@ -30,7 +30,7 @@ import com.example.todocloud.service.AlarmService;
 import java.util.ArrayList;
 
 public class TodoListFragment extends ListFragment implements ITodoCreateFragment,
-    ITodoModifyFragment, ConfirmDeleteDialogFragment.IConfirmDeleteFragment {
+    ITodoModifyFragment, ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
 	private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
