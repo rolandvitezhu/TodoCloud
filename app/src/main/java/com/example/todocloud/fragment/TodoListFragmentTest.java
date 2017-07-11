@@ -27,16 +27,17 @@ import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.service.AlarmService;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class TodoListFragmentTest extends Fragment implements
     TodoCreateFragment.ITodoCreateFragment,
-    TodoModifyFragment.ITodoModifyFragment {
+    TodoModifyFragment.ITodoModifyFragment,
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
   private DbLoader dbLoader;
   private TodoAdapterTest todoAdapterTest;
   private RecyclerView recyclerView;
   private ITodoListFragmentTest listener;
+  private ActionMode actionMode;
 
   @Override
   public void onAttach(Context context) {
@@ -70,24 +71,26 @@ public class TodoListFragmentTest extends Fragment implements
 
           @Override
           public void onClick(View childView, int childViewAdapterPosition) {
-            openTodoModifyFragment(childViewAdapterPosition);
-            // Uncomment the below code, if ActionMode is implemented and also delete the above
-//            if (!isActionMode()) {
-//              openTodoModifyFragment(position);
-//            } else {
-//              actionMode.invalidate();
-//
-//              if (isNoSelectedItems()) {
-//                actionMode.finish();
-//              }
-//              // The selection of TodoListItems happening automatically, because the ActionMode is active
-//              // and ChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE
-//            }
+            if (!isActionMode()) {
+              openTodoModifyFragment(childViewAdapterPosition);
+            } else {
+              todoAdapterTest.toggleSelection(childViewAdapterPosition);
+
+              if (areSelectedItems()) {
+                actionMode.invalidate();
+              } else {
+                actionMode.finish();
+              }
+            }
           }
 
           @Override
           public void onLongClick(View childView, int childViewAdapterPosition) {
-
+            if (!isActionMode()) {
+              listener.startActionMode(callback);
+              todoAdapterTest.toggleSelection(childViewAdapterPosition);
+              actionMode.invalidate();
+            }
           }
 
         }
@@ -99,8 +102,16 @@ public class TodoListFragmentTest extends Fragment implements
     return view;
   }
 
+  private boolean areSelectedItems() {
+    return todoAdapterTest.getSelectedItemCount() > 0;
+  }
+
+  private boolean isActionMode() {
+    return actionMode != null;
+  }
+
   private void openTodoModifyFragment(int childViewAdapterPosition) {
-    Todo clickedTodo = todoAdapterTest.getItem(childViewAdapterPosition);
+    Todo clickedTodo = todoAdapterTest.getTodo(childViewAdapterPosition);
     listener.onTodoClicked(clickedTodo, this);
   }
 
@@ -134,12 +145,73 @@ public class TodoListFragmentTest extends Fragment implements
     }
   }
 
+  private ActionMode.Callback callback = new ActionMode.Callback() {
+
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+      actionMode = mode;
+      mode.getMenuInflater().inflate(R.menu.todo, menu);
+
+      return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+      String title = prepareTitle();
+      actionMode.setTitle(title);
+
+      return true;
+    }
+
+
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+      int actionItemId = item.getItemId();
+
+      switch (actionItemId) {
+        case R.id.itemDelete:
+          confirmDeletion();
+          break;
+      }
+
+      return true;
+    }
+
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+      todoAdapterTest.clearSelection();
+      actionMode = null;
+    }
+
+  };
+
+  private String prepareTitle() {
+    int selectedItemCount = todoAdapterTest.getSelectedItemCount();
+    String title = selectedItemCount + " " + getString(R.string.selected);
+    return title;
+  }
+
+  private void confirmDeletion() {
+    ArrayList<Todo> selectedTodos = todoAdapterTest.getSelectedTodos();
+    openConfirmDeleteDialogFragment(selectedTodos);
+  }
+
+  private void openConfirmDeleteDialogFragment(ArrayList<Todo> todosToDelete) {
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "todo");
+    arguments.putParcelableArrayList("items", todosToDelete);
+    confirmDeleteDialogFragment.setArguments(arguments);
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
+  }
+
   private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
 
     @Override
     public void onClick(View v) {
-      // Uncomment the below line, if ActionMode is implemented
-      // if (isActionMode()) actionMode.finish();
+      if (isActionMode()) actionMode.finish();
       listener.openTodoCreateFragment(TodoListFragmentTest.this);
     }
 
@@ -266,6 +338,28 @@ public class TodoListFragmentTest extends Fragment implements
     reminderService.putExtra("todo", todo);
     reminderService.setAction(AlarmService.CANCEL);
     getActivity().startService(reminderService);
+  }
+
+  @Override
+  public void onSoftDelete(String onlineId, String type) {
+    Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
+    dbLoader.softDeleteTodo(todoToSoftDelete);
+    updateTodoAdapterTest();
+    cancelReminderService(todoToSoftDelete);
+    actionMode.finish();
+  }
+
+  @Override
+  public void onSoftDelete(ArrayList items, String type) {
+    // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
+    // variable here and in the arguments also to "itemsToDelete".
+    ArrayList<Todo> todosToSoftDelete = items;
+    for (Todo todoToSoftDelete:todosToSoftDelete) {
+      dbLoader.softDeleteTodo(todoToSoftDelete);
+      cancelReminderService(todoToSoftDelete);
+    }
+    updateTodoAdapterTest();
+    actionMode.finish();
   }
 
   public interface ITodoListFragmentTest {
