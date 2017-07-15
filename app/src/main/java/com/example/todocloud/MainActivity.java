@@ -30,7 +30,6 @@ import com.example.todocloud.fragment.RegisterFragment;
 import com.example.todocloud.fragment.SettingsFragment;
 import com.example.todocloud.fragment.TodoCreateFragment;
 import com.example.todocloud.fragment.TodoListFragment;
-import com.example.todocloud.fragment.TodoListFragmentTest;
 import com.example.todocloud.fragment.TodoModifyFragment;
 import com.example.todocloud.helper.SessionManager;
 import com.example.todocloud.service.AlarmService;
@@ -39,8 +38,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements MainListFragment.IMainListFragment,
     LoginFragment.ILoginFragment, RegisterFragment.IRegisterFragment,
-    FragmentManager.OnBackStackChangedListener, TodoListFragment.ITodoListFragment,
-    TodoListFragmentTest.ITodoListFragmentTest,
+    FragmentManager.OnBackStackChangedListener,
+    TodoListFragment.ITodoListFragment,
     TodoModifyFragment.ITodoModifyFragmentActionBar,
     TodoCreateFragment.ITodoCreateFragmentActionBar, SettingsFragment.ISettingsFragment,
     LogoutFragment.ILogoutFragment {
@@ -50,8 +49,8 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   private DrawerLayout drawerLayout;
 
   @Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
           fragmentTransaction.commit();
 
           // Az "Összes" listát nyitjuk meg.
-          TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
+          TodoListFragment todoListFragment = new TodoListFragment();
           Bundle args = new Bundle();
           args.putString("selectFromDB", null);
           todoListFragment.setArguments(args);
@@ -130,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
       getSupportFragmentManager().addOnBackStackChangedListener(this);
       shouldDisplayHomeUp();
     }
-	}
+  }
 
   /**
    * Megjeleníti az Action Bar-on vissza navigáló gombot, feltéve hogy szükséges (van hová vissza
@@ -275,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    */
   @Override
   public void onItemSelected(PredefinedListItem predefinedListItem) {
-    TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
+    TodoListFragment todoListFragment = new TodoListFragment();
     Bundle args = new Bundle();
     args.putString("selectFromDB", predefinedListItem.getSelectFromDB());
     args.putString("title", predefinedListItem.getTitle());
@@ -295,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    */
   @Override
   public void onItemSelected(List list) {
-    TodoListFragmentTest todoListFragment = new TodoListFragmentTest();
+    TodoListFragment todoListFragment = new TodoListFragment();
     Bundle args = new Bundle();
     args.putString("listOnlineId", list.getListOnlineId());
     args.putString("title", list.getTitle());
@@ -363,41 +362,6 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   /**
-   * A megadott Todo megnyitása/módosítása a TodoModifyFragment-en.
-   * @param clickedTodo A megadott Todo.
-   */
-  @Override
-  public void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment) {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-    TodoModifyFragment todoModifyFragment = new TodoModifyFragment();
-    todoModifyFragment.setTargetFragment(targetFragment, 0);
-
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("todo", clickedTodo);
-    todoModifyFragment.setArguments(bundle);
-
-    fragmentTransaction.replace(R.id.FragmentContainer, todoModifyFragment,
-        "TodoModifyFragment");
-    fragmentTransaction.addToBackStack(null);
-    fragmentTransaction.commit();
-  }
-
-  @Override
-  public void openTodoCreateFragment(TodoListFragment targetFragment) {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-    TodoCreateFragment todoCreateFragment = new TodoCreateFragment();
-    todoCreateFragment.setTargetFragment(targetFragment, 0);
-
-    fragmentTransaction.replace(R.id.FragmentContainer, todoCreateFragment);
-    fragmentTransaction.addToBackStack(null);
-    fragmentTransaction.commit();
-  }
-
-  /**
    * Megnyitja a MainListFragment-et.
    */
   @Override
@@ -444,11 +408,11 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void onTodoClicked(Todo clickedTodo, TodoListFragmentTest targetFragment) {
+  public void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment) {
     openTodoModifyFragment(clickedTodo, targetFragment);
   }
 
-  private void openTodoModifyFragment(Todo clickedTodo, TodoListFragmentTest targetFragment) {
+  private void openTodoModifyFragment(Todo clickedTodo, TodoListFragment targetFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -466,7 +430,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void openTodoCreateFragment(TodoListFragmentTest targetFragment) {
+  public void openTodoCreateFragment(TodoListFragment targetFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 

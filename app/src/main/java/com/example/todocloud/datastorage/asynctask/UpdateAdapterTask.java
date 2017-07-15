@@ -7,7 +7,6 @@ import com.example.todocloud.adapter.CategoryAdapter;
 import com.example.todocloud.adapter.ListAdapter;
 import com.example.todocloud.adapter.PredefinedListAdapter;
 import com.example.todocloud.adapter.TodoAdapter;
-import com.example.todocloud.adapter.TodoAdapterTest;
 import com.example.todocloud.data.Category;
 import com.example.todocloud.data.PredefinedListItem;
 import com.example.todocloud.data.Todo;
@@ -39,9 +38,7 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
   @Override
   protected Void doInBackground(Bundle... params) {
     // Az adapter típusának megfelelő műveleteket hajtjuk végre.
-    if (adapter instanceof TodoAdapterTest) {
-      updateTodoAdapterTest(params);
-    } else if (adapter instanceof TodoAdapter) {
+    if (adapter instanceof TodoAdapter) {
       updateTodoAdapter(params);
     } else if (adapter instanceof PredefinedListAdapter) {
       updatePredefinedListAdapter();
@@ -57,11 +54,8 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
   protected void onPostExecute(Void aVoid) {
     super.onPostExecute(aVoid);
     // Az adapter típusának megfelelő műveleteket hajtjuk végre.
-    if (adapter instanceof TodoAdapterTest) {
-      ((TodoAdapterTest) adapter).updateDataSet(todos);
-      ((TodoAdapterTest) adapter).notifyDataSetChanged();
-    } else if (adapter instanceof TodoAdapter) {
-      ((TodoAdapter) adapter).update(todos);
+    if (adapter instanceof TodoAdapter) {
+      ((TodoAdapter) adapter).updateDataSet(todos);
       ((TodoAdapter) adapter).notifyDataSetChanged();
     } else if (adapter instanceof PredefinedListAdapter) {
       ((PredefinedListAdapter) adapter).notifyDataSetChanged();
@@ -71,20 +65,6 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
     } else if (adapter instanceof ListAdapter) {
       ((ListAdapter) adapter).update(lists);
       ((ListAdapter) adapter).notifyDataSetChanged();
-    }
-  }
-
-  /**
-   * Frissíti a TodoAdapterTest-et.
-   * @param params Paramétertől függően adott List Todo-it kérjük le, vagy az összes todo-t.
-   */
-  private void updateTodoAdapterTest(Bundle... params) {
-    // Ha nem kapott listOnlineId-t, akkor az előre definiált lista elemein történt a kattintás, a
-    // szerint kell feltölteni az ArrayList-et Todo-kkal.
-    if (params[0].get("listOnlineId") == null) {
-      todos = dbLoader.getTodos((String) params[0].get("selectFromDB"));
-    } else {
-      todos = dbLoader.getTodosByListOnlineId(params[0].getString("listOnlineId"));
     }
   }
 
