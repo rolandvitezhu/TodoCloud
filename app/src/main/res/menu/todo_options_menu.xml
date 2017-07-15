@@ -4,8 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/itemCreateTodo"
-        android:title="@string/itemCreateTodo"
+        android:id="@+id/createTodo"
+        android:title="@string/createTodo"
         android:orderInCategory="0"
         android:icon="@drawable/ic_add_white_24dp"
         app:showAsAction="ifRoom"/>

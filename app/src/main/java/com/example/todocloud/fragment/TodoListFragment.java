@@ -3,37 +3,40 @@ package com.example.todocloud.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.view.ActionMode;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.TodoAdapter;
+import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
-import com.example.todocloud.fragment.TodoCreateFragment.ITodoCreateFragment;
-import com.example.todocloud.fragment.TodoModifyFragment.ITodoModifyFragment;
 import com.example.todocloud.helper.OnlineIdGenerator;
+import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.service.AlarmService;
 
 import java.util.ArrayList;
 
-public class TodoListFragment extends ListFragment implements ITodoCreateFragment,
-    ITodoModifyFragment, ConfirmDeleteDialogFragment.IConfirmDeleteFragment {
+public class TodoListFragment extends Fragment implements
+    TodoCreateFragment.ITodoCreateFragment,
+    TodoModifyFragment.ITodoModifyFragment,
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
-	private DbLoader dbLoader;
+  private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
+  private RecyclerView recyclerView;
   private ITodoListFragment listener;
   private ActionMode actionMode;
 
@@ -44,50 +47,79 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
-	  super.onCreate(savedInstanceState);
-	  setHasOptionsMenu(true);
-	  dbLoader = new DbLoader(getActivity());
-    updateTodoAdapter();
-		setListAdapter(todoAdapter);
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
+    dbLoader = new DbLoader(getActivity());
+    updateTodoAdapterTest();
   }
 
+  @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.todo_list, container, false);
-    FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
-    fab.setOnClickListener(fabClicked);
+    recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+    RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
+        getContext().getApplicationContext()
+    );
+    recyclerView.setLayoutManager(layoutManager);
+    recyclerView.setAdapter(todoAdapter);
+    recyclerView.addOnItemTouchListener(new RecyclerViewOnItemTouchListener(
+        getContext().getApplicationContext(),
+        recyclerView,
+        new RecyclerViewOnItemTouchListener.ClickListener() {
+
+          @Override
+          public void onClick(View childView, int childViewAdapterPosition) {
+            if (!isActionMode()) {
+              openTodoModifyFragment(childViewAdapterPosition);
+            } else {
+              todoAdapter.toggleSelection(childViewAdapterPosition);
+
+              if (areSelectedItems()) {
+                actionMode.invalidate();
+              } else {
+                actionMode.finish();
+              }
+            }
+          }
+
+          @Override
+          public void onLongClick(View childView, int childViewAdapterPosition) {
+            if (!isActionMode()) {
+              listener.startActionMode(callback);
+              todoAdapter.toggleSelection(childViewAdapterPosition);
+              actionMode.invalidate();
+            }
+          }
+
+        }
+        )
+    );
+    FloatingActionButton floatingActionButton =
+        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
+    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
     return view;
   }
 
-  @Override
-  public void onStart() {
-	  super.onStart();
-	  getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+  private boolean areSelectedItems() {
+    return todoAdapter.getSelectedItemCount() > 0;
+  }
 
-      @Override
-      public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        if (!isActionMode()) {
-          listener.startActionMode(callback);
-          getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          getListView().setItemChecked(position, true);
-          actionMode.invalidate();
-        }
-        return true;
-      }
+  private boolean isActionMode() {
+    return actionMode != null;
+  }
 
-    });
+  private void openTodoModifyFragment(int childViewAdapterPosition) {
+    Todo clickedTodo = todoAdapter.getTodo(childViewAdapterPosition);
+    listener.onTodoClicked(clickedTodo, this);
   }
 
   @Override
   public void onResume() {
     super.onResume();
     setActionBarTitle();
-  }
-
-  private boolean isActionMode() {
-    return actionMode != null;
   }
 
   private void setActionBarTitle() {
@@ -98,16 +130,16 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
       } else { // PredefinedList
         switch (title) {
           case "0":
-            listener.setActionBarTitle(getString(R.string.itemMainListToday));
+            listener.setActionBarTitle(getString(R.string.MainListToday));
             break;
           case "1":
-            listener.setActionBarTitle(getString(R.string.itemMainListNext7Days));
+            listener.setActionBarTitle(getString(R.string.MainListNext7Days));
             break;
           case "2":
-            listener.setActionBarTitle(getString(R.string.itemMainListAll));
+            listener.setActionBarTitle(getString(R.string.MainListAll));
             break;
           case "3":
-            listener.setActionBarTitle(getString(R.string.itemMainListCompleted));
+            listener.setActionBarTitle(getString(R.string.MainListCompleted));
             break;
         }
       }
@@ -118,24 +150,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-      // TODO: Szüntesd meg az actionModeEnabled változó használatát a TodoListFragment-ben,
-      // alkalmazz helyette egy új objektumot, amely tárolja statikus változóban az ActionMode
-      // objektumot és legyen képes azt üressé tenni, illetve lekérdezni, hogy üres-e az. Szüntesd
-      // meg a TodoListFragment osztály szintű actionMode változóját, mivel arra sincs már szükség.
-
-      // Az alábbi 3 utasítást cserélni szükséges:
-      // AppController.setActionModeEnabled(false)
-      // AppController.setActionModeEnabled(true)
-      // AppController.isActionModeEnabled()
-
-      // Ezt követően teszteld a TodoListFragment-et az ActionMode-ra vonatkozóan.
-      // Ha a teszt rendben zárul, tedd ezt a MainListFragment-tel is, majd ha a teszt ott is
-      // sikerrel zárul, akkor töröld az AppController osztály actionMode változóját a hozzá
-      // tartozó metódusokkal együtt.
-
-      // Először teszteljük kizárólag az új objektumot Log üzenetek segítségével, ne használjuk
-      // azt élesben.
-      actionMode = mode;
+      setActionMode(mode);
       mode.getMenuInflater().inflate(R.menu.todo, menu);
 
       return true;
@@ -166,44 +181,26 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-      deselectItems();
-      actionMode = null;
-      getListView().setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+      todoAdapter.clearSelection();
+      setActionMode(null);
     }
 
   };
 
-  private void deselectItems() {
-    int itemCount = getListAdapter().getCount();
-    for (int i = 0; i < itemCount; i++) {
-      getListView().setItemChecked(i, false);
-    }
+  private void setActionMode(ActionMode actionMode) {
+    this.actionMode = actionMode;
+    AppController.setActionMode(actionMode);
   }
 
   private String prepareTitle() {
-    int selectedItemCount = getListView().getCheckedItemCount();
+    int selectedItemCount = todoAdapter.getSelectedItemCount();
     String title = selectedItemCount + " " + getString(R.string.selected);
     return title;
   }
 
   private void confirmDeletion() {
-    ArrayList<Todo> selectedTodos = getSelectedTodos();
+    ArrayList<Todo> selectedTodos = todoAdapter.getSelectedTodos();
     openConfirmDeleteDialogFragment(selectedTodos);
-  }
-
-  private ArrayList<Todo> getSelectedTodos() {
-    int itemCount = getListAdapter().getCount();
-    ListView todoList = getListView();
-    ArrayList<Todo> selectedTodos = new ArrayList<>();
-
-    for (int i = 0; i < itemCount; i++) {
-      if (todoList.isItemChecked(i)) {
-        Todo todo = (Todo) todoList.getItemAtPosition(i);
-        selectedTodos.add(todo);
-      }
-    }
-
-    return selectedTodos;
   }
 
   private void openConfirmDeleteDialogFragment(ArrayList<Todo> todosToDelete) {
@@ -216,58 +213,7 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-	@Override
-  public void onListItemClick(ListView l, View v, int position, long id) {
-	  super.onListItemClick(l, v, position, id);
-    if (!isActionMode()) {
-      openTodoModifyFragment(position);
-    } else {
-      actionMode.invalidate();
-
-      if (isNoSelectedItems()) {
-        actionMode.finish();
-      }
-      // The selection of TodoListItems happening automatically, because the ActionMode is active
-      // and ChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE
-    }
-  }
-
-  private boolean isNoSelectedItems() {
-    return getListView().getCheckedItemCount() == 0;
-  }
-
-  private void openTodoModifyFragment(int position) {
-    Todo clickedTodo = todoAdapter.getItem(position);
-    listener.onTodoClicked(clickedTodo, this);
-  }
-
-  @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-	  inflater.inflate(R.menu.todo_options_menu, menu);
-  }
-
-	@Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    int optionsItemId = item.getItemId();
-
-    switch (optionsItemId) {
-      case R.id.itemCreateTodo:
-        listener.openTodoCreateFragment(this);
-        break;
-    }
-
-	  return super.onOptionsItemSelected(item);
-  }
-
-  public void updateTodoAdapter() {
-    if (todoAdapter == null) {
-      todoAdapter = new TodoAdapter(dbLoader, getActivity());
-    }
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
-    updateAdapterTask.execute(getArguments());
-  }
-
-  private View.OnClickListener fabClicked = new View.OnClickListener() {
+  private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
 
     @Override
     public void onClick(View v) {
@@ -277,65 +223,40 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
 
   };
 
+  private void updateTodoAdapterTest() {
+    if (todoAdapter == null) {
+      todoAdapter = new TodoAdapter(dbLoader);
+    }
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
+    updateAdapterTask.execute(getArguments());
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.todo_options_menu, menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    int optionsItemId = item.getItemId();
+
+    switch (optionsItemId) {
+      case R.id.createTodo:
+        listener.openTodoCreateFragment(this);
+        break;
+    }
+
+    return super.onOptionsItemSelected(item);
+  }
+
   @Override
   public void onCreateTodo(Todo todoToCreate) {
     createTodoInLocalDatabase(todoToCreate);
-    updateTodoAdapter();
+    updateTodoAdapterTest();
 
     if (isSetReminder(todoToCreate) && isNotCompleted(todoToCreate)) {
       createReminderService(todoToCreate);
     }
-  }
-
-  @Override
-  public void onModifyTodo(Todo todoToModify) {
-	  dbLoader.updateTodo(todoToModify);
-    updateTodoAdapter();
-
-    if (isSetReminder(todoToModify)) {
-      if (isNotCompleted(todoToModify) && isNotDeleted(todoToModify)) {
-        createReminderService(todoToModify);
-      }
-    } else {
-      cancelReminderService(todoToModify);
-    }
-  }
-
-  @Override
-  public void onSoftDelete(String onlineId, String type) {
-    Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
-    dbLoader.softDeleteTodo(todoToSoftDelete);
-    updateTodoAdapter();
-    cancelReminderService(todoToSoftDelete);
-    actionMode.finish();
-  }
-
-  @Override
-  public void onSoftDelete(ArrayList items, String type) {
-    // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
-    // variable here and in the arguments also to "itemsToDelete".
-    ArrayList<Todo> todosToSoftDelete = items;
-    for (Todo todoToSoftDelete:todosToSoftDelete) {
-      dbLoader.softDeleteTodo(todoToSoftDelete);
-      cancelReminderService(todoToSoftDelete);
-    }
-    updateTodoAdapter();
-    actionMode.finish();
-  }
-
-  private void createReminderService(Todo todo) {
-    Intent reminderService = new Intent(getActivity(), AlarmService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(AlarmService.CREATE);
-    getActivity().startService(reminderService);
-  }
-
-  private boolean isNotCompleted(Todo todo) {
-    return !todo.getCompleted();
-  }
-
-  private boolean isSetReminder(Todo todo) {
-    return !todo.getReminderDateTime().equals("-1");
   }
 
   private void createTodoInLocalDatabase(Todo todoToCreate) {
@@ -362,10 +283,6 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     dbLoader.updateTodo(todoToCreate);
   }
 
-  private boolean isPredefinedList(String listOnlineId) {
-    return listOnlineId == null;
-  }
-
   private boolean isPredefinedListCompleted(Bundle arguments) {
     String selectFromArguments = arguments.getString("selectFromDB");
     String selectPredefinedListCompleted =
@@ -385,19 +302,80 @@ public class TodoListFragment extends ListFragment implements ITodoCreateFragmen
     return selectFromArguments != null && selectFromArguments.equals(selectPredefinedListCompleted);
   }
 
+  private boolean isPredefinedList(String listOnlineId) {
+    return listOnlineId == null;
+  }
+
+  private boolean isSetReminder(Todo todo) {
+    return !todo.getReminderDateTime().equals("-1");
+  }
+
+  private boolean isNotCompleted(Todo todo) {
+    return !todo.getCompleted();
+  }
+
+  private void createReminderService(Todo todo) {
+    Context applicationContext = getActivity().getApplicationContext();
+    Intent reminderService = new Intent(applicationContext, AlarmService.class);
+    reminderService.putExtra("todo", todo);
+    reminderService.setAction(AlarmService.CREATE);
+    applicationContext.startService(reminderService);
+  }
+
+  @Override
+  public void onModifyTodo(Todo todoToModify) {
+    dbLoader.updateTodo(todoToModify);
+    updateTodoAdapterTest();
+
+    if (isSetReminder(todoToModify)) {
+      if (shouldCreateReminderService(todoToModify)) {
+        createReminderService(todoToModify);
+      }
+    } else {
+      cancelReminderService(todoToModify);
+    }
+  }
+
+  private boolean shouldCreateReminderService(Todo todoToModify) {
+    return isNotCompleted(todoToModify) && isNotDeleted(todoToModify);
+  }
+
   private boolean isNotDeleted(Todo todo) {
     return !todo.getDeleted();
   }
 
   private void cancelReminderService(Todo todo) {
-    Intent reminderService = new Intent(getActivity(), AlarmService.class);
+    Context applicationContext = getActivity().getApplicationContext();
+    Intent reminderService = new Intent(applicationContext, AlarmService.class);
     reminderService.putExtra("todo", todo);
     reminderService.setAction(AlarmService.CANCEL);
-    getActivity().startService(reminderService);
+    applicationContext.startService(reminderService);
+  }
+
+  @Override
+  public void onSoftDelete(String onlineId, String type) {
+    Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
+    dbLoader.softDeleteTodo(todoToSoftDelete);
+    updateTodoAdapterTest();
+    cancelReminderService(todoToSoftDelete);
+    actionMode.finish();
+  }
+
+  @Override
+  public void onSoftDelete(ArrayList items, String type) {
+    // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
+    // variable here and in the arguments also to "itemsToDelete".
+    ArrayList<Todo> todosToSoftDelete = items;
+    for (Todo todoToSoftDelete:todosToSoftDelete) {
+      dbLoader.softDeleteTodo(todoToSoftDelete);
+      cancelReminderService(todoToSoftDelete);
+    }
+    updateTodoAdapterTest();
+    actionMode.finish();
   }
 
   public interface ITodoListFragment {
-    void setActionBarTitle(String title);
+    void setActionBarTitle(String actionBarTitle);
     void startActionMode(ActionMode.Callback callback);
     void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment);
     void openTodoCreateFragment(TodoListFragment targetFragment);

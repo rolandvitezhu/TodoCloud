@@ -213,13 +213,13 @@ public class RegisterFragment extends Fragment {
         if (error.getMessage() != null && error.getMessage().contains("failed to connect")) {
           hideTVFormSubmissionErrors();
           // Sikertelen kapcsolódás.
-          AppController.setStyleAndShowSnackbar(
+          AppController.showWhiteTextSnackbar(
               Snackbar.make(coordinatorLayout,
                   R.string.failed_to_connect, Snackbar.LENGTH_LONG)
           );
         } else {
           hideTVFormSubmissionErrors();
-          AppController.setStyleAndShowSnackbar(
+          AppController.showWhiteTextSnackbar(
               Snackbar.make(coordinatorLayout,
                   R.string.an_error_occurred, Snackbar.LENGTH_LONG)
           );

@@ -58,7 +58,7 @@ public class MainListFragment extends ListFragment implements
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IConfirmDeleteFragment, LogoutFragment.ILogoutFragment {
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -687,7 +687,7 @@ public class MainListFragment extends ListFragment implements
             if (getView() != null)
               // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
               // látható.
-              AppController.setStyleAndShowSnackbar(
+              AppController.showWhiteTextSnackbar(
                   Snackbar.make(coordinatorLayout,
                       R.string.failed_to_connect, Snackbar.LENGTH_LONG)
               );
@@ -778,7 +778,7 @@ public class MainListFragment extends ListFragment implements
             if (getView() != null)
               // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
               // látható.
-              AppController.setStyleAndShowSnackbar(
+              AppController.showWhiteTextSnackbar(
                   Snackbar.make(coordinatorLayout,
                       R.string.failed_to_connect, Snackbar.LENGTH_LONG)
               );
@@ -868,7 +868,7 @@ public class MainListFragment extends ListFragment implements
             if (getView() != null)
               // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
               // látható.
-              AppController.setStyleAndShowSnackbar(
+              AppController.showWhiteTextSnackbar(
                   Snackbar.make(coordinatorLayout,
                       R.string.failed_to_connect, Snackbar.LENGTH_LONG)
               );
@@ -964,7 +964,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
@@ -1052,7 +1052,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
@@ -1135,7 +1135,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
@@ -1251,7 +1251,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
@@ -1359,7 +1359,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
@@ -1462,7 +1462,7 @@ public class MainListFragment extends ListFragment implements
                 if (getView() != null)
                   // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
                   // látható.
-                  AppController.setStyleAndShowSnackbar(
+                  AppController.showWhiteTextSnackbar(
                       Snackbar.make(coordinatorLayout,
                           R.string.failed_to_connect, Snackbar.LENGTH_LONG)
                   );
