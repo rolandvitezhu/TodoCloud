@@ -82,7 +82,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MyViewHolder> 
     dbLoader.updateTodo(todo);
   }
 
-  private void removeTodoFromAdapter(MyViewHolder holder) {
+  public void removeTodoFromAdapter(MyViewHolder holder) {
     int todoAdapterPosition = holder.getAdapterPosition();
     todos.remove(todoAdapterPosition);
     notifyItemRemoved(todoAdapterPosition);
