@@ -45,7 +45,7 @@ public class ReminderService extends IntentService {
   protected void onHandleIntent(Intent intent) {
     String action = intent.getAction();
 
-    // null esetén az ReminderSetter-től jött az Intent, ami a BOOT_COMPLETED-re reagált.
+    // null esetén a ReminderSetter-től jött az Intent, ami a BOOT_COMPLETED-re reagált.
     Todo todo = intent.getParcelableExtra("todo");
 
     // Ha az intent action-je passzol az IntentFilter-ünk (matcher) valamelyik action-jével, akkor
@@ -61,62 +61,72 @@ public class ReminderService extends IntentService {
    * @param todo Az emlékeztetőhöz tartozó Todo.
    */
   private void execute(String action, Todo todo) {
-    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
     // Ha a todo != null, akkor adott todo-t kérdezünk le, egyébként pedig az összeset.
     if (todo != null) {
-      handleReminder(todo, action, alarmManager);
+      handleReminder(todo, action);
     } else {
       ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
-      handleReminders(todos, action, alarmManager);
+      handleReminders(todos, action);
     }
   }
 
-  /**
-   * Végrehajtja az emlékeztető beállításához szükséges műveleteket (egy emlékeztető esetén).
-   * @param todo Az emlékeztetőhöz tartozó Todo.
-   * @param action Az emlékeztetőhöz tartozó action.
-   * @param alarmManager Az emlékeztető beállításához szükséges AlarmManager.
-   */
-  private void handleReminder(Todo todo, String action, AlarmManager alarmManager) {
-    //Az értesítőt csak akkor vesszük figyelembe, ha még nem járt le.
-    if (todo.getReminderDateTimeInLong() >= new Date().getTime()) {
-      Intent intent = new Intent(this, ReminderReceiver.class);
-      intent.putExtra("id", todo.get_id());
-      intent.putExtra("msg", todo.getTitle());
+  private void handleReminder(Todo todo, String action) {
+    Intent reminderIntent = new Intent(this, ReminderReceiver.class);
+    reminderIntent.putExtra("id", todo.get_id());
+    reminderIntent.putExtra("msg", todo.getTitle());
 
-      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, (int) todo.get_id(), intent,
-          PendingIntent.FLAG_ONE_SHOT);
+    PendingIntent pendingIntent = PendingIntent.getBroadcast(
+        this,
+        (int) todo.get_id(),
+        reminderIntent,
+        PendingIntent.FLAG_ONE_SHOT
+    );
+    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+    if (isNotPastReminderDateTime(todo)) {
       if (CREATE.equals(action)) {
-        alarmManager.set(AlarmManager.RTC_WAKEUP, todo.getReminderDateTimeInLong(), pendingIntent);
+        alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            todo.getReminderDateTimeInLong(),
+            pendingIntent
+        );
       } else {
         alarmManager.cancel(pendingIntent);
       }
+    } else {
+      alarmManager.cancel(pendingIntent);
     }
   }
 
-  /**
-   * Végrehajtja az emlékeztető beállításához szükséges műveleteket (egy vagy több emlékeztető
-   * esetén).
-   * @param todos Az emlékeztető(k)-höz tartozó Todo(k).
-   * @param action Az emlékeztető(k)-höz tartozó action.
-   * @param alarmManager Az emlékeztető beállításához szükséges AlarmManager.
-   */
-  private void handleReminders(ArrayList<Todo> todos, String action, AlarmManager alarmManager) {
+  private boolean isNotPastReminderDateTime(Todo todo) {
+    return todo.getReminderDateTimeInLong() >= new Date().getTime();
+  }
+
+  private void handleReminders(ArrayList<Todo> todos, String action) {
     for (Todo todo:todos) {
-      if (todo.getReminderDateTimeInLong() >= new Date().getTime()) {
-        // Az értesítőt csak akkor vesszük figyelembe, ha még nem járt le.
+      Intent reminderIntent = new Intent(this, ReminderReceiver.class);
+      reminderIntent.putExtra("id", todo.get_id());
+      reminderIntent.putExtra("msg", todo.getTitle());
 
-        Intent intent = new Intent(this, ReminderReceiver.class);
-        intent.putExtra("id", todo.get_id());
-        intent.putExtra("msg", todo.getTitle());
+      PendingIntent pendingIntent = PendingIntent.getBroadcast(
+          this, (int) todo.get_id(),
+          reminderIntent,
+          PendingIntent.FLAG_ONE_SHOT
+      );
+      AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, (int) todo.get_id(), intent,
-            PendingIntent.FLAG_ONE_SHOT);
+      if (isNotPastReminderDateTime(todo)) {
         if (CREATE.equals(action)) {
-          alarmManager.set(AlarmManager.RTC_WAKEUP, todo.getReminderDateTimeInLong(), pendingIntent);
+          alarmManager.set(
+              AlarmManager.RTC_WAKEUP,
+              todo.getReminderDateTimeInLong(),
+              pendingIntent
+          );
         } else {
           alarmManager.cancel(pendingIntent);
         }
+      } else {
+        alarmManager.cancel(pendingIntent);
       }
     }
   }
