@@ -1,7 +1,5 @@
 package com.example.todocloud.adapter;
 
-import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
@@ -16,7 +14,7 @@ import com.example.todocloud.R;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbLoader;
-import com.example.todocloud.service.ReminderService;
+import com.example.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,9 +88,9 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   private void handleReminderService(Todo todo) {
     if (todo.isCompleted()) {
-      cancelReminderService(todo);
+      ReminderSetter.cancelReminderService(todo);
     } else if (isSetReminder(todo)) {
-      createReminderService(todo);
+      ReminderSetter.createReminderService(todo);
     }
   }
 
@@ -104,24 +102,8 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
         && holder.getAdapterPosition() != -1;
   }
 
-  private void cancelReminderService(Todo todo) {
-    Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CANCEL);
-    applicationContext.startService(reminderService);
-  }
-
   private boolean isSetReminder(Todo todo) {
     return !todo.getReminderDateTime().equals("-1");
-  }
-
-  private void createReminderService(Todo todo) {
-    Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CREATE);
-    applicationContext.startService(reminderService);
   }
 
   @Override

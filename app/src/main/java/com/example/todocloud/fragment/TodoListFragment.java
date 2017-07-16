@@ -1,7 +1,6 @@
 package com.example.todocloud.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -26,7 +25,7 @@ import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.example.todocloud.helper.OnlineIdGenerator;
 import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
-import com.example.todocloud.service.ReminderService;
+import com.example.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 
@@ -157,9 +156,9 @@ public class TodoListFragment extends Fragment implements
 
   private void handleReminderService(Todo todo) {
     if (todo.isCompleted()) {
-      cancelReminderService(todo);
+      ReminderSetter.cancelReminderService(todo);
     } else if (isSetReminder(todo)) {
-      createReminderService(todo);
+      ReminderSetter.createReminderService(todo);
     }
   }
 
@@ -315,7 +314,7 @@ public class TodoListFragment extends Fragment implements
     updateTodoAdapterTest();
 
     if (isSetReminder(todoToCreate) && isNotCompleted(todoToCreate)) {
-      createReminderService(todoToCreate);
+      ReminderSetter.createReminderService(todoToCreate);
     }
   }
 
@@ -374,14 +373,6 @@ public class TodoListFragment extends Fragment implements
     return !todo.isCompleted();
   }
 
-  private void createReminderService(Todo todo) {
-    Context applicationContext = getActivity().getApplicationContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CREATE);
-    applicationContext.startService(reminderService);
-  }
-
   @Override
   public void onModifyTodo(Todo todoToModify) {
     dbLoader.updateTodo(todoToModify);
@@ -389,10 +380,10 @@ public class TodoListFragment extends Fragment implements
 
     if (isSetReminder(todoToModify)) {
       if (shouldCreateReminderService(todoToModify)) {
-        createReminderService(todoToModify);
+        ReminderSetter.createReminderService(todoToModify);
       }
     } else {
-      cancelReminderService(todoToModify);
+      ReminderSetter.cancelReminderService(todoToModify);
     }
   }
 
@@ -404,20 +395,12 @@ public class TodoListFragment extends Fragment implements
     return !todo.getDeleted();
   }
 
-  private void cancelReminderService(Todo todo) {
-    Context applicationContext = getActivity().getApplicationContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CANCEL);
-    applicationContext.startService(reminderService);
-  }
-
   @Override
   public void onSoftDelete(String onlineId, String type) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
     updateTodoAdapterTest();
-    cancelReminderService(todoToSoftDelete);
+    ReminderSetter.cancelReminderService(todoToSoftDelete);
     actionMode.finish();
   }
 
@@ -428,7 +411,7 @@ public class TodoListFragment extends Fragment implements
     ArrayList<Todo> todosToSoftDelete = items;
     for (Todo todoToSoftDelete:todosToSoftDelete) {
       dbLoader.softDeleteTodo(todoToSoftDelete);
-      cancelReminderService(todoToSoftDelete);
+      ReminderSetter.cancelReminderService(todoToSoftDelete);
     }
     updateTodoAdapterTest();
     actionMode.finish();
