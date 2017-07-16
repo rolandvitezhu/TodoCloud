@@ -26,7 +26,7 @@ import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.example.todocloud.helper.OnlineIdGenerator;
 import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
-import com.example.todocloud.service.AlarmService;
+import com.example.todocloud.service.ReminderService;
 
 import java.util.ArrayList;
 
@@ -376,9 +376,9 @@ public class TodoListFragment extends Fragment implements
 
   private void createReminderService(Todo todo) {
     Context applicationContext = getActivity().getApplicationContext();
-    Intent reminderService = new Intent(applicationContext, AlarmService.class);
+    Intent reminderService = new Intent(applicationContext, ReminderService.class);
     reminderService.putExtra("todo", todo);
-    reminderService.setAction(AlarmService.CREATE);
+    reminderService.setAction(ReminderService.CREATE);
     applicationContext.startService(reminderService);
   }
 
@@ -406,9 +406,9 @@ public class TodoListFragment extends Fragment implements
 
   private void cancelReminderService(Todo todo) {
     Context applicationContext = getActivity().getApplicationContext();
-    Intent reminderService = new Intent(applicationContext, AlarmService.class);
+    Intent reminderService = new Intent(applicationContext, ReminderService.class);
     reminderService.putExtra("todo", todo);
-    reminderService.setAction(AlarmService.CANCEL);
+    reminderService.setAction(ReminderService.CANCEL);
     applicationContext.startService(reminderService);
   }
 

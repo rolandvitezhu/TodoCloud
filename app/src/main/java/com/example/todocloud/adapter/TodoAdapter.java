@@ -16,7 +16,7 @@ import com.example.todocloud.R;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbLoader;
-import com.example.todocloud.service.AlarmService;
+import com.example.todocloud.service.ReminderService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,9 +106,9 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   private void cancelReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, AlarmService.class);
+    Intent reminderService = new Intent(applicationContext, ReminderService.class);
     reminderService.putExtra("todo", todo);
-    reminderService.setAction(AlarmService.CANCEL);
+    reminderService.setAction(ReminderService.CANCEL);
     applicationContext.startService(reminderService);
   }
 
@@ -118,9 +118,9 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   private void createReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, AlarmService.class);
+    Intent reminderService = new Intent(applicationContext, ReminderService.class);
     reminderService.putExtra("todo", todo);
-    reminderService.setAction(AlarmService.CREATE);
+    reminderService.setAction(ReminderService.CREATE);
     applicationContext.startService(reminderService);
   }
 

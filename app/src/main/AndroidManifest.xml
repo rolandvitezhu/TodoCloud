@@ -23,14 +23,14 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".receiver.AlarmReceiver"/>
-        <receiver android:name=".receiver.AlarmSetter">
+        <receiver android:name=".receiver.ReminderReceiver"/>
+        <receiver android:name=".receiver.ReminderSetter">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
 
-        <service android:name=".service.AlarmService"/>
+        <service android:name=".service.ReminderService"/>
     </application>
 
 </manifest>

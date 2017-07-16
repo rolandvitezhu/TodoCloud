@@ -13,7 +13,7 @@ import android.support.v7.preference.PreferenceManager;
 import com.example.todocloud.MainActivity;
 import com.example.todocloud.R;
 
-public class AlarmReceiver extends BroadcastReceiver {
+public class ReminderReceiver extends BroadcastReceiver {
 
   /**
    * Notification-t küld a tennivaló reminderDateTime-ja szerinti időpontban.
@@ -49,7 +49,7 @@ public class AlarmReceiver extends BroadcastReceiver {
   /**
    * Beállítja a NotificationCompat.Builder hanggal, rezgéssel és fényjelzéssel kapcsolatos tulaj-
    * donságait a SettingsFragment-en beállítottak alapján, a SharedPreferences-ből.
-   * @param context Az AlarmReceiver osztály Context-je.
+   * @param context Az ReminderReceiver osztály Context-je.
    * @return NotificationCompat.Builder objektum a SharedPreferences szerinti megfelelő beállítá-
    * sokkal.
    */

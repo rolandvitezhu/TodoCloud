@@ -9,14 +9,14 @@ import android.content.IntentFilter;
 
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbLoader;
-import com.example.todocloud.receiver.AlarmReceiver;
+import com.example.todocloud.receiver.ReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-public class AlarmService extends IntentService {
+public class ReminderService extends IntentService {
 
-  private static final String TAG = AlarmService.class.getSimpleName();
+  private static final String TAG = ReminderService.class.getSimpleName();
 
   public static final String CREATE = "CREATE";
   public static final String CANCEL = "CANCEL";
@@ -24,7 +24,7 @@ public class AlarmService extends IntentService {
   private IntentFilter matcher;
   private DbLoader dbLoader;
 
-  public AlarmService() {
+  public ReminderService() {
     super(TAG);
     matcher = new IntentFilter();
     matcher.addAction(CREATE);
@@ -45,7 +45,7 @@ public class AlarmService extends IntentService {
   protected void onHandleIntent(Intent intent) {
     String action = intent.getAction();
 
-    // null esetén az AlarmSetter-től jött az Intent, ami a BOOT_COMPLETED-re reagált.
+    // null esetén az ReminderSetter-től jött az Intent, ami a BOOT_COMPLETED-re reagált.
     Todo todo = intent.getParcelableExtra("todo");
 
     // Ha az intent action-je passzol az IntentFilter-ünk (matcher) valamelyik action-jével, akkor
@@ -80,7 +80,7 @@ public class AlarmService extends IntentService {
   private void handleReminder(Todo todo, String action, AlarmManager alarmManager) {
     //Az értesítőt csak akkor vesszük figyelembe, ha még nem járt le.
     if (todo.getReminderDateTimeInLong() >= new Date().getTime()) {
-      Intent intent = new Intent(this, AlarmReceiver.class);
+      Intent intent = new Intent(this, ReminderReceiver.class);
       intent.putExtra("id", todo.get_id());
       intent.putExtra("msg", todo.getTitle());
 
@@ -106,7 +106,7 @@ public class AlarmService extends IntentService {
       if (todo.getReminderDateTimeInLong() >= new Date().getTime()) {
         // Az értesítőt csak akkor vesszük figyelembe, ha még nem járt le.
 
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent intent = new Intent(this, ReminderReceiver.class);
         intent.putExtra("id", todo.get_id());
         intent.putExtra("msg", todo.getTitle());
 

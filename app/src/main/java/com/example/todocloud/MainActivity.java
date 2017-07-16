@@ -32,7 +32,7 @@ import com.example.todocloud.fragment.TodoCreateFragment;
 import com.example.todocloud.fragment.TodoListFragment;
 import com.example.todocloud.fragment.TodoModifyFragment;
 import com.example.todocloud.helper.SessionManager;
-import com.example.todocloud.service.AlarmService;
+import com.example.todocloud.service.ReminderService;
 
 import java.util.ArrayList;
 
@@ -316,9 +316,9 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     DbLoader dbLoader = new DbLoader(getApplicationContext());
     ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
-      Intent service = new Intent(getApplicationContext(), AlarmService.class);
+      Intent service = new Intent(getApplicationContext(), ReminderService.class);
       service.putExtra("todo", todo);
-      service.setAction(AlarmService.CANCEL);
+      service.setAction(ReminderService.CANCEL);
       getApplicationContext().startService(service);
     }
 
