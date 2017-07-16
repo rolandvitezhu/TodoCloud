@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -97,10 +98,73 @@ public class TodoListFragment extends Fragment implements
         }
         )
     );
+    applySwipeToDismiss();
     FloatingActionButton floatingActionButton =
         (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
     floatingActionButton.setOnClickListener(floatingActionButtonClicked);
     return view;
+  }
+
+  private void applySwipeToDismiss() {
+    ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(
+        0, ItemTouchHelper.END
+    ) {
+
+      @Override
+      public boolean onMove(
+          RecyclerView recyclerView,
+          RecyclerView.ViewHolder viewHolder,
+          RecyclerView.ViewHolder target
+      ) {
+        return false;
+      }
+
+      @Override
+      public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+        Todo swipedTodo = getSwipedTodo(viewHolder);
+        toggleCompleted(swipedTodo);
+        updateTodo(swipedTodo);
+        todoAdapter.removeTodoFromAdapter((TodoAdapter.ItemViewHolder) viewHolder);
+        handleReminderService(swipedTodo);
+      }
+
+      @Override
+      public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        int swipeFlags;
+        if (AppController.isActionMode()) swipeFlags = 0;
+        else swipeFlags = ItemTouchHelper.END;
+        return makeMovementFlags(0, swipeFlags);
+      }
+
+    };
+    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+    itemTouchHelper.attachToRecyclerView(recyclerView);
+  }
+
+  private Todo getSwipedTodo(RecyclerView.ViewHolder viewHolder) {
+    int swipedTodoAdapterPosition = viewHolder.getAdapterPosition();
+    return todoAdapter.getTodo(swipedTodoAdapterPosition);
+  }
+
+  private void toggleCompleted(Todo todo) {
+    todo.setCompleted(!todo.getCompleted());
+  }
+
+  private void updateTodo(Todo todo) {
+    todo.setDirty(true);
+    dbLoader.updateTodo(todo);
+  }
+
+  private void handleReminderService(Todo todo) {
+    if (isCompleted(todo)) {
+      cancelReminderService(todo);
+    } else if (isSetReminder(todo)) {
+      createReminderService(todo);
+    }
+  }
+
+  private Boolean isCompleted(Todo todo) {
+    return todo.getCompleted();
   }
 
   private boolean areSelectedItems() {
