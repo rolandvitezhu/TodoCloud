@@ -75,7 +75,7 @@ public class MainListFragment extends ListFragment implements
   private IMainListFragment listener;
 
   private ExpandableHeightExpandableListView expandableListView;
-  private ExpandableHeightListView listView;
+  private ExpandableHeightListView list;
 
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
@@ -96,64 +96,79 @@ public class MainListFragment extends ListFragment implements
     setHasOptionsMenu(true);
     dbLoader = new DbLoader(getActivity());
     listener.setNavigationHeader();
-
-    // Adapterek frissítése.
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
     getTodos();
   }
 
-  // Létrehozza a View-t, ami 2 ListView-ból és egy ExpandableListView-ból áll.
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
     View combinedListView = inflater.inflate(R.layout.main_list, null);
+    coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(R.id.coordinatorLayout);
+
+    preparePredefinedList(combinedListView);
+    prepareExpandableListView(combinedListView);
+    prepareList(combinedListView);
+    prepareSwipeRefreshLayout(combinedListView);
+
+    return combinedListView;
+  }
+
+  private void prepareSwipeRefreshLayout(View combinedListView) {
     swipeRefreshLayout = (SwipeRefreshLayout)
         combinedListView.findViewById(R.id.swipe_refresh_layout);
-    coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(R.id.coordinatorLayout);
+    setScrollViewSwipeRefreshBehavior(combinedListView);
+    swipeRefreshLayout.setOnRefreshListener(this);
+  }
+
+  private void setScrollViewSwipeRefreshBehavior(View combinedListView) {
     scrollView = (ScrollView) combinedListView.findViewById(R.id.scroll_view);
-
-    // Beállítja a PredefinedList ListView-ját.
-    final ExpandableHeightListView predefinedListListView =
-        (ExpandableHeightListView) combinedListView.findViewById(R.id.lvPredefinedList);
-    predefinedListListView.setExpanded(true);
-    predefinedListListView.setAdapter(predefinedListAdapter);
-    predefinedListListView.setOnItemClickListener(predefinedListItemClicked);
-
-    // Beállítja a kategóriákat, azon belül listákat tartalmazó ExpandableListView-t.
-    expandableListView = (ExpandableHeightExpandableListView) combinedListView.findViewById(R.id.explvCategory);
-    expandableListView.setExpanded(true);
-    expandableListView.setAdapter(categoryAdapter);
-    expandableListView.setOnChildClickListener(expLvChildClicked);
-    expandableListView.setOnGroupClickListener(expLvGroupClicked);
-    expandableListView.setOnCreateContextMenuListener(expLvCategoryContextMenu);
-
-    // Beállítja a kategória nélküli listák ListView-ját (alsó ListView).
-    listView = (ExpandableHeightListView) combinedListView.findViewById(R.id.lvList);
-    listView.setExpanded(true);
-    listView.setAdapter(listAdapter);
-    listView.setOnItemClickListener(listItemClicked);
-    listView.setOnItemLongClickListener(listItemLongClicked);
-
-    // A SwipeRefreshLayout megfelelő kezelését segíti elő.
     scrollView.getViewTreeObserver().addOnScrollChangedListener(
         new ViewTreeObserver.OnScrollChangedListener() {
 
           @Override
           public void onScrollChanged() {
             int scrollY = scrollView.getScrollY();
-            if (scrollY == 0 && !AppController.isActionModeEnabled())
+            if (shouldSwipeRefresh(scrollY))
               swipeRefreshLayout.setEnabled(true);
             else {
               swipeRefreshLayout.setEnabled(false);
             }
           }
 
-    });
+        });
+  }
 
-    swipeRefreshLayout.setOnRefreshListener(this);
-    return combinedListView;
+  private boolean shouldSwipeRefresh(int scrollY) {
+    return scrollY == 0 && !AppController.isActionModeEnabled();
+  }
+
+  private void prepareList(View combinedListView) {
+    list = (ExpandableHeightListView) combinedListView.findViewById(R.id.lvList);
+    list.setExpanded(true);
+    list.setAdapter(listAdapter);
+    list.setOnItemClickListener(listItemClicked);
+    list.setOnItemLongClickListener(listItemLongClicked);
+  }
+
+  private void prepareExpandableListView(View combinedListView) {
+    expandableListView = (ExpandableHeightExpandableListView)
+        combinedListView.findViewById(R.id.explvCategory);
+    expandableListView.setExpanded(true);
+    expandableListView.setAdapter(categoryAdapter);
+    expandableListView.setOnChildClickListener(expLvChildClicked);
+    expandableListView.setOnGroupClickListener(expLvGroupClicked);
+    expandableListView.setOnCreateContextMenuListener(expLvCategoryContextMenu);
+  }
+
+  private void preparePredefinedList(View combinedListView) {
+    final ExpandableHeightListView predefinedList =
+        (ExpandableHeightListView) combinedListView.findViewById(R.id.lvPredefinedList);
+    predefinedList.setExpanded(true);
+    predefinedList.setAdapter(predefinedListAdapter);
+    predefinedList.setOnItemClickListener(predefinedListItemClicked);
   }
 
   private ActionMode.Callback callback =
@@ -195,7 +210,7 @@ public class MainListFragment extends ListFragment implements
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 
-          int checkedItemCount = listView.getCheckedItemCount() +
+          int checkedItemCount = list.getCheckedItemCount() +
               expandableListView.getCheckedItemCount();
           actionMode.setTitle(
               checkedItemCount + " " + getString(R.string.selected));
@@ -317,7 +332,7 @@ public class MainListFragment extends ListFragment implements
         public void onDestroyActionMode(ActionMode mode) {
 
           for (int i = 0; i < listAdapter.getCount(); i++) {
-            listView.setItemChecked(i, false);
+            list.setItemChecked(i, false);
           }
 
           // A 0. elemtől az utolsó látható elemig kell mennünk. Láthatónak számít az összes Group
@@ -333,7 +348,7 @@ public class MainListFragment extends ListFragment implements
 
           AppController.setActionModeEnabled(false);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
-          listView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
         }
 
   };
@@ -1535,10 +1550,10 @@ public class MainListFragment extends ListFragment implements
         // Todo módosítása.
         listener.onItemSelected((com.example.todocloud.data.List) listAdapter.getItem(position));
       } else {
-        if (listView.isItemChecked(position)) {
-          lists.add((com.example.todocloud.data.List) listView.getItemAtPosition(position));
+        if (list.isItemChecked(position)) {
+          lists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
         } else {
-          lists.remove(listView.getItemAtPosition(position));
+          lists.remove(list.getItemAtPosition(position));
         }
 
         // ActionMode-hoz tartozó ActionBar beállítása.
@@ -1546,7 +1561,7 @@ public class MainListFragment extends ListFragment implements
 
         // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor ActionMode
         // kikapcsolása.
-        int checkedItemCount = listView.getCheckedItemCount() +
+        int checkedItemCount = list.getCheckedItemCount() +
             expandableListView.getCheckedItemCount();
         if (checkedItemCount == 0) {
           if (actionMode != null)
@@ -1567,9 +1582,9 @@ public class MainListFragment extends ListFragment implements
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
           if (!AppController.isActionModeEnabled()) {
             listener.startActionMode(callback);
-            listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-            listView.setItemChecked(position, true);
-            lists.add((com.example.todocloud.data.List) listView.getItemAtPosition(position));
+            list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+            list.setItemChecked(position, true);
+            lists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
 
             expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
             actionMode.invalidate();
@@ -1608,7 +1623,7 @@ public class MainListFragment extends ListFragment implements
 
         // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor
         // ActionMode kikapcsolása.
-        int checkedItemCount = listView.getCheckedItemCount() +
+        int checkedItemCount = list.getCheckedItemCount() +
             expandableListView.getCheckedItemCount();
         if (checkedItemCount == 0) {
           if (actionMode != null)
@@ -1650,7 +1665,7 @@ public class MainListFragment extends ListFragment implements
 
             // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor
             // ActionMode kikapcsolása.
-            int checkedItemCount = listView.getCheckedItemCount() +
+            int checkedItemCount = list.getCheckedItemCount() +
                 expandableListView.getCheckedItemCount();
             if (checkedItemCount == 0) {
               if (actionMode != null)
@@ -1687,7 +1702,7 @@ public class MainListFragment extends ListFragment implements
           expandableListView.setItemChecked(position, true);
           categories.add((Category) expandableListView.getItemAtPosition(position));
 
-          listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
 
         } else if (ExpandableListView.getPackedPositionType(info.packedPosition)
@@ -1701,7 +1716,7 @@ public class MainListFragment extends ListFragment implements
           listsInCategory.add(
               (com.example.todocloud.data.List) expandableListView.getItemAtPosition(position));
 
-          listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
 
         }
