@@ -156,15 +156,11 @@ public class TodoListFragment extends Fragment implements
   }
 
   private void handleReminderService(Todo todo) {
-    if (isCompleted(todo)) {
+    if (todo.isCompleted()) {
       cancelReminderService(todo);
     } else if (isSetReminder(todo)) {
       createReminderService(todo);
     }
-  }
-
-  private Boolean isCompleted(Todo todo) {
-    return todo.isCompleted();
   }
 
   private boolean areSelectedItems() {

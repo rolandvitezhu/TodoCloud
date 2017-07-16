@@ -89,7 +89,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private void handleReminderService(Todo todo) {
-    if (isCompleted(todo)) {
+    if (todo.isCompleted()) {
       cancelReminderService(todo);
     } else if (isSetReminder(todo)) {
       createReminderService(todo);
@@ -122,10 +122,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     reminderService.putExtra("todo", todo);
     reminderService.setAction(AlarmService.CREATE);
     applicationContext.startService(reminderService);
-  }
-
-  private Boolean isCompleted(Todo todo) {
-    return todo.isCompleted();
   }
 
   @Override
