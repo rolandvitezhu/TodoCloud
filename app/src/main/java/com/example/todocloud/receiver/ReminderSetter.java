@@ -23,18 +23,18 @@ public class ReminderSetter extends BroadcastReceiver {
 
   public static void createReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CREATE);
-    applicationContext.startService(reminderService);
+    Intent reminderIntent = new Intent(applicationContext, ReminderService.class);
+    reminderIntent.putExtra("todo", todo);
+    reminderIntent.setAction(ReminderService.CREATE);
+    applicationContext.startService(reminderIntent);
   }
 
   public static void cancelReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
-    Intent reminderService = new Intent(applicationContext, ReminderService.class);
-    reminderService.putExtra("todo", todo);
-    reminderService.setAction(ReminderService.CANCEL);
-    applicationContext.startService(reminderService);
+    Intent reminderIntent = new Intent(applicationContext, ReminderService.class);
+    reminderIntent.putExtra("todo", todo);
+    reminderIntent.setAction(ReminderService.CANCEL);
+    applicationContext.startService(reminderIntent);
   }
 
 }
