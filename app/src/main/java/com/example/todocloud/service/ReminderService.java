@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
 
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbLoader;
@@ -37,44 +38,30 @@ public class ReminderService extends IntentService {
     dbLoader = new DbLoader(this);
   }
 
-  /**
-   * Feldolgozza az intent-eket a megfelelő módon.
-   * @param intent A feldolgozandó Intent.
-   */
   @Override
   protected void onHandleIntent(Intent intent) {
     String action = intent.getAction();
-
-    // null esetén a ReminderSetter-től jött az Intent, ami a BOOT_COMPLETED-re reagált.
     Todo todo = intent.getParcelableExtra("todo");
 
-    // Ha az intent action-je passzol az IntentFilter-ünk (matcher) valamelyik action-jével, akkor
-    // azt az execute metódussal megfelelő módon feldolgozzuk.
     if (matcher.matchAction(action)) {
       execute(action, todo);
     }
   }
 
-  /**
-   * Feldolgozza az emlékeztetőt a megfelelő módon.
-   * @param action Az emlékeztetőhöz tartozó action.
-   * @param todo Az emlékeztetőhöz tartozó Todo.
-   */
   private void execute(String action, Todo todo) {
-    // Ha a todo != null, akkor adott todo-t kérdezünk le, egyébként pedig az összeset.
-    if (todo != null) {
+    if (isSingleReminder(todo)) {
       handleReminder(todo, action);
     } else {
-      ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
-      handleReminders(todos, action);
+      handleReminders(action);
     }
   }
 
-  private void handleReminder(Todo todo, String action) {
-    Intent reminderIntent = new Intent(this, ReminderReceiver.class);
-    reminderIntent.putExtra("id", todo.get_id());
-    reminderIntent.putExtra("msg", todo.getTitle());
+  private boolean isSingleReminder(Todo todo) {
+    return todo != null;
+  }
 
+  private void handleReminder(Todo todo, String action) {
+    Intent reminderIntent = prepareReminderIntent(todo);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(
         this,
         (int) todo.get_id(),
@@ -98,16 +85,22 @@ public class ReminderService extends IntentService {
     }
   }
 
+  @NonNull
+  private Intent prepareReminderIntent(Todo todo) {
+    Intent reminderIntent = new Intent(this, ReminderReceiver.class);
+    reminderIntent.putExtra("id", todo.get_id());
+    reminderIntent.putExtra("msg", todo.getTitle());
+    return reminderIntent;
+  }
+
   private boolean isNotPastReminderDateTime(Todo todo) {
     return todo.getReminderDateTimeInLong() >= new Date().getTime();
   }
 
-  private void handleReminders(ArrayList<Todo> todos, String action) {
+  private void handleReminders(String action) {
+    ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
-      Intent reminderIntent = new Intent(this, ReminderReceiver.class);
-      reminderIntent.putExtra("id", todo.get_id());
-      reminderIntent.putExtra("msg", todo.getTitle());
-
+      Intent reminderIntent = prepareReminderIntent(todo);
       PendingIntent pendingIntent = PendingIntent.getBroadcast(
           this, (int) todo.get_id(),
           reminderIntent,
