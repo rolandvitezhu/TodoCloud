@@ -73,12 +73,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MyViewHolder> 
     });
   }
 
-  private void removeTodoFromAdapter(MyViewHolder holder) {
-    int todoAdapterPosition = holder.getAdapterPosition();
-    todos.remove(todoAdapterPosition);
-    notifyItemRemoved(todoAdapterPosition);
-  }
-
   private void toggleCompleted(Todo todo) {
     todo.setCompleted(!todo.getCompleted());
   }
@@ -88,12 +82,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MyViewHolder> 
     dbLoader.updateTodo(todo);
   }
 
-  private boolean shouldHandleCheckBoxTouchEvent(MotionEvent event, MyViewHolder holder) {
-    // To reproduce "holder.getAdapterPosition() == -1", do the following: select 1 todo and
-    // touch it's CheckBox.
-    return !AppController.isActionMode()
-        && event.getAction() == MotionEvent.ACTION_UP
-        && holder.getAdapterPosition() != -1;
+  private void removeTodoFromAdapter(MyViewHolder holder) {
+    int todoAdapterPosition = holder.getAdapterPosition();
+    todos.remove(todoAdapterPosition);
+    notifyItemRemoved(todoAdapterPosition);
   }
 
   private void handleReminderService(Todo todo) {
@@ -102,6 +94,14 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MyViewHolder> 
     } else if (isSetReminder(todo)) {
       createReminderService(todo);
     }
+  }
+
+  private boolean shouldHandleCheckBoxTouchEvent(MotionEvent event, MyViewHolder holder) {
+    // To reproduce "holder.getAdapterPosition() == -1", do the following: select 1 todo and
+    // touch it's CheckBox.
+    return !AppController.isActionMode()
+        && event.getAction() == MotionEvent.ACTION_UP
+        && holder.getAdapterPosition() != -1;
   }
 
   private void cancelReminderService(Todo todo) {
