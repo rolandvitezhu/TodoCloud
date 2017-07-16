@@ -59,12 +59,29 @@ public class TodoListFragment extends Fragment implements
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.todo_list, container, false);
+    prepareRecyclerView(view);
+    applyClickEvents();
+    applySwipeToDismiss();
+    prepareFloatingActionButton(view);
+    return view;
+  }
+
+  private void prepareFloatingActionButton(View view) {
+    FloatingActionButton floatingActionButton =
+        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
+    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
+  }
+
+  private void prepareRecyclerView(View view) {
     recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
         getContext().getApplicationContext()
     );
     recyclerView.setLayoutManager(layoutManager);
     recyclerView.setAdapter(todoAdapter);
+  }
+
+  private void applyClickEvents() {
     recyclerView.addOnItemTouchListener(new RecyclerViewOnItemTouchListener(
         getContext().getApplicationContext(),
         recyclerView,
@@ -97,11 +114,6 @@ public class TodoListFragment extends Fragment implements
         }
         )
     );
-    applySwipeToDismiss();
-    FloatingActionButton floatingActionButton =
-        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
-    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
-    return view;
   }
 
   private void applySwipeToDismiss() {
