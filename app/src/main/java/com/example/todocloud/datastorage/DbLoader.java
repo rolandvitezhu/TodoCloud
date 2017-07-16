@@ -178,7 +178,7 @@ public class DbLoader {
       // Üres String esetén null-t szúrunk be.
       contentValues.putNull(DbConstants.Todo.KEY_DESCRIPTION);
     }
-    contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.getCompleted() ? 1 : 0);
+    contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.isCompleted() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_ROW_VERSION, todo.getRowVersion());
     contentValues.put(DbConstants.Todo.KEY_DELETED, todo.getDeleted() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
@@ -229,7 +229,7 @@ public class DbLoader {
       // Üres String esetén null-t szúrunk be.
       contentValues.putNull(DbConstants.Todo.KEY_DESCRIPTION);
     }
-    contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.getCompleted() ? 1 : 0);
+    contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.isCompleted() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_ROW_VERSION, todo.getRowVersion());
     contentValues.put(DbConstants.Todo.KEY_DELETED, todo.getDeleted() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);

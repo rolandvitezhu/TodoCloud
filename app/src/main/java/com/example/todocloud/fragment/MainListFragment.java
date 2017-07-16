@@ -924,7 +924,7 @@ public class MainListFragment extends ListFragment implements
           } else {
             jsonRequest.put("description", "");
           }
-          jsonRequest.put("completed", todo.getCompleted() ? 1 : 0);
+          jsonRequest.put("completed", todo.isCompleted() ? 1 : 0);
           jsonRequest.put("deleted", todo.getDeleted() ? 1 : 0);
         } catch (JSONException e) {
           e.printStackTrace();
@@ -1201,7 +1201,7 @@ public class MainListFragment extends ListFragment implements
           } else {
             jsonRequest.put("description", "");
           }
-          jsonRequest.put("completed", todo.getCompleted() ? 1 : 0);
+          jsonRequest.put("completed", todo.isCompleted() ? 1 : 0);
           jsonRequest.put("deleted", todo.getDeleted() ? 1 : 0);
         } catch (JSONException e) {
           e.printStackTrace();

@@ -109,7 +109,7 @@ public class Todo implements Parcelable {
 		this.description = description;
 	}
 
-  public Boolean getCompleted() {
+  public Boolean isCompleted() {
     return completed;
   }
 

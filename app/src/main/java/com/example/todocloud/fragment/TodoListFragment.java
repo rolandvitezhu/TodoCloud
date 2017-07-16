@@ -147,7 +147,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   private void toggleCompleted(Todo todo) {
-    todo.setCompleted(!todo.getCompleted());
+    todo.setCompleted(!todo.isCompleted());
   }
 
   private void updateTodo(Todo todo) {
@@ -164,7 +164,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   private Boolean isCompleted(Todo todo) {
-    return todo.getCompleted();
+    return todo.isCompleted();
   }
 
   private boolean areSelectedItems() {
@@ -375,7 +375,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   private boolean isNotCompleted(Todo todo) {
-    return !todo.getCompleted();
+    return !todo.isCompleted();
   }
 
   private void createReminderService(Todo todo) {

@@ -50,7 +50,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final Todo todo = todos.get(position);
 
-    holder.completed.setChecked(todo.getCompleted());
+    holder.completed.setChecked(todo.isCompleted());
     holder.title.setText(todo.getTitle());
     holder.dueDate.setText(todo.getDueDate());
     holder.priority.setVisibility(todo.isPriority() ? View.VISIBLE : View.INVISIBLE);
@@ -74,7 +74,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private void toggleCompleted(Todo todo) {
-    todo.setCompleted(!todo.getCompleted());
+    todo.setCompleted(!todo.isCompleted());
   }
 
   private void updateTodo(Todo todo) {
@@ -125,7 +125,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private Boolean isCompleted(Todo todo) {
-    return todo.getCompleted();
+    return todo.isCompleted();
   }
 
   @Override
