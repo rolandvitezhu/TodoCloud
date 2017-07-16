@@ -165,10 +165,6 @@ public class Todo implements Parcelable {
     this.dirty = dirty;
   }
 
-  /**
-   * Visszaadja az emlékeztető DateTime-ját long-ként.
-   * @return Az emlékeztető DateTime-ja long-ként.
-   */
   public long getReminderDateTimeInLong() {
     SimpleDateFormat reminderDateFormat = new SimpleDateFormat(
         "yyyy.MM.dd HH:mm", Locale.getDefault());
