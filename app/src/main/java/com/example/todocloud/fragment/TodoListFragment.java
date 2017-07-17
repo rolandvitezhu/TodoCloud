@@ -235,7 +235,6 @@ public class TodoListFragment extends Fragment implements
       return true;
     }
 
-
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
       int actionItemId = item.getItemId();
@@ -249,11 +248,16 @@ public class TodoListFragment extends Fragment implements
       return true;
     }
 
-
     @Override
     public void onDestroyActionMode(ActionMode mode) {
       todoAdapter.clearSelection();
       setActionMode(null);
+    }
+
+    private String prepareTitle() {
+      int selectedItemCount = todoAdapter.getSelectedItemCount();
+      String title = selectedItemCount + " " + getString(R.string.selected);
+      return title;
     }
 
   };
@@ -261,12 +265,6 @@ public class TodoListFragment extends Fragment implements
   private void setActionMode(ActionMode actionMode) {
     this.actionMode = actionMode;
     AppController.setActionMode(actionMode);
-  }
-
-  private String prepareTitle() {
-    int selectedItemCount = todoAdapter.getSelectedItemCount();
-    String title = selectedItemCount + " " + getString(R.string.selected);
-    return title;
   }
 
   private void confirmDeletion() {
