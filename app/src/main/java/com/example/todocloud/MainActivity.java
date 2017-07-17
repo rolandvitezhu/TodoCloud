@@ -284,10 +284,10 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void openTodoListFragment(List list) {
+  public void openTodoListFragment(List listToOpen) {
     Bundle arguments = new Bundle();
-    arguments.putString("listOnlineId", list.getListOnlineId());
-    arguments.putString("title", list.getTitle());
+    arguments.putString("listOnlineId", listToOpen.getListOnlineId());
+    arguments.putString("title", listToOpen.getTitle());
 
     TodoListFragment todoListFragment = new TodoListFragment();
     todoListFragment.setArguments(arguments);

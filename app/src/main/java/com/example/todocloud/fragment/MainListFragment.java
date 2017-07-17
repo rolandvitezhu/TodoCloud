@@ -1544,26 +1544,35 @@ public class MainListFragment extends ListFragment implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+      com.example.todocloud.data.List clickedList =
+          (com.example.todocloud.data.List) listAdapter.getItem(position);
       if (!AppController.isActionModeEnabled()) {
-        listener.openTodoListFragment((com.example.todocloud.data.List) listAdapter.getItem(position));
+        listener.openTodoListFragment(clickedList);
       } else {
+        // Item checked state being set automatically on item click event. We should track
+        // the changes only.
         if (list.isItemChecked(position)) {
-          selectedLists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
+          selectedLists.add(clickedList);
         } else {
-          selectedLists.remove(list.getItemAtPosition(position));
+          selectedLists.remove(clickedList);
         }
 
-        actionMode.invalidate();
-
-        // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor ActionMode
-        // kikapcsolása.
-        int checkedItemCount = list.getCheckedItemCount() +
-            expandableListView.getCheckedItemCount();
-        if (checkedItemCount == 0) {
-          if (actionMode != null)
-            actionMode.finish();
+        if (isNoSelectedItems()) {
+          actionMode.finish();
+        } else {
+          actionMode.invalidate();
         }
       }
+    }
+
+    private boolean isNoSelectedItems() {
+      int checkedItemCount = getCheckedItemCount();
+      return checkedItemCount == 0;
+    }
+
+    private int getCheckedItemCount() {
+      return list.getCheckedItemCount() +
+          expandableListView.getCheckedItemCount();
     }
 
   };
@@ -1903,7 +1912,7 @@ public class MainListFragment extends ListFragment implements
 
   public interface IMainListFragment {
     void openTodoListFragment(PredefinedListItem predefinedListItem);
-    void openTodoListFragment(com.example.todocloud.data.List list);
+    void openTodoListFragment(com.example.todocloud.data.List listToOpen);
     void onLogout();
     void startActionMode(ActionMode.Callback callback);
     void openSettings();
