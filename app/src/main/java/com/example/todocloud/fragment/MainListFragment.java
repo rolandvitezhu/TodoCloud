@@ -1656,37 +1656,49 @@ public class MainListFragment extends ListFragment implements
 
         @Override
         public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-          int position = parent.getFlatListPosition(
-              ExpandableListView.getPackedPositionForGroup(groupPosition));
+          long packedPosition = ExpandableListView.getPackedPositionForGroup(groupPosition);
+          int position = parent.getFlatListPosition(packedPosition);
           if (!AppController.isActionModeEnabled()) {
-            // Category nyitása/zárása.
-            if (!parent.isGroupExpanded(groupPosition)) {
-              parent.expandGroup(groupPosition);
-            } else {
-              parent.collapseGroup(groupPosition);
-            }
+            handleGroupExpanding(parent, groupPosition);
           } else {
-            expandableListView.setItemChecked(position, !parent.isItemChecked(position));
+            toggleItemCheckedState(parent, position);
+            Category clickedCategory = (Category) parent.getItemAtPosition(position);
             if (parent.isItemChecked(position)) {
-              selectedCategories.add((Category) parent.getItemAtPosition(position));
+              selectedCategories.add(clickedCategory);
             } else {
-              selectedCategories.remove(parent.getItemAtPosition(position));
+              selectedCategories.remove(clickedCategory);
             }
 
-            // ActionMode-hoz tartozó ActionBar beállítása.
-            actionMode.invalidate();
-
-            // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor
-            // ActionMode kikapcsolása.
-            int checkedItemCount = list.getCheckedItemCount() +
-                expandableListView.getCheckedItemCount();
-            if (checkedItemCount == 0) {
-              if (actionMode != null)
-                actionMode.finish();
+            if (isNoSelectedItems()) {
+              actionMode.finish();
+            } else {
+              actionMode.invalidate();
             }
           }
 
           return true;
+        }
+
+        private void toggleItemCheckedState(ExpandableListView parent, int position) {
+          expandableListView.setItemChecked(position, !parent.isItemChecked(position));
+        }
+
+        private void handleGroupExpanding(ExpandableListView parent, int groupPosition) {
+          if (!parent.isGroupExpanded(groupPosition)) {
+            parent.expandGroup(groupPosition);
+          } else {
+            parent.collapseGroup(groupPosition);
+          }
+        }
+
+        private boolean isNoSelectedItems() {
+          int checkedItemCount = getCheckedItemCount();
+          return checkedItemCount == 0;
+        }
+
+        private int getCheckedItemCount() {
+          return list.getCheckedItemCount() +
+              expandableListView.getCheckedItemCount();
         }
 
       };
