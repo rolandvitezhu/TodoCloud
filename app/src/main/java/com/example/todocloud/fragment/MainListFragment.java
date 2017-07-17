@@ -160,7 +160,7 @@ public class MainListFragment extends ListFragment implements
     expandableListView.setExpanded(true);
     expandableListView.setAdapter(categoryAdapter);
     expandableListView.setOnChildClickListener(expLVChildClicked);
-    expandableListView.setOnGroupClickListener(expLvGroupClicked);
+    expandableListView.setOnGroupClickListener(expLVGroupClicked);
     expandableListView.setOnCreateContextMenuListener(expLvCategoryContextMenu);
   }
 
@@ -1650,7 +1650,7 @@ public class MainListFragment extends ListFragment implements
 
       };
 
-  private ExpandableListView.OnGroupClickListener expLvGroupClicked =
+  private ExpandableListView.OnGroupClickListener expLVGroupClicked =
       new ExpandableListView.OnGroupClickListener() {
 
         @Override
