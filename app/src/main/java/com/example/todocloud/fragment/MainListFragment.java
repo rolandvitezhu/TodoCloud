@@ -213,181 +213,189 @@ public class MainListFragment extends ListFragment implements
           list.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
         }
 
-  };
+        /**
+         * If ActionMode has started with ExpandableListView, it may stop it accidentally. It can cause
+         * an unwanted click event after started the ActionMode. This method prevent that.
+         */
+        private void fixExpandableListViewBehavior() {
+          if (actionModeStartedWithELV) {
+            preventUnwantedClickEvent();
+            actionModeStartedWithELV = false;
+          }
+        }
 
-  /**
-   * If ActionMode has started with ExpandableListView, it may stop it accidentally. It can cause
-   * an unwanted click event after started the ActionMode. This method prevent that.
-   */
-  private void fixExpandableListViewBehavior() {
-    if (actionModeStartedWithELV) {
-      preventUnwantedClickEvent();
-      actionModeStartedWithELV = false;
-    }
-  }
+        private void preventUnwantedClickEvent() {
+          expandableListView.setOnTouchListener(new View.OnTouchListener() {
 
-  private void preventUnwantedClickEvent() {
-    expandableListView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+              if (unwantedClickEventPassOut(event))
+                restoreDefaultBehavior();
+              return true;
+            }
 
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-        if (unwantedClickEventPassOut(event))
-          restoreDefaultBehavior();
-        return true;
-      }
+          });
+        }
 
-    });
-  }
+        private boolean unwantedClickEventPassOut(MotionEvent event) {
+          return event.getAction() == MotionEvent.ACTION_UP ||
+              event.getAction() == MotionEvent.ACTION_CANCEL;
+        }
 
-  private boolean unwantedClickEventPassOut(MotionEvent event) {
-    return event.getAction() == MotionEvent.ACTION_UP ||
-        event.getAction() == MotionEvent.ACTION_CANCEL;
-  }
+        private void restoreDefaultBehavior() {
+          expandableListView.setOnTouchListener(null);
+        }
 
-  private void restoreDefaultBehavior() {
-    expandableListView.setOnTouchListener(null);
-  }
+        private void prepareMenu(ActionMode mode, Menu menu) {
+          if (oneCategorySelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.group, menu);
+          } else if (oneListInCategorySelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.child, menu);
+          } else if (oneListSelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.item, menu);
+          } else if (manyCategoriesSelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.many_group, menu);
+          } else if (manyListsInCategorySelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.many_child, menu);
+          } else if (manyListsSelected()) {
+            menu.clear();
+            mode.getMenuInflater().inflate(R.menu.many_item, menu);
+          } else if (manyCategoriesAndListsInCategorySelected()) {
+            menu.clear();
+          } else if (manyCategoriesAndListsSelected()) {
+            menu.clear();
+          } else if (manyListsInCategoryAndListsSelected()) {
+            menu.clear();
+          } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
+            menu.clear();
+          }
+        }
 
-  private void deselectItems() {
-    for (int i = 0; i < listAdapter.getCount(); i++) {
-      list.setItemChecked(i, false);
-    }
+        private void applyActionItemBehavior(MenuItem item) {
+          int itemId = item.getItemId();
+          if (oneCategorySelected()) {
+            switch (itemId) {
+              case R.id.itemNewList:
+                openListInCategoryCreateFragment();
+                break;
+              case R.id.itemModify:
+                modifyCategory();
+                break;
+              case R.id.itemDelete:
+                deleteCategory();
+                break;
+            }
+          } else if (oneListInCategorySelected()) {
+            switch (itemId) {
+              case R.id.itemModify:
+                modifyListInCategory();
+                break;
+              case R.id.itemDelete:
+                deleteListInCategory();
+                break;
+              case R.id.itemMove:
+                moveListInCategory();
+                break;
+            }
+          } else if (oneListSelected()) {
+            switch (itemId) {
+              case R.id.itemModify:
+                modifyList();
+                break;
+              case R.id.itemDelete:
+                deleteList();
+                break;
+              case R.id.itemMove:
+                moveListIntoCategory();
+                break;
+            }
+          } else if (manyCategoriesSelected()) {
+            if (itemId == R.id.itemDelete)
+              deleteCategories();
+          } else if (manyListsInCategorySelected()) {
+            if (itemId == R.id.itemDelete)
+              deleteListsInCategory();
+          } else if (manyListsSelected()) {
+            if (itemId == R.id.itemDelete)
+              deleteLists();
+          } else if (manyCategoriesAndListsInCategorySelected()) {
 
-    // A 0. elemtől az utolsó látható elemig kell mennünk. Láthatónak számít az összes Group
-    // elem és a nyitott Group-ok Child elemei. Ha a képernyőn mindezektől függetlenül nem
-    // látszik az adott elem, az ezen logika szerint láthatónak számít.
-    for (int i = 0; i <= expandableListView.getLastVisiblePosition(); i++) {
-      expandableListView.setItemChecked(i, false);
-    }
-  }
+          } else if (manyCategoriesAndListsSelected()) {
 
-  private void applyActionItemBehavior(MenuItem item) {
-    int itemId = item.getItemId();
-    if (oneCategorySelected()) {
-      switch (itemId) {
-        case R.id.itemNewList:
-          openListInCategoryCreateFragment();
-          break;
-        case R.id.itemModify:
-          modifyCategory();
-          break;
-        case R.id.itemDelete:
-          deleteCategory();
-          break;
-      }
-    } else if (oneListInCategorySelected()) {
-      switch (itemId) {
-        case R.id.itemModify:
-          modifyListInCategory();
-          break;
-        case R.id.itemDelete:
-          deleteListInCategory();
-          break;
-        case R.id.itemMove:
-          moveListInCategory();
-          break;
-      }
-    } else if (oneListSelected()) {
-      switch (itemId) {
-        case R.id.itemModify:
-          modifyList();
-          break;
-        case R.id.itemDelete:
-          deleteList();
-          break;
-        case R.id.itemMove:
-          moveListIntoCategory();
-          break;
-      }
-    } else if (manyCategoriesSelected()) {
-      if (itemId == R.id.itemDelete)
-        deleteCategories();
-    } else if (manyListsInCategorySelected()) {
-      if (itemId == R.id.itemDelete)
-        deleteListsInCategory();
-    } else if (manyListsSelected()) {
-      if (itemId == R.id.itemDelete)
-        deleteLists();
-    } else if (manyCategoriesAndListsInCategorySelected()) {
+          } else if (manyListsInCategoryAndListsSelected()) {
 
-    } else if (manyCategoriesAndListsSelected()) {
+          } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
 
-    } else if (manyListsInCategoryAndListsSelected()) {
+          }
+        }
 
-    } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
+        private boolean oneCategorySelected() {
+          return selectedCategories.size() == 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
+        }
 
-    }
-  }
+        private boolean oneListInCategorySelected() {
+          return selectedCategories.size() == 0 && selectedListsInCategory.size() == 1 && selectedLists.size() == 0;
+        }
 
-  private boolean oneCategorySelected() {
-    return selectedCategories.size() == 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
-  }
+        private boolean oneListSelected() {
+          return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() == 1;
+        }
 
-  private boolean oneListInCategorySelected() {
-    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 1 && selectedLists.size() == 0;
-  }
+        private boolean manyCategoriesSelected() {
+          return selectedCategories.size() > 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
+        }
 
-  private boolean oneListSelected() {
-    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() == 1;
-  }
+        private boolean manyListsInCategorySelected() {
+          return selectedCategories.size() == 0 && selectedListsInCategory.size() > 1 && selectedLists.size() == 0;
+        }
 
-  private boolean manyCategoriesSelected() {
-    return selectedCategories.size() > 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
-  }
+        private boolean manyListsSelected() {
+          return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 1;
+        }
 
-  private boolean manyListsInCategorySelected() {
-    return selectedCategories.size() == 0 && selectedListsInCategory.size() > 1 && selectedLists.size() == 0;
-  }
+        private boolean manyCategoriesAndListsInCategorySelected() {
+          return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() == 0;
+        }
 
-  private boolean manyListsSelected() {
-    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 1;
-  }
+        private boolean manyCategoriesAndListsSelected() {
+          return selectedCategories.size() > 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 0;
+        }
 
-  private boolean manyCategoriesAndListsInCategorySelected() {
-    return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() == 0;
-  }
+        private boolean manyListsInCategoryAndListsSelected() {
+          return selectedCategories.size() == 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
+        }
 
-  private boolean manyCategoriesAndListsSelected() {
-    return selectedCategories.size() > 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 0;
-  }
+        private boolean manyCategoriesAndListsInCategoryAndListsSelected() {
+          return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
+        }
 
-  private boolean manyListsInCategoryAndListsSelected() {
-    return selectedCategories.size() == 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
-  }
+        private void deselectItems() {
+          deselectListItems();
+          deselectExpandableListViewVisibleItems();
+        }
 
-  private boolean manyCategoriesAndListsInCategoryAndListsSelected() {
-    return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
-  }
+        private void deselectListItems() {
+          for (int i = 0; i < listAdapter.getCount(); i++) {
+            list.setItemChecked(i, false);
+          }
+        }
 
-  private void prepareMenu(ActionMode mode, Menu menu) {
-    if (oneCategorySelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.group, menu);
-    } else if (oneListInCategorySelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.child, menu);
-    } else if (oneListSelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.item, menu);
-    } else if (manyCategoriesSelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.many_group, menu);
-    } else if (manyListsInCategorySelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.many_child, menu);
-    } else if (manyListsSelected()) {
-      menu.clear();
-      mode.getMenuInflater().inflate(R.menu.many_item, menu);
-    } else if (manyCategoriesAndListsInCategorySelected()) {
-      menu.clear();
-    } else if (manyCategoriesAndListsSelected()) {
-      menu.clear();
-    } else if (manyListsInCategoryAndListsSelected()) {
-      menu.clear();
-    } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
-      menu.clear();
-    }
-  }
+        /**
+         * Should deselect the visible items. Visible items are the group items, and the child
+         * items of expanded group items.
+         */
+        private void deselectExpandableListViewVisibleItems() {
+          for (int i = 0; i <= expandableListView.getLastVisiblePosition(); i++) {
+            expandableListView.setItemChecked(i, false);
+          }
+        }
+
+      };
 
   @NonNull
   private String prepareActionModeTitle() {
