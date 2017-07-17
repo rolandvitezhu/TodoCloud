@@ -437,18 +437,12 @@ public class MainListFragment extends ListFragment implements
     categoryCreateFragment.show(getFragmentManager(), "CategoryCreateFragment");
   }
 
-  /**
-   * Frissíti a PredefinedListAdapter-t.
-   */
   private void updatePredefinedListAdapter() {
     predefinedListAdapter = new PredefinedListAdapter(new ArrayList<PredefinedListItem>());
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, predefinedListAdapter);
     updateAdapterTask.execute();
   }
 
-  /**
-   * Frissíti a CategoryAdapter-t.
-   */
   private void updateCategoryAdapter() {
     if (categoryAdapter == null) {
       categoryAdapter = new CategoryAdapter(new ArrayList<Category>(),
@@ -458,9 +452,6 @@ public class MainListFragment extends ListFragment implements
     updateAdapterTask.execute();
   }
 
-  /**
-   * Frissíti a ListAdapter-t.
-   */
   private void updateListAdapter() {
     if (listAdapter == null) {
       listAdapter = new ListAdapter(new ArrayList<com.example.todocloud.data.List>());
@@ -469,9 +460,6 @@ public class MainListFragment extends ListFragment implements
     updateAdapterTask.execute();
   }
 
-  /**
-   * ListInCategoryCreateFragment-et nyit meg.
-   */
   private void openListInCategoryCreateFragment() {
     ListInCategoryCreateFragment listInCategoryCreateFragment = new ListInCategoryCreateFragment();
     listInCategoryCreateFragment.setTargetFragment(this, 0);
@@ -482,9 +470,6 @@ public class MainListFragment extends ListFragment implements
     listInCategoryCreateFragment.show(getFragmentManager(), "ListInCategoryCreateFragment");
   }
 
-  /**
-   * ListModifyFragment-et nyit meg.
-   */
   private void modifyListInCategory() {
     com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
@@ -496,9 +481,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, Category-hez rendelt List-t törléséhez.
-   */
   private void deleteListInCategory() {
     com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     String onlineId = list.getListOnlineId();
@@ -513,9 +495,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, Category-hez rendelt List-ek törléséhez.
-   */
   private void deleteListsInCategory() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
@@ -526,9 +505,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * ListMoveFragment-et nyit meg, Category-hez tartozó List áthelyezéséhez.
-   */
   private void moveListInCategory() {
     com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     Category category = dbLoader.getCategoryByCategoryOnlineId(list.getCategoryOnlineId());
@@ -541,9 +517,6 @@ public class MainListFragment extends ListFragment implements
     listMoveFragment.show(getFragmentManager(), "ListMoveFragment");
   }
 
-  /**
-   * ListMoveFragment-et nyit meg, Category-hoz nem tartozó List áthelyezéséhez.
-   */
   private void moveListIntoCategory() {
     Category category = new Category("Kategórián kívül");
     com.example.todocloud.data.List list = selectedLists.get(0);
@@ -556,9 +529,6 @@ public class MainListFragment extends ListFragment implements
     listMoveFragment.show(getFragmentManager(), "ListMoveFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, Category törléséhez.
-   */
   private void deleteCategory() {
     Category category = selectedCategories.get(0);
     String onlineId = category.getCategoryOnlineId();
@@ -573,9 +543,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt Category-k törléséhez.
-   */
   private void deleteCategories() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
@@ -586,9 +553,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt List törléséhez.
-   */
   private void deleteList() {
     com.example.todocloud.data.List list = selectedLists.get(0);
     String onlineId = list.getListOnlineId();
@@ -603,9 +567,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt List-ek törléséhez.
-   */
   private void deleteLists() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
@@ -616,9 +577,6 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  /**
-   * CategoryModifyFragment-et nyit meg.
-   */
   private void modifyCategory() {
     Category category = selectedCategories.get(0);
     CategoryModifyFragment categoryModifyFragment = new CategoryModifyFragment();
@@ -629,9 +587,6 @@ public class MainListFragment extends ListFragment implements
     categoryModifyFragment.show(getFragmentManager(), "CategoryModifyFragment");
   }
 
-  /**
-   * ListModifyFragment-et nyit meg.
-   */
   private void modifyList() {
     com.example.todocloud.data.List list = selectedLists.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
@@ -642,10 +597,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  /**
-   * Frissíti a helyi adatbázist a megadott Todo-kkal.
-   * @param todos A megadott Todo-k.
-   */
   private void updateTodosInLocalDb(ArrayList<Todo> todos) {
     for (Todo todo : todos) {
       boolean exists = dbLoader.isTodoExists(todo.getTodoOnlineId());
@@ -657,10 +608,6 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  /**
-   * Frissíti a helyi adatbázist a megadott List-ekkel.
-   * @param lists A megadott List-ek.
-   */
   private void updateListsInLocalDb(ArrayList<com.example.todocloud.data.List> lists) {
     for (com.example.todocloud.data.List list : lists) {
       boolean exists = dbLoader.isListExists(list.getListOnlineId());
@@ -672,10 +619,6 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  /**
-   * Frissíti a helyi adatbázist a megadott Category-kkel.
-   * @param categories A megadott Category-k.
-   */
   private void updateCategoriesInLocalDb(ArrayList<Category> categories) {
     for (Category category : categories) {
       boolean exists = dbLoader.isCategoryExists(category.getCategoryOnlineId());
