@@ -100,7 +100,7 @@ public class ListCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.onListCreated(list);
+          listener.createList(list);
           dismiss();
         }
       }
@@ -130,11 +130,8 @@ public class ListCreateFragment extends AppCompatDialogFragment {
     }
   }
 
-  /**
-   * Interfész, a MainListFragment-tel való kommunikációra.
-   */
   public interface IListCreateFragment {
-    void onListCreated(List list);
+    void createList(List list);
   }
 
 }

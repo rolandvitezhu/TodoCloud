@@ -1787,18 +1787,22 @@ public class MainListFragment extends ListFragment implements
     actionMode.finish();
   }
 
-  /**
-   * A megadott List-et felveszi az adatbázisba és frissíti a View-t.
-   * @param list A megadott List.
-   */
   @Override
-  public void onListCreated(com.example.todocloud.data.List list) {
+  public void createList(com.example.todocloud.data.List list) {
+    createListInLocalDatabase(list);
+    updateListAdapter();
+  }
+
+  private void createListInLocalDatabase(com.example.todocloud.data.List list) {
     list.setUserOnlineId(dbLoader.getUserOnlineId());
     list.set_id(dbLoader.createList(list));
-    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(
-        DbConstants.List.DATABASE_TABLE, list.get_id(), dbLoader.getApiKey()));
+    String listOnlineId = OnlineIdGenerator.generateOnlineId(
+        DbConstants.List.DATABASE_TABLE,
+        list.get_id(),
+        dbLoader.getApiKey()
+    );
+    list.setListOnlineId(listOnlineId);
     dbLoader.updateList(list);
-    updateListAdapter();
   }
 
   /**
