@@ -2,6 +2,7 @@ package com.example.todocloud.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
@@ -80,9 +81,9 @@ public class MainListFragment extends ListFragment implements
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
 
-  private ArrayList<Category> categories = new ArrayList<>();
-  private ArrayList<com.example.todocloud.data.List> listsInCategory = new ArrayList<>();
-  private ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
+  private ArrayList<Category> selectedCategories = new ArrayList<>();
+  private ArrayList<com.example.todocloud.data.List> selectedListsInCategory = new ArrayList<>();
+  private ArrayList<com.example.todocloud.data.List> selectedLists = new ArrayList<>();
 
   @Override
   public void onAttach(Context context) {
@@ -178,173 +179,34 @@ public class MainListFragment extends ListFragment implements
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
           AppController.setActionModeEnabled(true);
           actionMode = mode;
-
-          // A lentebb taglalt hibakezelésre csak akkor van szükség, ha az ActionMode-ot
-          // ExpandableListView-ról indították.
-          if (actionModeStartedWithELV) {
-            // ActionMode indítása következtében kijelölődik az az elem, amin kiváltódott az
-            // ActionMode indításához szükséges ContextClick. Ilyenkor a kijelzőt elengedve kivál-
-            // tódhat (az esetek többségében ki is váltódik) egy nem kívánatos Click esemény, ezt
-            // kerüli el az alábbi OnTouchListener.
-            expandableListView.setOnTouchListener(new View.OnTouchListener() {
-
-              @Override
-              public boolean onTouch(View v, MotionEvent event) {
-                // Amíg be nem következik a nem kívánatos Click esemény keltéséhez szükséges
-                // ACTION_UP, vagy nem keltődik az azt ellehetetlenítő ACTION_CANCEL, addig ezen
-                // onTouch esemény true visszatérési értékének köszönhetően nem keltődhet új Click
-                // esemény.
-                if (event.getAction() == MotionEvent.ACTION_UP ||
-                    event.getAction() == MotionEvent.ACTION_CANCEL)
-                  expandableListView.setOnTouchListener(null);
-                return true;
-              }
-
-            });
-            actionModeStartedWithELV = false;
-          }
+          fixExpandableListViewBehavior();
 
           return true;
         }
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-
-          int checkedItemCount = list.getCheckedItemCount() +
-              expandableListView.getCheckedItemCount();
-          actionMode.setTitle(
-              checkedItemCount + " " + getString(R.string.selected));
-
-          // Menu beállítása.
-          if (categories.size() == 1 && listsInCategory.size() == 0 && lists.size() == 0) {
-            // Group.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.group, menu);
-          } else if (categories.size() == 0 && listsInCategory.size() == 1 && lists.size() == 0) {
-            // Child.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.child, menu);
-          } else if (categories.size() == 0 && listsInCategory.size() == 0 && lists.size() == 1) {
-            // Item.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.item, menu);
-          } else if (categories.size() > 1 && listsInCategory.size() == 0 && lists.size() == 0) {
-            // Many Group.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_group, menu);
-          } else if (categories.size() == 0 && listsInCategory.size() > 1 && lists.size() == 0) {
-            // Many Child.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_child, menu);
-          } else if (categories.size() == 0 && listsInCategory.size() == 0 && lists.size() > 1) {
-            // Many Item.
-            menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_item, menu);
-          } else if (categories.size() > 0 && listsInCategory.size() > 0 && lists.size() == 0) {
-            // Group and Child.
-            menu.clear();
-          } else if (categories.size() > 0 && listsInCategory.size() == 0 && lists.size() > 0) {
-            // Group and Item.
-            menu.clear();
-          } else if (categories.size() == 0 && listsInCategory.size() > 0 && lists.size() > 0) {
-            // Child and Item.
-            menu.clear();
-          } else if (categories.size() > 0 && listsInCategory.size() > 0 && lists.size() > 0) {
-            // Group, Child and Item.
-            menu.clear();
-          }
+          String actionModeTitle = prepareActionModeTitle();
+          actionMode.setTitle(actionModeTitle);
+          prepareMenu(mode, menu);
 
           return true;
         }
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-
-          if (categories.size() == 1 && listsInCategory.size() == 0 && lists.size() == 0) {
-            // Group.
-            switch (item.getItemId()) {
-              case R.id.itemNewList:
-                openListInCategoryCreateFragment();
-                break;
-              case R.id.itemModify:
-                modifyCategory();
-                break;
-              case R.id.itemDelete:
-                deleteCategory();
-                break;
-            }
-          } else if (categories.size() == 0 && listsInCategory.size() == 1 && lists.size() == 0) {
-            // Child.
-            switch (item.getItemId()) {
-              case R.id.itemModify:
-                modifyListInCategory();
-                break;
-              case R.id.itemDelete:
-                deleteListInCategory();
-                break;
-              case R.id.itemMove:
-                moveListInCategory();
-                break;
-            }
-          } else if (categories.size() == 0 && listsInCategory.size() == 0 && lists.size() == 1) {
-            // Item.
-            switch (item.getItemId()) {
-              case R.id.itemModify:
-                modifyList();
-                break;
-              case R.id.itemDelete:
-                deleteList();
-                break;
-              case R.id.itemMove:
-                moveListIntoCategory();
-                break;
-            }
-          } else if (categories.size() > 1 && listsInCategory.size() == 0 && lists.size() == 0) {
-            // Many Group.
-            if (item.getItemId() == R.id.itemDelete)
-              deleteCategories();
-          } else if (categories.size() == 0 && listsInCategory.size() > 1 && lists.size() == 0) {
-            // Many Child.
-            if (item.getItemId() == R.id.itemDelete)
-              deleteListsInCategory();
-          } else if (categories.size() == 0 && listsInCategory.size() == 0 && lists.size() > 1) {
-            // Many Item.
-            if (item.getItemId() == R.id.itemDelete)
-              deleteLists();
-          } else if (categories.size() > 0 && listsInCategory.size() > 0 && lists.size() == 0) {
-            // Group and Child.
-
-          } else if (categories.size() > 0 && listsInCategory.size() == 0 && lists.size() > 0) {
-            // Group and Item.
-
-          } else if (categories.size() == 0 && listsInCategory.size() > 0 && lists.size() > 0) {
-            // Child and Item.
-
-          } else if (categories.size() > 0 && listsInCategory.size() > 0 && lists.size() > 0) {
-            // Group, Child and Item.
-
-          }
+          applyActionItemBehavior(item);
 
           return true;
         }
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
+          deselectItems();
 
-          for (int i = 0; i < listAdapter.getCount(); i++) {
-            list.setItemChecked(i, false);
-          }
-
-          // A 0. elemtől az utolsó látható elemig kell mennünk. Láthatónak számít az összes Group
-          // elem és a nyitott Group-ok Child elemei. Ha a képernyőn mindezektől függetlenül nem
-          // látszik az adott elem, az ezen logika szerint láthatónak számít.
-          for (int i = 0; i <= expandableListView.getLastVisiblePosition(); i++) {
-            expandableListView.setItemChecked(i, false);
-          }
-
-          categories.clear();
-          listsInCategory.clear();
-          lists.clear();
+          selectedCategories.clear();
+          selectedListsInCategory.clear();
+          selectedLists.clear();
 
           AppController.setActionModeEnabled(false);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
@@ -352,6 +214,187 @@ public class MainListFragment extends ListFragment implements
         }
 
   };
+
+  /**
+   * If ActionMode has started with ExpandableListView, it may stop it accidentally. It can cause
+   * an unwanted click event after started the ActionMode. This method prevent that.
+   */
+  private void fixExpandableListViewBehavior() {
+    if (actionModeStartedWithELV) {
+      preventUnwantedClickEvent();
+      actionModeStartedWithELV = false;
+    }
+  }
+
+  private void preventUnwantedClickEvent() {
+    expandableListView.setOnTouchListener(new View.OnTouchListener() {
+
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        if (unwantedClickEventPassOut(event))
+          restoreDefaultBehavior();
+        return true;
+      }
+
+    });
+  }
+
+  private boolean unwantedClickEventPassOut(MotionEvent event) {
+    return event.getAction() == MotionEvent.ACTION_UP ||
+        event.getAction() == MotionEvent.ACTION_CANCEL;
+  }
+
+  private void restoreDefaultBehavior() {
+    expandableListView.setOnTouchListener(null);
+  }
+
+  private void deselectItems() {
+    for (int i = 0; i < listAdapter.getCount(); i++) {
+      list.setItemChecked(i, false);
+    }
+
+    // A 0. elemtől az utolsó látható elemig kell mennünk. Láthatónak számít az összes Group
+    // elem és a nyitott Group-ok Child elemei. Ha a képernyőn mindezektől függetlenül nem
+    // látszik az adott elem, az ezen logika szerint láthatónak számít.
+    for (int i = 0; i <= expandableListView.getLastVisiblePosition(); i++) {
+      expandableListView.setItemChecked(i, false);
+    }
+  }
+
+  private void applyActionItemBehavior(MenuItem item) {
+    int itemId = item.getItemId();
+    if (oneCategorySelected()) {
+      switch (itemId) {
+        case R.id.itemNewList:
+          openListInCategoryCreateFragment();
+          break;
+        case R.id.itemModify:
+          modifyCategory();
+          break;
+        case R.id.itemDelete:
+          deleteCategory();
+          break;
+      }
+    } else if (oneListInCategorySelected()) {
+      switch (itemId) {
+        case R.id.itemModify:
+          modifyListInCategory();
+          break;
+        case R.id.itemDelete:
+          deleteListInCategory();
+          break;
+        case R.id.itemMove:
+          moveListInCategory();
+          break;
+      }
+    } else if (oneListSelected()) {
+      switch (itemId) {
+        case R.id.itemModify:
+          modifyList();
+          break;
+        case R.id.itemDelete:
+          deleteList();
+          break;
+        case R.id.itemMove:
+          moveListIntoCategory();
+          break;
+      }
+    } else if (manyCategoriesSelected()) {
+      if (itemId == R.id.itemDelete)
+        deleteCategories();
+    } else if (manyListsInCategorySelected()) {
+      if (itemId == R.id.itemDelete)
+        deleteListsInCategory();
+    } else if (manyListsSelected()) {
+      if (itemId == R.id.itemDelete)
+        deleteLists();
+    } else if (manyCategoriesAndListsInCategorySelected()) {
+
+    } else if (manyCategoriesAndListsSelected()) {
+
+    } else if (manyListsInCategoryAndListsSelected()) {
+
+    } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
+
+    }
+  }
+
+  private boolean oneCategorySelected() {
+    return selectedCategories.size() == 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
+  }
+
+  private boolean oneListInCategorySelected() {
+    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 1 && selectedLists.size() == 0;
+  }
+
+  private boolean oneListSelected() {
+    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() == 1;
+  }
+
+  private boolean manyCategoriesSelected() {
+    return selectedCategories.size() > 1 && selectedListsInCategory.size() == 0 && selectedLists.size() == 0;
+  }
+
+  private boolean manyListsInCategorySelected() {
+    return selectedCategories.size() == 0 && selectedListsInCategory.size() > 1 && selectedLists.size() == 0;
+  }
+
+  private boolean manyListsSelected() {
+    return selectedCategories.size() == 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 1;
+  }
+
+  private boolean manyCategoriesAndListsInCategorySelected() {
+    return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() == 0;
+  }
+
+  private boolean manyCategoriesAndListsSelected() {
+    return selectedCategories.size() > 0 && selectedListsInCategory.size() == 0 && selectedLists.size() > 0;
+  }
+
+  private boolean manyListsInCategoryAndListsSelected() {
+    return selectedCategories.size() == 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
+  }
+
+  private boolean manyCategoriesAndListsInCategoryAndListsSelected() {
+    return selectedCategories.size() > 0 && selectedListsInCategory.size() > 0 && selectedLists.size() > 0;
+  }
+
+  private void prepareMenu(ActionMode mode, Menu menu) {
+    if (oneCategorySelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.group, menu);
+    } else if (oneListInCategorySelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.child, menu);
+    } else if (oneListSelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.item, menu);
+    } else if (manyCategoriesSelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.many_group, menu);
+    } else if (manyListsInCategorySelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.many_child, menu);
+    } else if (manyListsSelected()) {
+      menu.clear();
+      mode.getMenuInflater().inflate(R.menu.many_item, menu);
+    } else if (manyCategoriesAndListsInCategorySelected()) {
+      menu.clear();
+    } else if (manyCategoriesAndListsSelected()) {
+      menu.clear();
+    } else if (manyListsInCategoryAndListsSelected()) {
+      menu.clear();
+    } else if (manyCategoriesAndListsInCategoryAndListsSelected()) {
+      menu.clear();
+    }
+  }
+
+  @NonNull
+  private String prepareActionModeTitle() {
+    int checkedItemCount = list.getCheckedItemCount()
+        + expandableListView.getCheckedItemCount();
+    return checkedItemCount + " " + getString(R.string.selected);
+  }
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -417,7 +460,7 @@ public class MainListFragment extends ListFragment implements
   private void openListInCategoryCreateFragment() {
     ListInCategoryCreateFragment listInCategoryCreateFragment = new ListInCategoryCreateFragment();
     listInCategoryCreateFragment.setTargetFragment(this, 0);
-    String categoryOnlineId = categories.get(0).getCategoryOnlineId();
+    String categoryOnlineId = selectedCategories.get(0).getCategoryOnlineId();
     Bundle bundle = new Bundle();
     bundle.putString("categoryOnlineId", categoryOnlineId);
     listInCategoryCreateFragment.setArguments(bundle);
@@ -428,7 +471,7 @@ public class MainListFragment extends ListFragment implements
    * ListModifyFragment-et nyit meg.
    */
   private void modifyListInCategory() {
-    com.example.todocloud.data.List list = listsInCategory.get(0);
+    com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
     listModifyFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
@@ -442,7 +485,7 @@ public class MainListFragment extends ListFragment implements
    * ConfirmDeleteDialogFragment-et nyit meg, Category-hez rendelt List-t törléséhez.
    */
   private void deleteListInCategory() {
-    com.example.todocloud.data.List list = listsInCategory.get(0);
+    com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
@@ -463,7 +506,7 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "listInCategory");
-    bundle.putParcelableArrayList("items", listsInCategory);
+    bundle.putParcelableArrayList("items", selectedListsInCategory);
     confirmDeleteDialogFragment.setArguments(bundle);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
@@ -472,7 +515,7 @@ public class MainListFragment extends ListFragment implements
    * ListMoveFragment-et nyit meg, Category-hez tartozó List áthelyezéséhez.
    */
   private void moveListInCategory() {
-    com.example.todocloud.data.List list = listsInCategory.get(0);
+    com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     Category category = dbLoader.getCategoryByCategoryOnlineId(list.getCategoryOnlineId());
     ListMoveFragment listMoveFragment = new ListMoveFragment();
     listMoveFragment.setTargetFragment(this, 0);
@@ -488,7 +531,7 @@ public class MainListFragment extends ListFragment implements
    */
   private void moveListIntoCategory() {
     Category category = new Category("Kategórián kívül");
-    com.example.todocloud.data.List list = lists.get(0);
+    com.example.todocloud.data.List list = selectedLists.get(0);
     ListMoveFragment listMoveFragment = new ListMoveFragment();
     listMoveFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
@@ -502,7 +545,7 @@ public class MainListFragment extends ListFragment implements
    * ConfirmDeleteDialogFragment-et nyit meg, Category törléséhez.
    */
   private void deleteCategory() {
-    Category category = categories.get(0);
+    Category category = selectedCategories.get(0);
     String onlineId = category.getCategoryOnlineId();
     String title = category.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
@@ -523,7 +566,7 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "category");
-    bundle.putParcelableArrayList("items", categories);
+    bundle.putParcelableArrayList("items", selectedCategories);
     confirmDeleteDialogFragment.setArguments(bundle);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
@@ -532,7 +575,7 @@ public class MainListFragment extends ListFragment implements
    * ConfirmDeleteDialogFragment-et nyit meg, a kijelölt List törléséhez.
    */
   private void deleteList() {
-    com.example.todocloud.data.List list = lists.get(0);
+    com.example.todocloud.data.List list = selectedLists.get(0);
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
@@ -553,7 +596,7 @@ public class MainListFragment extends ListFragment implements
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
     bundle.putString("type", "list");
-    bundle.putParcelableArrayList("items", lists);
+    bundle.putParcelableArrayList("items", selectedLists);
     confirmDeleteDialogFragment.setArguments(bundle);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
@@ -562,7 +605,7 @@ public class MainListFragment extends ListFragment implements
    * CategoryModifyFragment-et nyit meg.
    */
   private void modifyCategory() {
-    Category category = categories.get(0);
+    Category category = selectedCategories.get(0);
     CategoryModifyFragment categoryModifyFragment = new CategoryModifyFragment();
     categoryModifyFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
@@ -575,7 +618,7 @@ public class MainListFragment extends ListFragment implements
    * ListModifyFragment-et nyit meg.
    */
   private void modifyList() {
-    com.example.todocloud.data.List list = lists.get(0);
+    com.example.todocloud.data.List list = selectedLists.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
     listModifyFragment.setTargetFragment(this, 0);
     Bundle bundle = new Bundle();
@@ -1551,9 +1594,9 @@ public class MainListFragment extends ListFragment implements
         listener.onItemSelected((com.example.todocloud.data.List) listAdapter.getItem(position));
       } else {
         if (list.isItemChecked(position)) {
-          lists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
+          selectedLists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
         } else {
-          lists.remove(list.getItemAtPosition(position));
+          selectedLists.remove(list.getItemAtPosition(position));
         }
 
         // ActionMode-hoz tartozó ActionBar beállítása.
@@ -1584,7 +1627,7 @@ public class MainListFragment extends ListFragment implements
             listener.startActionMode(callback);
             list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
             list.setItemChecked(position, true);
-            lists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
+            selectedLists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
 
             expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
             actionMode.invalidate();
@@ -1613,9 +1656,9 @@ public class MainListFragment extends ListFragment implements
       } else {
         expandableListView.setItemChecked(position, !parent.isItemChecked(position));
         if (parent.isItemChecked(position)) {
-          listsInCategory.add((com.example.todocloud.data.List) parent.getItemAtPosition(position));
+          selectedListsInCategory.add((com.example.todocloud.data.List) parent.getItemAtPosition(position));
         } else {
-          listsInCategory.remove(parent.getItemAtPosition(position));
+          selectedListsInCategory.remove(parent.getItemAtPosition(position));
         }
 
         // ActionMode-hoz tartozó ActionBar beállítása.
@@ -1655,9 +1698,9 @@ public class MainListFragment extends ListFragment implements
           } else {
             expandableListView.setItemChecked(position, !parent.isItemChecked(position));
             if (parent.isItemChecked(position)) {
-              categories.add((Category) parent.getItemAtPosition(position));
+              selectedCategories.add((Category) parent.getItemAtPosition(position));
             } else {
-              categories.remove(parent.getItemAtPosition(position));
+              selectedCategories.remove(parent.getItemAtPosition(position));
             }
 
             // ActionMode-hoz tartozó ActionBar beállítása.
@@ -1700,7 +1743,7 @@ public class MainListFragment extends ListFragment implements
           listener.startActionMode(callback);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableListView.setItemChecked(position, true);
-          categories.add((Category) expandableListView.getItemAtPosition(position));
+          selectedCategories.add((Category) expandableListView.getItemAtPosition(position));
 
           list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
@@ -1713,7 +1756,7 @@ public class MainListFragment extends ListFragment implements
           listener.startActionMode(callback);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableListView.setItemChecked(position, true);
-          listsInCategory.add(
+          selectedListsInCategory.add(
               (com.example.todocloud.data.List) expandableListView.getItemAtPosition(position));
 
           list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
