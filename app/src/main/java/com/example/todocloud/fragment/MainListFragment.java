@@ -1897,68 +1897,54 @@ public class MainListFragment extends ListFragment implements
     sync();
   }
 
-  /**
-   * Törli a megadott típusú objektumot, a megadott onlineId alapján.
-   * @param onlineId Az objektum azonosítója.
-   * @param type Az objektum típusa.
-   */
   @Override
-  public void onSoftDelete(String onlineId, String type) {
-    if (type != null) {
-      switch (type) {
-        case "list":
-          dbLoader.deleteListAndTodos(onlineId);
-          updateListAdapter();
-          actionMode.finish();
-          break;
-        case "listInCategory":
-          dbLoader.deleteListAndTodos(onlineId);
-          updateCategoryAdapter();
-          actionMode.finish();
-          break;
-        case "category":
-          dbLoader.deleteCategoryAndListsAndTodos(onlineId);
-          updateCategoryAdapter();
-          actionMode.finish();
-          break;
-      }
+  public void softDelete(String onlineId, String type) {
+    switch (type) {
+      case "list":
+        dbLoader.deleteListAndTodos(onlineId);
+        updateListAdapter();
+        actionMode.finish();
+        break;
+      case "listInCategory":
+        dbLoader.deleteListAndTodos(onlineId);
+        updateCategoryAdapter();
+        actionMode.finish();
+        break;
+      case "category":
+        dbLoader.deleteCategoryAndListsAndTodos(onlineId);
+        updateCategoryAdapter();
+        actionMode.finish();
+        break;
     }
   }
 
-  /**
-   * Törli a megadott típusú objektumokat.
-   * @param items A megadott objektumokat tartalmazó tömb.
-   * @param type A megadott objektumok típusa.
-   */
   @Override
-  public void onSoftDelete(ArrayList items, String type) {
-    if (type != null) {
-      switch (type) {
-        case "list":
-          ArrayList<com.example.todocloud.data.List> lists = items;
-          for (com.example.todocloud.data.List list:lists) {
-            dbLoader.deleteListAndTodos(list.getListOnlineId());
-          }
-          updateListAdapter();
-          actionMode.finish();
-          break;
-        case "listInCategory":
-          ArrayList<com.example.todocloud.data.List> listsInCategory = items;
-          for (com.example.todocloud.data.List list:listsInCategory) {
-            dbLoader.deleteListAndTodos(list.getListOnlineId());
-          }
-          updateCategoryAdapter();
-          actionMode.finish();
-          break;
-        case "category":
-          ArrayList<Category> categories = items;
-          for (Category category:categories) {
-            dbLoader.deleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
-          }
-          updateCategoryAdapter();
-          actionMode.finish();
-          break;
-      }
+  public void softDelete(ArrayList items, String type) {
+    switch (type) {
+      case "list":
+        ArrayList<com.example.todocloud.data.List> lists = items;
+        for (com.example.todocloud.data.List list:lists) {
+          dbLoader.deleteListAndTodos(list.getListOnlineId());
+        }
+        updateListAdapter();
+        actionMode.finish();
+        break;
+      case "listInCategory":
+        ArrayList<com.example.todocloud.data.List> listsInCategory = items;
+        for (com.example.todocloud.data.List list:listsInCategory) {
+          dbLoader.deleteListAndTodos(list.getListOnlineId());
+        }
+        updateCategoryAdapter();
+        actionMode.finish();
+        break;
+      case "category":
+        ArrayList<Category> categories = items;
+        for (Category category:categories) {
+          dbLoader.deleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
+        }
+        updateCategoryAdapter();
+        actionMode.finish();
+        break;
     }
   }
 

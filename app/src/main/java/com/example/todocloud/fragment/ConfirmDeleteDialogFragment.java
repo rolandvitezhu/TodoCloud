@@ -51,55 +51,53 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     if (items != null) many = true;
     String title;
     String itemTitle = getArguments().getString("title");
-    if (type != null) {
-      switch (type) {
-        case "todo":
-          if (isMany()) {
-            getDialog().setTitle(R.string.delete_todos);
-            tvTitle.setText(getString(R.string.title_delete_todos));
-          } else {
-            getDialog().setTitle(R.string.delete_todo);
-            title = getString(R.string.title_delete_todo);
-            ArrayList<Todo> todos = items;
-            itemTitle = todos.get(0).getTitle();
-            title = title + "\"" + itemTitle + "\"?";
-            tvTitle.setText(title);
-          }
-          break;
-        case "list":
-          if (many) {
-            getDialog().setTitle(R.string.delete_lists);
-            tvTitle.setText(R.string.title_delete_lists);
-          } else {
-            getDialog().setTitle(R.string.delete_list);
-            title = getString(R.string.title_delete_list);
-            title = title + "\"" + itemTitle + "\"?";
-            tvTitle.setText(title);
-          }
-          break;
-        case "listInCategory":
-          if (many) {
-            getDialog().setTitle(R.string.delete_lists);
-            tvTitle.setText(R.string.title_delete_lists);
-          } else {
-            getDialog().setTitle(R.string.delete_list);
-            title = getString(R.string.title_delete_list);
-            title = title + "\"" + itemTitle + "\"?";
-            tvTitle.setText(title);
-          }
-          break;
-        case "category":
-          if (many) {
-            getDialog().setTitle(R.string.delete_categories);
-            tvTitle.setText(R.string.title_delete_categories);
-          } else {
-            getDialog().setTitle(R.string.delete_category);
-            title = getString(R.string.title_delete_category);
-            title = title + "\"" + itemTitle + "\"?";
-            tvTitle.setText(title);
-          }
-          break;
-      }
+    switch (type) {
+      case "todo":
+        if (isMany()) {
+          getDialog().setTitle(R.string.delete_todos);
+          tvTitle.setText(getString(R.string.title_delete_todos));
+        } else {
+          getDialog().setTitle(R.string.delete_todo);
+          title = getString(R.string.title_delete_todo);
+          ArrayList<Todo> todos = items;
+          itemTitle = todos.get(0).getTitle();
+          title = title + "\"" + itemTitle + "\"?";
+          tvTitle.setText(title);
+        }
+        break;
+      case "list":
+        if (many) {
+          getDialog().setTitle(R.string.delete_lists);
+          tvTitle.setText(R.string.title_delete_lists);
+        } else {
+          getDialog().setTitle(R.string.delete_list);
+          title = getString(R.string.title_delete_list);
+          title = title + "\"" + itemTitle + "\"?";
+          tvTitle.setText(title);
+        }
+        break;
+      case "listInCategory":
+        if (many) {
+          getDialog().setTitle(R.string.delete_lists);
+          tvTitle.setText(R.string.title_delete_lists);
+        } else {
+          getDialog().setTitle(R.string.delete_list);
+          title = getString(R.string.title_delete_list);
+          title = title + "\"" + itemTitle + "\"?";
+          tvTitle.setText(title);
+        }
+        break;
+      case "category":
+        if (many) {
+          getDialog().setTitle(R.string.delete_categories);
+          tvTitle.setText(R.string.title_delete_categories);
+        } else {
+          getDialog().setTitle(R.string.delete_category);
+          title = getString(R.string.title_delete_category);
+          title = title + "\"" + itemTitle + "\"?";
+          tvTitle.setText(title);
+        }
+        break;
     }
 
     btnOK.setOnClickListener(new View.OnClickListener() {
@@ -108,9 +106,9 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
       public void onClick(View v) {
         if (!many) {
           String onlineId = getArguments().getString("onlineId");
-          listener.onSoftDelete(onlineId, type);
+          listener.softDelete(onlineId, type);
         } else {
-          listener.onSoftDelete(items, type);
+          listener.softDelete(items, type);
         }
         dismiss();
       }
@@ -132,8 +130,8 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   }
 
   public interface IConfirmDeleteDialogFragment {
-    void onSoftDelete(String onlineId, String type);
-    void onSoftDelete(ArrayList items, String type);
+    void softDelete(String onlineId, String type);
+    void softDelete(ArrayList items, String type);
   }
 
 }
