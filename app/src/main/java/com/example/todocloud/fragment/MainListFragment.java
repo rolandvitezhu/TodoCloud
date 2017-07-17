@@ -1604,39 +1604,51 @@ public class MainListFragment extends ListFragment implements
   private ExpandableListView.OnChildClickListener expLVChildClicked =
       new ExpandableListView.OnChildClickListener() {
 
-    @Override
-    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
-                                int childPosition, long id) {
-      int position = parent.getFlatListPosition(
-          ExpandableListView.getPackedPositionForChild(groupPosition, childPosition));
-      if (!AppController.isActionModeEnabled()) {
-        // List megnyitása.
-        listener.openTodoListFragment((com.example.todocloud.data.List)
-            categoryAdapter.getChild(groupPosition, childPosition));
-      } else {
-        expandableListView.setItemChecked(position, !parent.isItemChecked(position));
-        if (parent.isItemChecked(position)) {
-          selectedListsInCategory.add((com.example.todocloud.data.List) parent.getItemAtPosition(position));
-        } else {
-          selectedListsInCategory.remove(parent.getItemAtPosition(position));
+        @Override
+        public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                                    int childPosition, long id) {
+          com.example.todocloud.data.List clickedList = (com.example.todocloud.data.List)
+              categoryAdapter.getChild(groupPosition, childPosition);
+          long packedPosition = ExpandableListView.getPackedPositionForChild(
+              groupPosition,
+              childPosition
+          );
+          int position = parent.getFlatListPosition(packedPosition);
+          if (!AppController.isActionModeEnabled()) {
+            listener.openTodoListFragment(clickedList);
+          } else {
+            toggleItemCheckedState(parent, position);
+            if (parent.isItemChecked(position)) {
+              selectedListsInCategory.add(clickedList);
+            } else {
+              selectedListsInCategory.remove(clickedList);
+            }
+
+            if (isNoSelectedItems()) {
+              actionMode.finish();
+            } else {
+              actionMode.invalidate();
+            }
+          }
+
+          return true;
         }
 
-        // ActionMode-hoz tartozó ActionBar beállítása.
-        actionMode.invalidate();
-
-        // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor
-        // ActionMode kikapcsolása.
-        int checkedItemCount = list.getCheckedItemCount() +
-            expandableListView.getCheckedItemCount();
-        if (checkedItemCount == 0) {
-          if (actionMode != null)
-            actionMode.finish();
+        private void toggleItemCheckedState(ExpandableListView parent, int position) {
+          expandableListView.setItemChecked(position, !parent.isItemChecked(position));
         }
-      }
-      return true;
-    }
 
-  };
+        private boolean isNoSelectedItems() {
+          int checkedItemCount = getCheckedItemCount();
+          return checkedItemCount == 0;
+        }
+
+        private int getCheckedItemCount() {
+          return list.getCheckedItemCount() +
+              expandableListView.getCheckedItemCount();
+        }
+
+      };
 
   private ExpandableListView.OnGroupClickListener expLvGroupClicked =
       new ExpandableListView.OnGroupClickListener() {
