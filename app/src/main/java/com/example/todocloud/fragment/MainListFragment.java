@@ -1554,7 +1554,6 @@ public class MainListFragment extends ListFragment implements
           selectedLists.remove(list.getItemAtPosition(position));
         }
 
-        // ActionMode-hoz tartozó ActionBar beállítása.
         actionMode.invalidate();
 
         // Ha az utolsó kiválasztott elemet is kiválasztatlanná tesszük, akkor ActionMode
@@ -1898,17 +1897,11 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  /**
-   * Végrehajtja a kijelentkezést.
-   */
   @Override
   public void onLogout() {
     listener.onLogout();
   }
 
-  /**
-   * Interfész a MainActivity-vel történő kommunikációra.
-   */
   public interface IMainListFragment {
     void onItemSelected(PredefinedListItem predefinedListItem);
     void onItemSelected(com.example.todocloud.data.List list);
