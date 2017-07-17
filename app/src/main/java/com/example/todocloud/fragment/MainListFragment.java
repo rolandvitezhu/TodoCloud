@@ -464,9 +464,9 @@ public class MainListFragment extends ListFragment implements
     ListInCategoryCreateFragment listInCategoryCreateFragment = new ListInCategoryCreateFragment();
     listInCategoryCreateFragment.setTargetFragment(this, 0);
     String categoryOnlineId = selectedCategories.get(0).getCategoryOnlineId();
-    Bundle bundle = new Bundle();
-    bundle.putString("categoryOnlineId", categoryOnlineId);
-    listInCategoryCreateFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("categoryOnlineId", categoryOnlineId);
+    listInCategoryCreateFragment.setArguments(arguments);
     listInCategoryCreateFragment.show(getFragmentManager(), "ListInCategoryCreateFragment");
   }
 
@@ -474,10 +474,10 @@ public class MainListFragment extends ListFragment implements
     com.example.todocloud.data.List list = selectedListsInCategory.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
     listModifyFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("list", list);
-    bundle.putBoolean("isInCategory", true);
-    listModifyFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("list", list);
+    arguments.putBoolean("isInCategory", true);
+    listModifyFragment.setArguments(arguments);
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
@@ -487,21 +487,21 @@ public class MainListFragment extends ListFragment implements
     String title = list.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "listInCategory");
-    bundle.putString("title", title);
-    bundle.putString("onlineId", onlineId);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "listInCategory");
+    arguments.putString("title", title);
+    arguments.putString("onlineId", onlineId);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   private void deleteListsInCategory() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "listInCategory");
-    bundle.putParcelableArrayList("items", selectedListsInCategory);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "listInCategory");
+    arguments.putParcelableArrayList("items", selectedListsInCategory);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
@@ -510,10 +510,10 @@ public class MainListFragment extends ListFragment implements
     Category category = dbLoader.getCategoryByCategoryOnlineId(list.getCategoryOnlineId());
     ListMoveFragment listMoveFragment = new ListMoveFragment();
     listMoveFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("category", category);
-    bundle.putParcelable("list", list);
-    listMoveFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("category", category);
+    arguments.putParcelable("list", list);
+    listMoveFragment.setArguments(arguments);
     listMoveFragment.show(getFragmentManager(), "ListMoveFragment");
   }
 
@@ -522,10 +522,10 @@ public class MainListFragment extends ListFragment implements
     com.example.todocloud.data.List list = selectedLists.get(0);
     ListMoveFragment listMoveFragment = new ListMoveFragment();
     listMoveFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("category", category);
-    bundle.putParcelable("list", list);
-    listMoveFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("category", category);
+    arguments.putParcelable("list", list);
+    listMoveFragment.setArguments(arguments);
     listMoveFragment.show(getFragmentManager(), "ListMoveFragment");
   }
 
@@ -535,21 +535,21 @@ public class MainListFragment extends ListFragment implements
     String title = category.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "category");
-    bundle.putString("title", title);
-    bundle.putString("onlineId", onlineId);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "category");
+    arguments.putString("title", title);
+    arguments.putString("onlineId", onlineId);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   private void deleteCategories() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "category");
-    bundle.putParcelableArrayList("items", selectedCategories);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "category");
+    arguments.putParcelableArrayList("items", selectedCategories);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
@@ -559,21 +559,21 @@ public class MainListFragment extends ListFragment implements
     String title = list.getTitle();
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "list");
-    bundle.putString("title", title);
-    bundle.putString("onlineId", onlineId);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "list");
+    arguments.putString("title", title);
+    arguments.putString("onlineId", onlineId);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
   private void deleteLists() {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putString("type", "list");
-    bundle.putParcelableArrayList("items", selectedLists);
-    confirmDeleteDialogFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putString("type", "list");
+    arguments.putParcelableArrayList("items", selectedLists);
+    confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
@@ -581,9 +581,9 @@ public class MainListFragment extends ListFragment implements
     Category category = selectedCategories.get(0);
     CategoryModifyFragment categoryModifyFragment = new CategoryModifyFragment();
     categoryModifyFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("category", category);
-    categoryModifyFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("category", category);
+    categoryModifyFragment.setArguments(arguments);
     categoryModifyFragment.show(getFragmentManager(), "CategoryModifyFragment");
   }
 
@@ -591,9 +591,9 @@ public class MainListFragment extends ListFragment implements
     com.example.todocloud.data.List list = selectedLists.get(0);
     ListModifyFragment listModifyFragment = new ListModifyFragment();
     listModifyFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("list", list);
-    listModifyFragment.setArguments(bundle);
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("list", list);
+    listModifyFragment.setArguments(arguments);
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
