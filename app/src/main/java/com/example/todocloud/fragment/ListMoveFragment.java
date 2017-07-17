@@ -59,17 +59,17 @@ public class ListMoveFragment extends AppCompatDialogFragment {
 
       @Override
       public void onClick(View v) {
-        boolean isListToCategory = false;
+        boolean listIsNotInCategory = false;
         // Ha a kapott category categoryOnlineId-ja null, akkor kategória nélküli listáról van szó.
         // Ez esetben pedig a ListInCategory táblában nincs hozzá tartozó bejegyzés, létre kell azt
         // hozni. Tehát listát helyezünk kategóriába.
         if (((Category) getArguments().get("category")).getCategoryOnlineId() == null) {
-          isListToCategory = true;
+          listIsNotInCategory = true;
         }
         List list = getArguments().getParcelable("list");
         String categoryOnlineId = ((Category) spnrCategory.getSelectedItem()).
             getCategoryOnlineId();
-        listener.onListMoved(list, categoryOnlineId, isListToCategory);
+        listener.moveList(list, categoryOnlineId, listIsNotInCategory);
         dismiss();
       }
 
@@ -84,11 +84,8 @@ public class ListMoveFragment extends AppCompatDialogFragment {
     return view;
   }
 
-  /**
-   * Interfész, a MainListFragment-tel való kommunikációra.
-   */
   public interface IListMoveFragment {
-    void onListMoved(List list, String categoryOnlineId, boolean isListToCategory);
+    void moveList(List list, String categoryOnlineId, boolean listIsNotInCategory);
   }
 
 }

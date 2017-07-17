@@ -322,7 +322,7 @@ public class MainListFragment extends ListFragment implements
                 deleteList();
                 break;
               case R.id.itemMove:
-                moveListIntoCategory();
+                moveListIntoAnotherCategory();
                 break;
             }
           } else if (manyCategoriesSelected()) {
@@ -521,7 +521,7 @@ public class MainListFragment extends ListFragment implements
     listMoveFragment.show(getFragmentManager(), "ListMoveFragment");
   }
 
-  private void moveListIntoCategory() {
+  private void moveListIntoAnotherCategory() {
     Category category = new Category("Kategórián kívül");
     com.example.todocloud.data.List list = selectedLists.get(0);
     ListMoveFragment listMoveFragment = new ListMoveFragment();
@@ -1841,50 +1841,55 @@ public class MainListFragment extends ListFragment implements
     dbLoader.updateList(list);
   }
 
-  /**
-   * A megadott List-et rendeli hozzá, az adott Category-hez vagy megszünteti a List, Category-hez
-   * rendeltségét.
-   * @param list A megadott List.
-   * @param categoryOnlineId Az adott Category categoryOnlineId-je.
-   * @param isListToCategory A megadott List a művelet előtt Category-hez rendelt volt-e vagy nem.
-   */
   @Override
-  public void onListMoved(com.example.todocloud.data.List list, String categoryOnlineId,
-                          boolean isListToCategory) {
-    switch (isListToCategory ? 1 : 0) {
-      case 0: // A List a művelet előtt Category-hez rendelt volt.
-        // Ha a categoryOnlineId null, akkor a Category-hez rendelt List hozzárendelését
-        // szüntetjük meg, egyébként Category-hez rendelt List-et rendel másik Category-hez.
-        if (categoryOnlineId == null) {
-          list.setCategoryOnlineId(null);
-          list.setDirty(true);
-          dbLoader.updateList(list);
-          updateCategoryAdapter();
-          updateListAdapter();
+  public void moveList(com.example.todocloud.data.List list, String categoryOnlineId,
+                       boolean listIsNotInCategory) {
+    switch (listIsNotInCategory ? "listIsNotInCategory" : "listIsInCategory") {
+      case "listIsNotInCategory":
+        if (moveListOutsideCategory(categoryOnlineId)) {
           actionMode.finish();
         } else {
-          list.setCategoryOnlineId(categoryOnlineId);
-          list.setDirty(true);
-          dbLoader.updateList(list);
-          updateCategoryAdapter();
+          moveListIntoCategory(list, categoryOnlineId);
           actionMode.finish();
         }
         break;
-      case 1: // A List a művelet előtt nem volt Category-hez rendelve. Category-hez rendelendő.
-        // Ha a Category-hez nem rendelt List-et akarjuk Category-hez nem rendeltté tenni, akkor
-        // ne történjen semmi.
-        if (categoryOnlineId == null) {
+      case "listIsInCategory":
+      if (moveListOutsideCategory(categoryOnlineId)) {
+          moveListOutsideCategory(list);
           actionMode.finish();
-          return;
+        } else {
+          moveListIntoAnotherCategory(list, categoryOnlineId);
+          actionMode.finish();
         }
-        list.setCategoryOnlineId(categoryOnlineId);
-        list.setDirty(true);
-        dbLoader.updateList(list);
-        updateListAdapter();
-        updateCategoryAdapter();
-        actionMode.finish();
-        break;
+      break;
     }
+  }
+
+  private void moveListIntoCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+    list.setCategoryOnlineId(categoryOnlineId);
+    list.setDirty(true);
+    dbLoader.updateList(list);
+    updateListAdapter();
+    updateCategoryAdapter();
+  }
+
+  private void moveListIntoAnotherCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+    list.setCategoryOnlineId(categoryOnlineId);
+    list.setDirty(true);
+    dbLoader.updateList(list);
+    updateCategoryAdapter();
+  }
+
+  private void moveListOutsideCategory(com.example.todocloud.data.List list) {
+    list.setCategoryOnlineId(null);
+    list.setDirty(true);
+    dbLoader.updateList(list);
+    updateCategoryAdapter();
+    updateListAdapter();
+  }
+
+  private boolean moveListOutsideCategory(String categoryOnlineId) {
+    return categoryOnlineId == null;
   }
 
   @Override
