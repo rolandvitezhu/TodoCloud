@@ -1585,6 +1585,7 @@ public class MainListFragment extends ListFragment implements
           if (!AppController.isActionModeEnabled()) {
             startActionMode(position);
           }
+
           return true;
         }
 
@@ -1684,6 +1685,7 @@ public class MainListFragment extends ListFragment implements
                 actionMode.finish();
             }
           }
+
           return true;
         }
 
