@@ -246,6 +246,13 @@ public class MainListFragment extends ListFragment implements
           expandableListView.setOnTouchListener(null);
         }
 
+        @NonNull
+        private String prepareActionModeTitle() {
+          int checkedItemCount = list.getCheckedItemCount()
+              + expandableListView.getCheckedItemCount();
+          return checkedItemCount + " " + getString(R.string.selected);
+        }
+
         private void prepareMenu(ActionMode mode, Menu menu) {
           if (oneCategorySelected()) {
             menu.clear();
@@ -396,13 +403,6 @@ public class MainListFragment extends ListFragment implements
         }
 
       };
-
-  @NonNull
-  private String prepareActionModeTitle() {
-    int checkedItemCount = list.getCheckedItemCount()
-        + expandableListView.getCheckedItemCount();
-    return checkedItemCount + " " + getString(R.string.selected);
-  }
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
