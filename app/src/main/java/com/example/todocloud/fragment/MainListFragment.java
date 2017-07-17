@@ -1805,17 +1805,10 @@ public class MainListFragment extends ListFragment implements
     dbLoader.updateList(list);
   }
 
-  /**
-   * A megadott List-et módosítja attól függően, hogy az Category-hez rendelt-e.
-   * @param list A megadott List.
-   * @param isInCategory A megadott List Category-hez rendelt-e vagy nem.
-   */
   @Override
-  public void onListModified(com.example.todocloud.data.List list, boolean isInCategory) {
+  public void modifyList(com.example.todocloud.data.List list, boolean isInCategory) {
     list.setDirty(true);
     dbLoader.updateList(list);
-    // Ha Category-hez rendelt List-et módosítunk, akkor a listAdapter helyett a categoryAdapter-t
-    // kell frissítenünk.
     if (isInCategory) {
       updateCategoryAdapter();
     } else {
@@ -1823,8 +1816,6 @@ public class MainListFragment extends ListFragment implements
     }
     actionMode.finish();
   }
-
-  // Felvesz egy List-et, a megadott Category-hoz rendelten.
 
   /**
    * A megadott List-et felveszi az adatbázisba, az adott Category-hoz rendelten, majd frissíti a
