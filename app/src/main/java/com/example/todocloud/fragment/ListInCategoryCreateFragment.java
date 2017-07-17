@@ -99,7 +99,7 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.onListInCategoryCreated(getArguments().getString("categoryOnlineId"), list);
+          listener.createListInCategory(list, getArguments().getString("categoryOnlineId"));
           dismiss();
         }
       }
@@ -129,11 +129,8 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
     }
   }
 
-  /**
-   * Interfész, a MainListFragment-tel való kommunikációra.
-   */
   public interface IListInCategoryCreateFragment {
-    void onListInCategoryCreated(String categoryOnlineId, List list);
+    void createListInCategory(List list, String categoryOnlineId);
   }
 
 }

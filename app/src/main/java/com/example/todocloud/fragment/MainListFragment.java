@@ -1817,23 +1817,28 @@ public class MainListFragment extends ListFragment implements
     actionMode.finish();
   }
 
-  /**
-   * A megadott List-et felveszi az adatbázisba, az adott Category-hoz rendelten, majd frissíti a
-   * View-t.
-   * @param categoryOnlineId Az adott Category categoryOnlineId-je.
-   * @param list A megadott List.
-   */
   @Override
-  public void onListInCategoryCreated(String categoryOnlineId,
-                                      com.example.todocloud.data.List list) {
+  public void createListInCategory(com.example.todocloud.data.List list,
+                                   String categoryOnlineId) {
+    createListInCategoryInLocalDatabase(list, categoryOnlineId);
+    updateCategoryAdapter();
+    actionMode.finish();
+  }
+
+  private void createListInCategoryInLocalDatabase(
+      com.example.todocloud.data.List list,
+      String categoryOnlineId
+  ) {
     list.setUserOnlineId(dbLoader.getUserOnlineId());
     list.setCategoryOnlineId(categoryOnlineId);
     list.set_id(dbLoader.createList(list));
-    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(
-        DbConstants.List.DATABASE_TABLE, list.get_id(), dbLoader.getApiKey()));
+    String listOnlineId = OnlineIdGenerator.generateOnlineId(
+        DbConstants.List.DATABASE_TABLE,
+        list.get_id(),
+        dbLoader.getApiKey()
+    );
+    list.setListOnlineId(listOnlineId);
     dbLoader.updateList(list);
-    updateCategoryAdapter();
-    actionMode.finish();
   }
 
   /**
