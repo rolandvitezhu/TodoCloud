@@ -1553,19 +1553,23 @@ public class MainListFragment extends ListFragment implements
       if (!AppController.isActionModeEnabled()) {
         listener.openTodoListFragment(clickedList);
       } else {
-        // Item checked state being set automatically on item click event. We should track
-        // the changes only.
-        if (list.isItemChecked(position)) {
-          selectedLists.add(clickedList);
-        } else {
-          selectedLists.remove(clickedList);
-        }
+        handleItemSelection(position, clickedList);
+      }
+    }
 
-        if (isNoSelectedItems()) {
-          actionMode.finish();
-        } else {
-          actionMode.invalidate();
-        }
+    private void handleItemSelection(int position, com.example.todocloud.data.List clickedList) {
+      // Item checked state being set automatically on item click event. We should track
+      // the changes only.
+      if (list.isItemChecked(position)) {
+        selectedLists.add(clickedList);
+      } else {
+        selectedLists.remove(clickedList);
+      }
+
+      if (isNoSelectedItems()) {
+        actionMode.finish();
+      } else {
+        actionMode.invalidate();
       }
     }
 
@@ -1622,21 +1626,25 @@ public class MainListFragment extends ListFragment implements
           if (!AppController.isActionModeEnabled()) {
             listener.openTodoListFragment(clickedList);
           } else {
-            toggleItemCheckedState(parent, position);
-            if (parent.isItemChecked(position)) {
-              selectedListsInCategory.add(clickedList);
-            } else {
-              selectedListsInCategory.remove(clickedList);
-            }
-
-            if (isNoSelectedItems()) {
-              actionMode.finish();
-            } else {
-              actionMode.invalidate();
-            }
+            handleItemSelection(parent, clickedList, position);
           }
 
           return true;
+        }
+
+        private void handleItemSelection(ExpandableListView parent, com.example.todocloud.data.List clickedList, int position) {
+          toggleItemCheckedState(parent, position);
+          if (parent.isItemChecked(position)) {
+            selectedListsInCategory.add(clickedList);
+          } else {
+            selectedListsInCategory.remove(clickedList);
+          }
+
+          if (isNoSelectedItems()) {
+            actionMode.finish();
+          } else {
+            actionMode.invalidate();
+          }
         }
 
         private void toggleItemCheckedState(ExpandableListView parent, int position) {
@@ -1665,22 +1673,26 @@ public class MainListFragment extends ListFragment implements
           if (!AppController.isActionModeEnabled()) {
             handleGroupExpanding(parent, groupPosition);
           } else {
-            toggleItemCheckedState(parent, position);
-            Category clickedCategory = (Category) parent.getItemAtPosition(position);
-            if (parent.isItemChecked(position)) {
-              selectedCategories.add(clickedCategory);
-            } else {
-              selectedCategories.remove(clickedCategory);
-            }
-
-            if (isNoSelectedItems()) {
-              actionMode.finish();
-            } else {
-              actionMode.invalidate();
-            }
+            handleItemSelection(parent, position);
           }
 
           return true;
+        }
+
+        private void handleItemSelection(ExpandableListView parent, int position) {
+          toggleItemCheckedState(parent, position);
+          Category clickedCategory = (Category) parent.getItemAtPosition(position);
+          if (parent.isItemChecked(position)) {
+            selectedCategories.add(clickedCategory);
+          } else {
+            selectedCategories.remove(clickedCategory);
+          }
+
+          if (isNoSelectedItems()) {
+            actionMode.finish();
+          } else {
+            actionMode.invalidate();
+          }
         }
 
         private void toggleItemCheckedState(ExpandableListView parent, int position) {
