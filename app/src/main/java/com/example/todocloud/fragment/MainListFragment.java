@@ -411,23 +411,30 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    int itemId = item.getItemId();
 
-    switch (item.getItemId()) {
+    switch (itemId) {
       case R.id.itemCreateCategory:
-        // Kategória létrehozása.
-        CategoryCreateFragment categoryCreateFragment = new CategoryCreateFragment();
-        categoryCreateFragment.setTargetFragment(this, 0);
-        categoryCreateFragment.show(getFragmentManager(), "CategoryCreateFragment");
+        openCategoryCreateFragment();
         break;
       case R.id.itemCreateList:
-        // Lista létrehozása.
-        ListCreateFragment listCreateFragment = new ListCreateFragment();
-        listCreateFragment.setTargetFragment(this, 0);
-        listCreateFragment.show(getFragmentManager(), "ListCreateFragment");
+        openListCreateFragment();
         break;
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  private void openListCreateFragment() {
+    ListCreateFragment listCreateFragment = new ListCreateFragment();
+    listCreateFragment.setTargetFragment(this, 0);
+    listCreateFragment.show(getFragmentManager(), "ListCreateFragment");
+  }
+
+  private void openCategoryCreateFragment() {
+    CategoryCreateFragment categoryCreateFragment = new CategoryCreateFragment();
+    categoryCreateFragment.setTargetFragment(this, 0);
+    categoryCreateFragment.show(getFragmentManager(), "CategoryCreateFragment");
   }
 
   /**
