@@ -1763,6 +1763,11 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void createCategory(Category category) {
+    createCategoryInLocalDatabase(category);
+    updateCategoryAdapter();
+  }
+
+  private void createCategoryInLocalDatabase(Category category) {
     category.setUserOnlineId(dbLoader.getUserOnlineId());
     category.set_id(dbLoader.createCategory(category));
     String categoryOnlineId = OnlineIdGenerator.generateOnlineId(
@@ -1772,7 +1777,6 @@ public class MainListFragment extends ListFragment implements
     );
     category.setCategoryOnlineId(categoryOnlineId);
     dbLoader.updateCategory(category);
-    updateCategoryAdapter();
   }
 
   @Override
