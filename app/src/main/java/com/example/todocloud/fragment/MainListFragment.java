@@ -639,12 +639,8 @@ public class MainListFragment extends ListFragment implements
 
     String tag_string_request = "request_get_todos";
 
-    // URL összeállítása.
-    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
-    String URL = AppConfig.URL_GET_TODOS.substring(0, end) +
-        dbLoader.getTodoRowVersion();
-
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, URL,
+    String url = prepareUrl();
+    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
         new Response.Listener<String>() {
 
           @Override
@@ -724,7 +720,16 @@ public class MainListFragment extends ListFragment implements
 
     AppController.getInstance().addToRequestQueue(stringRequest, tag_string_request);
 
-  };
+  }
+
+  @NonNull
+  private String prepareUrl() {
+    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
+    return AppConfig.URL_GET_TODOS.substring(0, end) +
+        dbLoader.getTodoRowVersion();
+  }
+
+  ;
 
   /**
    * A kliens aktuális sorverziója alapján lekéri a szerverről a frissítendő sorokat. Ezek között
@@ -1521,10 +1526,6 @@ public class MainListFragment extends ListFragment implements
     swipeRefreshLayout.setRefreshing(false);
   }
 
-  /**
-   * Az előre definiált lista elemén történő kattintás eseménykezelője (többek között tennivaló
-   * listákat nyit meg).
-   */
   private AdapterView.OnItemClickListener predefinedListItemClicked =
       new AdapterView.OnItemClickListener() {
 
@@ -1539,10 +1540,6 @@ public class MainListFragment extends ListFragment implements
 
   };
 
-  /**
-   * Az egyéni listák elemein történő kattintás eseménykezelője (tökkek között tennivaló listákat
-   * nyit meg).
-   */
   private AdapterView.OnItemClickListener listItemClicked = new AdapterView.OnItemClickListener() {
 
     @Override
@@ -1573,9 +1570,6 @@ public class MainListFragment extends ListFragment implements
 
   };
 
-  /**
-   * A List elemein történő LongClick eseménykezelője. Az ActionMode-ot indítja el, ha szükséges.
-   */
   private AdapterView.OnItemLongClickListener listItemLongClicked =
       new AdapterView.OnItemLongClickListener() {
 
@@ -1595,10 +1589,6 @@ public class MainListFragment extends ListFragment implements
 
       };
 
-  /**
-   * Kategória lista elemén történő kattintás eseménykezelője (többek között tennivaló listákat
-   * nyit meg).
-   */
   private ExpandableListView.OnChildClickListener expLvChildClicked =
       new ExpandableListView.OnChildClickListener() {
 
@@ -1636,9 +1626,6 @@ public class MainListFragment extends ListFragment implements
 
   };
 
-  /**
-   * Kategórián történő kattintás eseménykezelője.
-   */
   private ExpandableListView.OnGroupClickListener expLvGroupClicked =
       new ExpandableListView.OnGroupClickListener() {
 
@@ -1678,9 +1665,6 @@ public class MainListFragment extends ListFragment implements
 
       };
 
-  /**
-   * Az ExpandableListView Group-jain és Child-jain történő ActionMode hívások eseménykezelője.
-   */
   private ExpandableListView.OnCreateContextMenuListener expLvCategoryContextMenu =
       new ExpandableListView.OnCreateContextMenuListener() {
 
@@ -1726,10 +1710,6 @@ public class MainListFragment extends ListFragment implements
 
   };
 
-  /**
-   * A megadott Category-t felveszi az adatbázisba és frissíti a View-t.
-   * @param category A megadott Category.
-   */
   @Override
   public void onCategoryCreated(Category category) {
     category.setUserOnlineId(dbLoader.getUserOnlineId());
@@ -1740,10 +1720,6 @@ public class MainListFragment extends ListFragment implements
     updateCategoryAdapter();
   }
 
-  /**
-   * A megadott Category-t módosítja.
-   * @param category A megadott Category.
-   */
   @Override
   public void onCategoryModified(Category category) {
     category.setDirty(true);
