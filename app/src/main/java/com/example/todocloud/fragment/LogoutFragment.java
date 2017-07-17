@@ -61,9 +61,6 @@ public class LogoutFragment extends AppCompatDialogFragment {
     return view;
   }
 
-  /**
-   * Interfész a MainActivity-vel és a MainListFragment-tel való kommunikációra.
-   */
   public interface ILogoutFragment {
     void onLogout();
   }

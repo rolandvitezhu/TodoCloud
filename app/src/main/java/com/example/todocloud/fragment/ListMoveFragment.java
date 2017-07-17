@@ -69,7 +69,7 @@ public class ListMoveFragment extends AppCompatDialogFragment {
         List list = getArguments().getParcelable("list");
         String categoryOnlineId = ((Category) spnrCategory.getSelectedItem()).
             getCategoryOnlineId();
-        listener.moveList(list, categoryOnlineId, listIsNotInCategory);
+        listener.onMoveList(list, categoryOnlineId, listIsNotInCategory);
         dismiss();
       }
 
@@ -85,7 +85,7 @@ public class ListMoveFragment extends AppCompatDialogFragment {
   }
 
   public interface IListMoveFragment {
-    void moveList(List list, String categoryOnlineId, boolean listIsNotInCategory);
+    void onMoveList(List list, String categoryOnlineId, boolean listIsNotInCategory);
   }
 
 }

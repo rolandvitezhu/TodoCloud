@@ -24,14 +24,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
   @Override
   public void onResume() {
     super.onResume();
-    listener.setActionBarTitle(getString(R.string.itemSettings));
+    listener.onSetActionBarTitle(getString(R.string.itemSettings));
   }
 
-  /**
-   * Interfész a MainActivity-vel történő kommunikációra.
-   */
   public interface ISettingsFragment {
-    void setActionBarTitle(String title);
+    void onSetActionBarTitle(String title);
   }
 
 }

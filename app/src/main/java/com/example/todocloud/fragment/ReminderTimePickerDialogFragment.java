@@ -47,15 +47,12 @@ public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment im
     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
     calendar.set(Calendar.MINUTE, minute);
     date.setTime(calendar.getTimeInMillis());
-    listener.onReminderDateTimeSelected(date);
+    listener.onSelectReminderDateTime(date);
     dismiss();
   }
 
-  /**
-   * Interfész, a ReminderTimePickerDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
-   */
   public interface IReminderTimePickerDialogFragment {
-    void onReminderDateTimeSelected(Date date);
+    void onSelectReminderDateTime(Date date);
   }
 
 }

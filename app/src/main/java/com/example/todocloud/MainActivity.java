@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
       if (sessionManager.isLoggedIn()) {
         // Bejelentkezett.
 
-        setNavigationHeader();
+        onSetNavigationHeader();
 
         long id = getIntent().getLongExtra("id", -1);
         if (id == -1) {
@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
         switch (menuItem.getItemId()) {
           case R.id.itemSettings:
             // Beállítások.
-            openSettings();
+            onOpenSettings();
             break;
           case R.id.itemLogout:
             // Kijelentkezés.
@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    * Beállítja a NavigationView HeaderView-ját.
    */
   @Override
-  public void setNavigationHeader() {
+  public void onSetNavigationHeader() {
     NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
     View navigationHeader = navigationView.getHeaderView(0);
     TextView tvName = (TextView) navigationHeader.findViewById(R.id.tvName);
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     else if (getSupportFragmentManager().findFragmentByTag("RegisterFragment") != null) {
       // A RegisterFragment-ről visszanavigálva a LoginFragment-re.
       super.onBackPressed();
-      setActionBarTitle(getString(R.string.login));
+      onSetActionBarTitle(getString(R.string.login));
     } else if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
       drawerLayout.closeDrawers();
     } else {
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void openTodoListFragment(PredefinedListItem predefinedListItem) {
+  public void onOpenTodoListFragment(PredefinedListItem predefinedListItem) {
     Bundle arguments = new Bundle();
     arguments.putString("selectFromDB", predefinedListItem.getSelectFromDB());
     arguments.putString("title", predefinedListItem.getTitle());
@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void openTodoListFragment(List listToOpen) {
+  public void onOpenTodoListFragment(List listToOpen) {
     Bundle arguments = new Bundle();
     arguments.putString("listOnlineId", listToOpen.getListOnlineId());
     arguments.putString("title", listToOpen.getTitle());
@@ -327,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    * Megnyitja a RegisterFragment-et.
    */
   @Override
-  public void onLinkToRegisterClicked() {
+  public void onClickLinkToRegister() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     RegisterFragment registerFragment = new RegisterFragment();
@@ -340,29 +340,29 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    * Megnyitja a LoginFragment-et.
    */
   @Override
-  public void onLinkToLoginClicked() {
+  public void onClickLinkToLogin() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     LoginFragment loginFragment = new LoginFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, loginFragment);
     fragmentTransaction.commit();
-    setActionBarTitle(getString(R.string.login));
+    onSetActionBarTitle(getString(R.string.login));
   }
 
-  /**
-   * Megnyitja a MainListFragment-et.
-   */
   @Override
-  public void onIsLoggedIn() {
+  public void onLogin() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    openMainListFragment(fragmentManager);
+    onSetActionBarTitle(getString(R.string.app_name));
+  }
 
+  private void openMainListFragment(FragmentManager fragmentManager) {
     MainListFragment mainListFragment = new MainListFragment();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
     fragmentTransaction.commit();
-    setActionBarTitle(getString(R.string.app_name));
   }
 
   @Override
@@ -376,12 +376,8 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     return true;
   }
 
-  /**
-   * Beállítja az Action Bar címét.
-   * @param title A beállítandó cím.
-   */
   @Override
-  public void setActionBarTitle(String title) {
+  public void onSetActionBarTitle(String title) {
     if (getSupportActionBar() != null)
       getSupportActionBar().setTitle(title);
     setDrawerEnabled(title.equals("Todo Cloud"));
@@ -392,12 +388,12 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    * @param callback Az ActionMode indításához megadott Callback.
    */
   @Override
-  public void startActionMode(ActionMode.Callback callback) {
+  public void onStartActionMode(ActionMode.Callback callback) {
     startSupportActionMode(callback);
   }
 
   @Override
-  public void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment) {
+  public void onClickTodo(Todo clickedTodo, TodoListFragment targetFragment) {
     openTodoModifyFragment(clickedTodo, targetFragment);
   }
 
@@ -419,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void openTodoCreateFragment(TodoListFragment targetFragment) {
+  public void onOpenTodoCreateFragment(TodoListFragment targetFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -435,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
    * Megnyitja a beállítások PreferenceFragment-et.
    */
   @Override
-  public void openSettings() {
+  public void onOpenSettings() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 

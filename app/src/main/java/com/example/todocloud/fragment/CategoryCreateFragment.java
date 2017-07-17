@@ -100,7 +100,7 @@ public class CategoryCreateFragment extends AppCompatDialogFragment {
           category.setDeleted(false);
           category.setDirty(true);
 
-          listener.createCategory(category);
+          listener.onCreateCategory(category);
           dismiss();
         }
       }
@@ -133,7 +133,7 @@ public class CategoryCreateFragment extends AppCompatDialogFragment {
   }
 
   public interface ICategoryCreateFragment {
-    void createCategory(Category category);
+    void onCreateCategory(Category category);
   }
 
 }

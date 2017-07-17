@@ -96,7 +96,7 @@ public class MainListFragment extends ListFragment implements
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     dbLoader = new DbLoader(getActivity());
-    listener.setNavigationHeader();
+    listener.onSetNavigationHeader();
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
@@ -1538,7 +1538,7 @@ public class MainListFragment extends ListFragment implements
       if (!AppController.isActionModeEnabled()) {
         PredefinedListItem predefinedListItem = (PredefinedListItem) parent.getAdapter().getItem(
             position);
-        listener.openTodoListFragment(predefinedListItem);
+        listener.onOpenTodoListFragment(predefinedListItem);
       }
     }
 
@@ -1551,7 +1551,7 @@ public class MainListFragment extends ListFragment implements
       com.example.todocloud.data.List clickedList =
           (com.example.todocloud.data.List) listAdapter.getItem(position);
       if (!AppController.isActionModeEnabled()) {
-        listener.openTodoListFragment(clickedList);
+        listener.onOpenTodoListFragment(clickedList);
       } else {
         handleItemSelection(position, clickedList);
       }
@@ -1598,7 +1598,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void startActionMode(int position) {
-          listener.startActionMode(callback);
+          listener.onStartActionMode(callback);
           list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           list.setItemChecked(position, true);
           com.example.todocloud.data.List selectedList =
@@ -1624,7 +1624,7 @@ public class MainListFragment extends ListFragment implements
           );
           int position = parent.getFlatListPosition(packedPosition);
           if (!AppController.isActionModeEnabled()) {
-            listener.openTodoListFragment(clickedList);
+            listener.onOpenTodoListFragment(clickedList);
           } else {
             handleItemSelection(parent, clickedList, position);
           }
@@ -1742,7 +1742,7 @@ public class MainListFragment extends ListFragment implements
 
         private void startActionModeWithList(int position) {
           actionModeStartedWithELV = true;
-          listener.startActionMode(callback);
+          listener.onStartActionMode(callback);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableListView.setItemChecked(position, true);
           com.example.todocloud.data.List clickedList = (com.example.todocloud.data.List)
@@ -1754,7 +1754,7 @@ public class MainListFragment extends ListFragment implements
 
         private void startActionModeWithCategory(int position) {
           actionModeStartedWithELV = true;
-          listener.startActionMode(callback);
+          listener.onStartActionMode(callback);
           expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableListView.setItemChecked(position, true);
           Category clickedCategory = (Category) expandableListView.getItemAtPosition(position);
@@ -1774,7 +1774,7 @@ public class MainListFragment extends ListFragment implements
       };
 
   @Override
-  public void createCategory(Category category) {
+  public void onCreateCategory(Category category) {
     createCategoryInLocalDatabase(category);
     updateCategoryAdapter();
   }
@@ -1792,7 +1792,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onCategoryModified(Category category) {
+  public void onModifyCategory(Category category) {
     category.setDirty(true);
     dbLoader.updateCategory(category);
     updateCategoryAdapter();
@@ -1800,7 +1800,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void createList(com.example.todocloud.data.List list) {
+  public void onCreateList(com.example.todocloud.data.List list) {
     createListInLocalDatabase(list);
     updateListAdapter();
   }
@@ -1818,7 +1818,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void modifyList(com.example.todocloud.data.List list, boolean isInCategory) {
+  public void onModifyList(com.example.todocloud.data.List list, boolean isInCategory) {
     list.setDirty(true);
     dbLoader.updateList(list);
     if (isInCategory) {
@@ -1830,8 +1830,8 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void createListInCategory(com.example.todocloud.data.List list,
-                                   String categoryOnlineId) {
+  public void onCreateListInCategory(com.example.todocloud.data.List list,
+                                     String categoryOnlineId) {
     createListInCategoryInLocalDatabase(list, categoryOnlineId);
     updateCategoryAdapter();
     actionMode.finish();
@@ -1854,8 +1854,8 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void moveList(com.example.todocloud.data.List list, String categoryOnlineId,
-                       boolean listIsNotInCategory) {
+  public void onMoveList(com.example.todocloud.data.List list, String categoryOnlineId,
+                         boolean listIsNotInCategory) {
     switch (listIsNotInCategory ? "listIsNotInCategory" : "listIsInCategory") {
       case "listIsNotInCategory":
         if (moveListOutsideCategory(categoryOnlineId)) {
@@ -1910,7 +1910,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void softDelete(String onlineId, String type) {
+  public void onSoftDelete(String onlineId, String type) {
     switch (type) {
       case "list":
         dbLoader.deleteListAndTodos(onlineId);
@@ -1931,7 +1931,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void softDelete(ArrayList items, String type) {
+  public void onSoftDelete(ArrayList items, String type) {
     switch (type) {
       case "list":
         ArrayList<com.example.todocloud.data.List> lists = items;
@@ -1966,12 +1966,12 @@ public class MainListFragment extends ListFragment implements
   }
 
   public interface IMainListFragment {
-    void openTodoListFragment(PredefinedListItem predefinedListItem);
-    void openTodoListFragment(com.example.todocloud.data.List listToOpen);
+    void onOpenTodoListFragment(PredefinedListItem predefinedListItem);
+    void onOpenTodoListFragment(com.example.todocloud.data.List listToOpen);
     void onLogout();
-    void startActionMode(ActionMode.Callback callback);
-    void openSettings();
-    void setNavigationHeader();
+    void onStartActionMode(ActionMode.Callback callback);
+    void onOpenSettings();
+    void onSetNavigationHeader();
   }
 
 }

@@ -44,22 +44,16 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
         getActivity(), R.style.MyPickerDialogTheme, this, year, month, day);
   }
 
-  /**
-   * Átadja a kiválasztott dátumot.
-   */
-	@Override
+  @Override
   public void onDateSet(DatePicker view, int year, int month, int day) {
     calendar.set(year, month, day);
     date.setTime(calendar.getTimeInMillis());
-    listener.onDateSelected(date);
+    listener.onSelectDate(date);
 	  dismiss();
   }
 
-  /**
-   * Interfész, a DatePickerDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
-   */
-	public interface IDatePickerDialogFragment {
-		void onDateSelected(Date date);
+  public interface IDatePickerDialogFragment {
+		void onSelectDate(Date date);
 	}
 
 }

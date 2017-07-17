@@ -96,7 +96,7 @@ public class ListModifyFragment extends AppCompatDialogFragment {
 
         if (validateTitle()) {
           list.setTitle(title);
-          listener.modifyList(list, getArguments().getBoolean("isInCategory"));
+          listener.onModifyList(list, getArguments().getBoolean("isInCategory"));
           dismiss();
         }
       }
@@ -127,7 +127,7 @@ public class ListModifyFragment extends AppCompatDialogFragment {
   }
 
   public interface IListModifyFragment {
-    void modifyList(List list, boolean isInCategory);
+    void onModifyList(List list, boolean isInCategory);
   }
 
 }

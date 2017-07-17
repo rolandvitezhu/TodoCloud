@@ -106,9 +106,9 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
       public void onClick(View v) {
         if (!many) {
           String onlineId = getArguments().getString("onlineId");
-          listener.softDelete(onlineId, type);
+          listener.onSoftDelete(onlineId, type);
         } else {
-          listener.softDelete(items, type);
+          listener.onSoftDelete(items, type);
         }
         dismiss();
       }
@@ -130,8 +130,8 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   }
 
   public interface IConfirmDeleteDialogFragment {
-    void softDelete(String onlineId, String type);
-    void softDelete(ArrayList items, String type);
+    void onSoftDelete(String onlineId, String type);
+    void onSoftDelete(ArrayList items, String type);
   }
 
 }

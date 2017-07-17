@@ -99,7 +99,7 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.createListInCategory(list, getArguments().getString("categoryOnlineId"));
+          listener.onCreateListInCategory(list, getArguments().getString("categoryOnlineId"));
           dismiss();
         }
       }
@@ -130,7 +130,7 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
   }
 
   public interface IListInCategoryCreateFragment {
-    void createListInCategory(List list, String categoryOnlineId);
+    void onCreateListInCategory(List list, String categoryOnlineId);
   }
 
 }

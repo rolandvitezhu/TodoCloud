@@ -55,22 +55,16 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
     return datePickerDialog;
   }
 
-  /**
-   * Átadja a kiválasztott dátumot.
-   */
   @Override
   public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
     calendar.set(year, monthOfYear, dayOfMonth);
     date.setTime(calendar.getTimeInMillis());
-    listener.onReminderDateSelected(date);
+    listener.onSelectReminderDate(date);
     dismiss();
   }
 
-  /**
-   * Interfész, a ReminderDatePickerDialogFragment-et meghívó Fragment-ekkel való kommunikációra.
-   */
   public interface IReminderDatePickerDialogFragment {
-    void onReminderDateSelected(Date date);
+    void onSelectReminderDate(Date date);
     void onDeleteReminder();
   }
 

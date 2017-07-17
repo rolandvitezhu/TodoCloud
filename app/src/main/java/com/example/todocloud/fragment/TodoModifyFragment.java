@@ -112,7 +112,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
   @Override
   public void onResume() {
     super.onResume();
-    actionBarListener.setActionBarTitle(getString(R.string.todo));
+    actionBarListener.onSetActionBarTitle(getString(R.string.todo));
   }
 
   /**
@@ -200,7 +200,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
    * @param date A megadott Date.
    */
 	@Override
-  public void onDateSelected(Date date) {
+  public void onSelectDate(Date date) {
     this.date = date;
 		tvDueDate.setText(simpleDateFormat.format(date));
   }
@@ -210,7 +210,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
    * @param date A megadott Date.
    */
   @Override
-  public void onReminderDateSelected(Date date) {
+  public void onSelectReminderDate(Date date) {
     ReminderTimePickerDialogFragment reminderTimePickerDialogFragment =
         new ReminderTimePickerDialogFragment();
     reminderTimePickerDialogFragment.setTargetFragment(this, 0);
@@ -235,7 +235,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
    * @param date A megadott Date.
    */
   @Override
-  public void onReminderDateTimeSelected(Date date) {
+  public void onSelectReminderDateTime(Date date) {
     reminderDate = date;
     tvReminderDateTime.setText(reminderDateFormat.format(date));
   }
@@ -244,11 +244,8 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
 		void onModifyTodo(Todo todoToModify);
 	}
 
-  /**
-   * Interfész a MainActivity-vel való kommunikációra.
-   */
   public interface ITodoModifyFragmentActionBar {
-    void setActionBarTitle(String title);
+    void onSetActionBarTitle(String title);
     void onBackPressed();
   }
 

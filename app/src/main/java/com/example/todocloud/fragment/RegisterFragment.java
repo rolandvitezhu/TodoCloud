@@ -63,7 +63,7 @@ public class RegisterFragment extends Fragment {
 
     // A felhasználó bejelentkezett, a MainListFragment-et jelenítjük meg.
     if (sessionManager.isLoggedIn()) {
-      listener.onIsLoggedIn();
+      listener.onLogin();
     }
 
     dbLoader = new DbLoader(getActivity());
@@ -134,7 +134,7 @@ public class RegisterFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    listener.setActionBarTitle(getString(R.string.register));
+    listener.onSetActionBarTitle(getString(R.string.register));
     if (getActivity() != null)
       // Ha előtérbe kerül a Fragment, akkor a kijelző mindig portré módban lesz.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -180,7 +180,7 @@ public class RegisterFragment extends Fragment {
           boolean error = response.getBoolean("error");
 
           if (!error) {
-            listener.onLinkToLoginClicked();
+            listener.onClickLinkToLogin();
           } else {
             String message = response.getString("message");
             if (message != null && message.contains("Sorry, this email already existed")) {
@@ -311,21 +311,9 @@ public class RegisterFragment extends Fragment {
     return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$");
   }
 
-  /**
-   * Elrejti a tvFormSubmissionErrors komponenst.
-   */
   private void hideTVFormSubmissionErrors() {
     tvFormSubmissionErrors.setText("");
     tvFormSubmissionErrors.setVisibility(View.GONE);
-  }
-
-  /**
-   * Interfész a MainActivity-vel történő kommunikációra.
-   */
-  public interface IRegisterFragment {
-    void onLinkToLoginClicked();
-    void onIsLoggedIn();
-    void setActionBarTitle(String title);
   }
 
   private class MyTextWatcher implements TextWatcher {
@@ -364,6 +352,12 @@ public class RegisterFragment extends Fragment {
       }
     }
 
+  }
+
+  public interface IRegisterFragment {
+    void onClickLinkToLogin();
+    void onLogin();
+    void onSetActionBarTitle(String title);
   }
 
 }

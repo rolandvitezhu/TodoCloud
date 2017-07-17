@@ -100,7 +100,7 @@ public class ListCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.createList(list);
+          listener.onCreateList(list);
           dismiss();
         }
       }
@@ -131,7 +131,7 @@ public class ListCreateFragment extends AppCompatDialogFragment {
   }
 
   public interface IListCreateFragment {
-    void createList(List list);
+    void onCreateList(List list);
   }
 
 }

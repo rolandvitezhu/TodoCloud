@@ -96,7 +96,7 @@ public class CategoryModifyFragment extends AppCompatDialogFragment {
 
         if (validateTitle()) {
           category.setTitle(title);
-          listener.onCategoryModified(category);
+          listener.onModifyCategory(category);
           dismiss();
         }
       }
@@ -125,11 +125,8 @@ public class CategoryModifyFragment extends AppCompatDialogFragment {
     }
   }
 
-  /**
-   * Interfész, a MainListFragment-tel való kommunikációra.
-   */
   public interface ICategoryModifyFragment {
-    void onCategoryModified(Category category);
+    void onModifyCategory(Category category);
   }
 
 }

@@ -105,7 +105,7 @@ public class TodoListFragment extends Fragment implements
           @Override
           public void onLongClick(View childView, int childViewAdapterPosition) {
             if (!isActionMode()) {
-              listener.startActionMode(callback);
+              listener.onStartActionMode(callback);
               todoAdapter.toggleSelection(childViewAdapterPosition);
               actionMode.invalidate();
             }
@@ -184,7 +184,7 @@ public class TodoListFragment extends Fragment implements
 
   private void openTodoModifyFragment(int childViewAdapterPosition) {
     Todo clickedTodo = todoAdapter.getTodo(childViewAdapterPosition);
-    listener.onTodoClicked(clickedTodo, this);
+    listener.onClickTodo(clickedTodo, this);
   }
 
   @Override
@@ -197,20 +197,20 @@ public class TodoListFragment extends Fragment implements
     String title = getArguments().getString("title");
     if (title != null) {
       if (!getArguments().getBoolean("isPredefinedList")) { // List
-        listener.setActionBarTitle(title);
+        listener.onSetActionBarTitle(title);
       } else { // PredefinedList
         switch (title) {
           case "0":
-            listener.setActionBarTitle(getString(R.string.MainListToday));
+            listener.onSetActionBarTitle(getString(R.string.MainListToday));
             break;
           case "1":
-            listener.setActionBarTitle(getString(R.string.MainListNext7Days));
+            listener.onSetActionBarTitle(getString(R.string.MainListNext7Days));
             break;
           case "2":
-            listener.setActionBarTitle(getString(R.string.MainListAll));
+            listener.onSetActionBarTitle(getString(R.string.MainListAll));
             break;
           case "3":
-            listener.setActionBarTitle(getString(R.string.MainListCompleted));
+            listener.onSetActionBarTitle(getString(R.string.MainListCompleted));
             break;
         }
       }
@@ -287,7 +287,7 @@ public class TodoListFragment extends Fragment implements
     @Override
     public void onClick(View v) {
       if (isActionMode()) actionMode.finish();
-      listener.openTodoCreateFragment(TodoListFragment.this);
+      listener.onOpenTodoCreateFragment(TodoListFragment.this);
     }
 
   };
@@ -311,7 +311,7 @@ public class TodoListFragment extends Fragment implements
 
     switch (optionsItemId) {
       case R.id.createTodo:
-        listener.openTodoCreateFragment(this);
+        listener.onOpenTodoCreateFragment(this);
         break;
     }
 
@@ -405,7 +405,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void softDelete(String onlineId, String type) {
+  public void onSoftDelete(String onlineId, String type) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
     updateTodoAdapterTest();
@@ -414,7 +414,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void softDelete(ArrayList items, String type) {
+  public void onSoftDelete(ArrayList items, String type) {
     // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
     // variable here and in the arguments also to "itemsToDelete".
     ArrayList<Todo> todosToSoftDelete = items;
@@ -427,10 +427,10 @@ public class TodoListFragment extends Fragment implements
   }
 
   public interface ITodoListFragment {
-    void setActionBarTitle(String actionBarTitle);
-    void startActionMode(ActionMode.Callback callback);
-    void onTodoClicked(Todo clickedTodo, TodoListFragment targetFragment);
-    void openTodoCreateFragment(TodoListFragment targetFragment);
+    void onSetActionBarTitle(String actionBarTitle);
+    void onStartActionMode(ActionMode.Callback callback);
+    void onClickTodo(Todo clickedTodo, TodoListFragment targetFragment);
+    void onOpenTodoCreateFragment(TodoListFragment targetFragment);
   }
 
 }

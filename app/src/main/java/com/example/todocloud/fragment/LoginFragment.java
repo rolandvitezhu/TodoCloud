@@ -60,7 +60,7 @@ public class LoginFragment extends Fragment {
 
     if (sessionManager.isLoggedIn()) {
       // A felhasználó bejelentkezett, a MainListFragment-et jelenítjük meg.
-      listener.onIsLoggedIn();
+      listener.onLogin();
     }
 
     dbLoader = new DbLoader(getActivity());
@@ -124,7 +124,7 @@ public class LoginFragment extends Fragment {
       @Override
       public void onClick(View v) {
         // A RegisterFragment-et jelenítjük meg.
-        listener.onLinkToRegisterClicked();
+        listener.onClickLinkToRegister();
       }
 
     });
@@ -138,7 +138,7 @@ public class LoginFragment extends Fragment {
     if (getActivity() != null)
       // Ha előtérbe kerül a Fragment, akkor a kijelző mindig portré módban lesz.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-    listener.setActionBarTitle(getString(R.string.login));
+    listener.onSetActionBarTitle(getString(R.string.login));
   }
 
   @Override
@@ -213,7 +213,7 @@ public class LoginFragment extends Fragment {
 
             dbLoader.createUser(user);
             sessionManager.setLogin(true);
-            listener.onIsLoggedIn();
+            listener.onLogin();
           } else {
             String message = response.getString("message");
             if (message != null && message.contains("Login failed. Incorrect credentials")) {
@@ -260,21 +260,9 @@ public class LoginFragment extends Fragment {
     AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
   }
 
-  /**
-   * Elrejti a tvFormSubmissionErrors komponenst.
-   */
   private void hideTVFormSubmissionErrors() {
     tvFormSubmissionErrors.setText("");
     tvFormSubmissionErrors.setVisibility(View.GONE);
-  }
-
-  /**
-   * Interfész, a MainActivity-vel való kommunikációra.
-   */
-  public interface ILoginFragment {
-    void onLinkToRegisterClicked();
-    void onIsLoggedIn();
-    void setActionBarTitle(String title);
   }
 
   private class MyTextWatcher implements TextWatcher {
@@ -307,6 +295,12 @@ public class LoginFragment extends Fragment {
       }
     }
 
+  }
+
+  public interface ILoginFragment {
+    void onClickLinkToRegister();
+    void onLogin();
+    void onSetActionBarTitle(String title);
   }
 
 }
