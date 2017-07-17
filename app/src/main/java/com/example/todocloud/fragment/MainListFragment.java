@@ -161,7 +161,11 @@ public class MainListFragment extends ListFragment implements
     expandableListView.setAdapter(categoryAdapter);
     expandableListView.setOnChildClickListener(expLVChildClicked);
     expandableListView.setOnGroupClickListener(expLVGroupClicked);
-    expandableListView.setOnCreateContextMenuListener(expLVCategoryContextMenu);
+    applyExpLVLongClickEvents();
+  }
+
+  private void applyExpLVLongClickEvents() {
+    expandableListView.setOnCreateContextMenuListener(expLVCategoryContextMenuListener);
   }
 
   private void preparePredefinedList(View combinedListView) {
@@ -1703,7 +1707,7 @@ public class MainListFragment extends ListFragment implements
 
       };
 
-  private ExpandableListView.OnCreateContextMenuListener expLVCategoryContextMenu =
+  private ExpandableListView.OnCreateContextMenuListener expLVCategoryContextMenuListener =
       new ExpandableListView.OnCreateContextMenuListener() {
 
     @Override
