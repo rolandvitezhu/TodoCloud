@@ -139,11 +139,11 @@ public class MainListFragment extends ListFragment implements
             }
           }
 
-        });
-  }
+          private boolean shouldSwipeRefresh(int scrollY) {
+            return scrollY == 0 && !AppController.isActionModeEnabled();
+          }
 
-  private boolean shouldSwipeRefresh(int scrollY) {
-    return scrollY == 0 && !AppController.isActionModeEnabled();
+        });
   }
 
   private void prepareList(View combinedListView) {
