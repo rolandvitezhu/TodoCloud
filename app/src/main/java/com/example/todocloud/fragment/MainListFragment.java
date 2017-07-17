@@ -156,7 +156,7 @@ public class MainListFragment extends ListFragment implements
 
   private void prepareExpandableListView(View combinedListView) {
     expandableListView = (ExpandableHeightExpandableListView)
-        combinedListView.findViewById(R.id.explvCategory);
+        combinedListView.findViewById(R.id.expLVCategory);
     expandableListView.setExpanded(true);
     expandableListView.setAdapter(categoryAdapter);
     expandableListView.setOnChildClickListener(expLVChildClicked);
