@@ -1583,15 +1583,20 @@ public class MainListFragment extends ListFragment implements
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
           if (!AppController.isActionModeEnabled()) {
-            listener.startActionMode(callback);
-            list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-            list.setItemChecked(position, true);
-            selectedLists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
-
-            expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-            actionMode.invalidate();
+            startActionMode(position);
           }
           return true;
+        }
+
+        private void startActionMode(int position) {
+          listener.startActionMode(callback);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          list.setItemChecked(position, true);
+          com.example.todocloud.data.List selectedList =
+              (com.example.todocloud.data.List) list.getItemAtPosition(position);
+          selectedLists.add(selectedList);
+          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          actionMode.invalidate();
         }
 
       };
