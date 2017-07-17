@@ -267,19 +267,15 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     }
   }
 
-  /**
-   * Kezeli a PredefinedList elemein történő kattintásokat (többek között tennivaló listákat nyit
-   * meg).
-   * @param predefinedListItem A PredefinedList azon eleme, amin a kattintás történt.
-   */
   @Override
-  public void onItemSelected(PredefinedListItem predefinedListItem) {
+  public void openTodoListFragment(PredefinedListItem predefinedListItem) {
+    Bundle arguments = new Bundle();
+    arguments.putString("selectFromDB", predefinedListItem.getSelectFromDB());
+    arguments.putString("title", predefinedListItem.getTitle());
+    arguments.putBoolean("isPredefinedList", true);
+
     TodoListFragment todoListFragment = new TodoListFragment();
-    Bundle args = new Bundle();
-    args.putString("selectFromDB", predefinedListItem.getSelectFromDB());
-    args.putString("title", predefinedListItem.getTitle());
-    args.putBoolean("isPredefinedList", true);
-    todoListFragment.setArguments(args);
+    todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
@@ -287,18 +283,14 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     fragmentTransaction.commit();
   }
 
-  /**
-   * Kezeli az alsó lista elemein történő kattintásokat (többek között tennivaló listákat nyit
-   * meg).
-   * @param list Az alsó lista azon eleme, amin a kattintás történt.
-   */
   @Override
-  public void onItemSelected(List list) {
+  public void openTodoListFragment(List list) {
+    Bundle arguments = new Bundle();
+    arguments.putString("listOnlineId", list.getListOnlineId());
+    arguments.putString("title", list.getTitle());
+
     TodoListFragment todoListFragment = new TodoListFragment();
-    Bundle args = new Bundle();
-    args.putString("listOnlineId", list.getListOnlineId());
-    args.putString("title", list.getTitle());
-    todoListFragment.setArguments(args);
+    todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
@@ -306,9 +298,6 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     fragmentTransaction.commit();
   }
 
-  /**
-   * Kijelentkezés.
-   */
   @Override
   public void onLogout() {
 

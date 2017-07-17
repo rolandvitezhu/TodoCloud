@@ -1534,7 +1534,7 @@ public class MainListFragment extends ListFragment implements
       if (!AppController.isActionModeEnabled()) {
         PredefinedListItem predefinedListItem = (PredefinedListItem) parent.getAdapter().getItem(
             position);
-        listener.onItemSelected(predefinedListItem);
+        listener.openTodoListFragment(predefinedListItem);
       }
     }
 
@@ -1545,8 +1545,7 @@ public class MainListFragment extends ListFragment implements
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       if (!AppController.isActionModeEnabled()) {
-        // Todo módosítása.
-        listener.onItemSelected((com.example.todocloud.data.List) listAdapter.getItem(position));
+        listener.openTodoListFragment((com.example.todocloud.data.List) listAdapter.getItem(position));
       } else {
         if (list.isItemChecked(position)) {
           selectedLists.add((com.example.todocloud.data.List) list.getItemAtPosition(position));
@@ -1598,7 +1597,7 @@ public class MainListFragment extends ListFragment implements
           ExpandableListView.getPackedPositionForChild(groupPosition, childPosition));
       if (!AppController.isActionModeEnabled()) {
         // List megnyitása.
-        listener.onItemSelected((com.example.todocloud.data.List)
+        listener.openTodoListFragment((com.example.todocloud.data.List)
             categoryAdapter.getChild(groupPosition, childPosition));
       } else {
         expandableListView.setItemChecked(position, !parent.isItemChecked(position));
@@ -1903,8 +1902,8 @@ public class MainListFragment extends ListFragment implements
   }
 
   public interface IMainListFragment {
-    void onItemSelected(PredefinedListItem predefinedListItem);
-    void onItemSelected(com.example.todocloud.data.List list);
+    void openTodoListFragment(PredefinedListItem predefinedListItem);
+    void openTodoListFragment(com.example.todocloud.data.List list);
     void onLogout();
     void startActionMode(ActionMode.Callback callback);
     void openSettings();
