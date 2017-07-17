@@ -1713,44 +1713,53 @@ public class MainListFragment extends ListFragment implements
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
-
       if (!AppController.isActionModeEnabled()) {
         ExpandableListView.ExpandableListContextMenuInfo info =
             (ExpandableListView.ExpandableListContextMenuInfo) menuInfo;
-        int position = expandableListView.getFlatListPosition(info.packedPosition);
+        long packedPosition = info.packedPosition;
+        int position = expandableListView.getFlatListPosition(packedPosition);
+        int packedPositionType = ExpandableListView.getPackedPositionType(packedPosition);
 
-        if (ExpandableListView.getPackedPositionType(info.packedPosition)
-            == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-
-          // Category.
-          actionModeStartedWithELV = true;
-          listener.startActionMode(callback);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          expandableListView.setItemChecked(position, true);
-          selectedCategories.add((Category) expandableListView.getItemAtPosition(position));
-
-          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          actionMode.invalidate();
-
-        } else if (ExpandableListView.getPackedPositionType(info.packedPosition)
-            == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
-
-          // List.
-          actionModeStartedWithELV = true;
-          listener.startActionMode(callback);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          expandableListView.setItemChecked(position, true);
-          selectedListsInCategory.add(
-              (com.example.todocloud.data.List) expandableListView.getItemAtPosition(position));
-
-          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          actionMode.invalidate();
-
+        if (categoryClicked(packedPositionType)) {
+          startActionModeWithCategory(position);
+        } else if (listClicked(packedPositionType)) {
+          startActionModeWithList(position);
         }
       }
     }
 
-  };
+        private void startActionModeWithList(int position) {
+          actionModeStartedWithELV = true;
+          listener.startActionMode(callback);
+          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          expandableListView.setItemChecked(position, true);
+          com.example.todocloud.data.List clickedList = (com.example.todocloud.data.List)
+              expandableListView.getItemAtPosition(position);
+          selectedListsInCategory.add(clickedList);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          actionMode.invalidate();
+        }
+
+        private void startActionModeWithCategory(int position) {
+          actionModeStartedWithELV = true;
+          listener.startActionMode(callback);
+          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          expandableListView.setItemChecked(position, true);
+          Category clickedCategory = (Category) expandableListView.getItemAtPosition(position);
+          selectedCategories.add(clickedCategory);
+          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          actionMode.invalidate();
+        }
+
+        private boolean listClicked(int packedPositionType) {
+          return packedPositionType == ExpandableListView.PACKED_POSITION_TYPE_CHILD;
+        }
+
+        private boolean categoryClicked(int packedPositionType) {
+          return packedPositionType == ExpandableListView.PACKED_POSITION_TYPE_GROUP;
+        }
+
+      };
 
   @Override
   public void onCategoryCreated(Category category) {
