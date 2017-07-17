@@ -2,6 +2,8 @@ package com.example.todocloud.helper;
 
 import android.content.Context;
 
+import com.example.todocloud.app.AppController;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,10 +17,10 @@ public class InstallationIdHelper {
 
   /**
    * InstallationId-t olvas ki. Ha még nem létezik az installationId, akkor generáltatja.
-   * @param context
    * @return A kiolvasott installationId.
    */
-  public synchronized static String getInstallationId(Context context) {
+  public synchronized static String getInstallationId() {
+    Context context = AppController.getAppContext();
     if (installationId == null) {
       File fInstallationId = new File(context.getFilesDir(), FILE_NAME);
       try {
@@ -36,10 +38,10 @@ public class InstallationIdHelper {
   /**
    * Új installationId-t generáltat. Regisztráció során előfordulhatnak ütközések, ezek
    * elkerülésére használatos a metódus.
-   * @param context
    * @return A generált installationId.
    */
-  public synchronized static String getNewInstallationId(Context context) {
+  public synchronized static String getNewInstallationId() {
+    Context context = AppController.getAppContext();
     File fInstallationId = new File(context.getFilesDir(), FILE_NAME);
     try {
       writeInstallationId(fInstallationId);

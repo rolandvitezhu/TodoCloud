@@ -31,7 +31,7 @@
                     android:layout_height="wrap_content"/>
 
                 <com.example.todocloud.customcomponent.ExpandableHeightExpandableListView
-                    android:id="@+id/explvCategory"
+                    android:id="@+id/expLVCategory"
                     android:groupIndicator="@null"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">

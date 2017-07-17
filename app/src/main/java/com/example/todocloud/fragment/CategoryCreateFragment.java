@@ -100,7 +100,7 @@ public class CategoryCreateFragment extends AppCompatDialogFragment {
           category.setDeleted(false);
           category.setDirty(true);
 
-          listener.onCategoryCreated(category);
+          listener.createCategory(category);
           dismiss();
         }
       }
@@ -132,11 +132,8 @@ public class CategoryCreateFragment extends AppCompatDialogFragment {
     }
   }
 
-  /**
-   * Interfész, a MainListFragment-tel való kommunikációra.
-   */
   public interface ICategoryCreateFragment {
-    void onCategoryCreated(Category category);
+    void createCategory(Category category);
   }
 
 }

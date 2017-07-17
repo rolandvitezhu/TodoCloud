@@ -117,7 +117,7 @@ public class RegisterFragment extends Fragment {
         if (validateName() & validateEmail() & validatePassword() & validateConfirmPassword()) {
           dbLoader.reCreateDb();
           long _id = dbLoader.createUser(new User());
-          String user_online_id = OnlineIdGenerator.generateOnlineId(getActivity(),
+          String user_online_id = OnlineIdGenerator.generateOnlineId(
               DbConstants.User.DATABASE_TABLE, _id);
           String name = tietName.getText().toString().trim();
           String email = tietEmail.getText().toString().trim();
@@ -192,9 +192,9 @@ public class RegisterFragment extends Fragment {
               // A hiba oka általában, hogy már regisztrált userOnlineId-t generált a rendszer. Ez
               // esetben ettől különböző userOnlineId-t generálunk és ismét megkíséreljük a
               // regisztrációt.
-              InstallationIdHelper.getNewInstallationId(getActivity());
+              InstallationIdHelper.getNewInstallationId();
               String new_user_online_id =
-                  OnlineIdGenerator.generateOnlineId(getActivity(),
+                  OnlineIdGenerator.generateOnlineId(
                       DbConstants.User.DATABASE_TABLE, _id);
               register(new_user_online_id, name, email, password, _id);
             }

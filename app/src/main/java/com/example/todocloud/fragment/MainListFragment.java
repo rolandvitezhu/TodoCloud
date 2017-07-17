@@ -1762,11 +1762,15 @@ public class MainListFragment extends ListFragment implements
       };
 
   @Override
-  public void onCategoryCreated(Category category) {
+  public void createCategory(Category category) {
     category.setUserOnlineId(dbLoader.getUserOnlineId());
     category.set_id(dbLoader.createCategory(category));
-    category.setCategoryOnlineId(OnlineIdGenerator.generateOnlineId(getActivity(),
-        DbConstants.Category.DATABASE_TABLE, category.get_id(), dbLoader.getApiKey()));
+    String categoryOnlineId = OnlineIdGenerator.generateOnlineId(
+        DbConstants.Category.DATABASE_TABLE,
+        category.get_id(),
+        dbLoader.getApiKey()
+    );
+    category.setCategoryOnlineId(categoryOnlineId);
     dbLoader.updateCategory(category);
     updateCategoryAdapter();
   }
@@ -1787,7 +1791,7 @@ public class MainListFragment extends ListFragment implements
   public void onListCreated(com.example.todocloud.data.List list) {
     list.setUserOnlineId(dbLoader.getUserOnlineId());
     list.set_id(dbLoader.createList(list));
-    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(getActivity(),
+    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(
         DbConstants.List.DATABASE_TABLE, list.get_id(), dbLoader.getApiKey()));
     dbLoader.updateList(list);
     updateListAdapter();
@@ -1826,7 +1830,7 @@ public class MainListFragment extends ListFragment implements
     list.setUserOnlineId(dbLoader.getUserOnlineId());
     list.setCategoryOnlineId(categoryOnlineId);
     list.set_id(dbLoader.createList(list));
-    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(getActivity(),
+    list.setListOnlineId(OnlineIdGenerator.generateOnlineId(
         DbConstants.List.DATABASE_TABLE, list.get_id(), dbLoader.getApiKey()));
     dbLoader.updateList(list);
     updateCategoryAdapter();

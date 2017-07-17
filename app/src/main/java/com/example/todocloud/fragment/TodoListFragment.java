@@ -343,7 +343,6 @@ public class TodoListFragment extends Fragment implements
     todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
     todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
     String todoOnlineId = OnlineIdGenerator.generateOnlineId(
-        getActivity(),
         DbConstants.Todo.DATABASE_TABLE,
         todoToCreate.get_id(),
         dbLoader.getApiKey()
