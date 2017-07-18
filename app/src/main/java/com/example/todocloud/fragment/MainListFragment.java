@@ -644,7 +644,9 @@ public class MainListFragment extends ListFragment implements
     String tag_string_request = "request_get_todos";
 
     String url = prepareUrl();
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+    StringRequest stringRequest = new StringRequest(
+        Request.Method.GET,
+        url,
         new Response.Listener<String>() {
 
           @Override
@@ -691,27 +693,29 @@ public class MainListFragment extends ListFragment implements
             }
           }
 
-        }, new Response.ErrorListener() {
+        },
+        new Response.ErrorListener() {
 
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        String message = error.getMessage();
-        Log.e(TAG, "Get Todos Error: " + message);
-        if (message != null) {
-          if (message.contains("failed to connect")) {
-            // Sikertelen kapcsolódás.
-            if (getView() != null)
-              // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-              // látható.
-              AppController.showWhiteTextSnackbar(
-                  Snackbar.make(coordinatorLayout,
-                      R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-              );
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String message = error.getMessage();
+            Log.e(TAG, "Get Todos Error: " + message);
+            if (message != null) {
+              if (message.contains("failed to connect")) {
+                // Sikertelen kapcsolódás.
+                if (getView() != null)
+                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                  // látható.
+                  AppController.showWhiteTextSnackbar(
+                      Snackbar.make(coordinatorLayout,
+                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                  );
+              }
+            }
           }
-        }
-      }
 
-    }) {
+        }
+    ) {
 
       @Override
       public Map<String, String> getHeaders() throws AuthFailureError {
@@ -747,7 +751,9 @@ public class MainListFragment extends ListFragment implements
     String URL = AppConfig.URL_GET_LISTS.substring(0, end) +
         dbLoader.getListRowVersion();
 
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, URL,
+    StringRequest stringRequest = new StringRequest(
+        Request.Method.GET,
+        URL,
         new Response.Listener<String>() {
 
           @Override
@@ -789,27 +795,29 @@ public class MainListFragment extends ListFragment implements
             }
           }
 
-        }, new Response.ErrorListener() {
+        },
+        new Response.ErrorListener() {
 
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        String message = error.getMessage();
-        Log.e(TAG, "Get Lists Error: " + message);
-        if (message != null) {
-          if (message.contains("failed to connect")) {
-            // Sikertelen kapcsolódás.
-            if (getView() != null)
-              // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-              // látható.
-              AppController.showWhiteTextSnackbar(
-                  Snackbar.make(coordinatorLayout,
-                      R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-              );
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String message = error.getMessage();
+            Log.e(TAG, "Get Lists Error: " + message);
+            if (message != null) {
+              if (message.contains("failed to connect")) {
+                // Sikertelen kapcsolódás.
+                if (getView() != null)
+                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                  // látható.
+                  AppController.showWhiteTextSnackbar(
+                      Snackbar.make(coordinatorLayout,
+                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                  );
+              }
+            }
           }
-        }
-      }
 
-    }) {
+        }
+    ) {
 
       @Override
       public Map<String, String> getHeaders() throws AuthFailureError {
@@ -838,7 +846,9 @@ public class MainListFragment extends ListFragment implements
     String URL = AppConfig.URL_GET_CATEGORIES.substring(0, end) +
         dbLoader.getCategoryRowVersion();
 
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, URL,
+    StringRequest stringRequest = new StringRequest(
+        Request.Method.GET,
+        URL,
         new Response.Listener<String>() {
 
           @Override
@@ -879,27 +889,29 @@ public class MainListFragment extends ListFragment implements
             }
           }
 
-        }, new Response.ErrorListener() {
+        },
+        new Response.ErrorListener() {
 
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        String message = error.getMessage();
-        Log.e(TAG, "Get Categories Error: " + message);
-        if (message != null) {
-          if (message.contains("failed to connect")) {
-            // Sikertelen kapcsolódás.
-            if (getView() != null)
-              // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-              // látható.
-              AppController.showWhiteTextSnackbar(
-                  Snackbar.make(coordinatorLayout,
-                      R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-              );
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String message = error.getMessage();
+            Log.e(TAG, "Get Categories Error: " + message);
+            if (message != null) {
+              if (message.contains("failed to connect")) {
+                // Sikertelen kapcsolódás.
+                if (getView() != null)
+                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                  // látható.
+                  AppController.showWhiteTextSnackbar(
+                      Snackbar.make(coordinatorLayout,
+                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                  );
+              }
+            }
           }
-        }
-      }
 
-    }) {
+        }
+    ) {
 
       @Override
       public Map<String, String> getHeaders() throws AuthFailureError {
@@ -953,49 +965,54 @@ public class MainListFragment extends ListFragment implements
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_TODO, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.PUT,
+            AppConfig.URL_UPDATE_TODO,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Update Todo Response: " + response);
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Update Todo Response: " + response);
 
-            try {
-              boolean error = response.getBoolean("error");
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                todo.setRowVersion(response.getInt("row_version"));
-                todo.setDirty(false);
-                dbLoader.updateTodo(todo);
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
+                  if (!error) {
+                    todo.setRowVersion(response.getInt("row_version"));
+                    todo.setDirty(false);
+                    dbLoader.updateTodo(todo);
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                  }
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                }
               }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
 
-        }, new Response.ErrorListener() {
+            },
+            new Response.ErrorListener() {
 
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Update Todo Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Update Todo Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
               }
-            }
-          }
 
-        }) {
+            }
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
@@ -1040,50 +1057,55 @@ public class MainListFragment extends ListFragment implements
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_LIST, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.PUT,
+            AppConfig.URL_UPDATE_LIST,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Update List Response: " + response);
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Update List Response: " + response);
 
-            try {
-              boolean error = response.getBoolean("error");
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                list.setRowVersion(response.getInt("row_version"));
-                list.setDirty(false);
-                dbLoader.updateList(list);
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
+                  if (!error) {
+                    list.setRowVersion(response.getInt("row_version"));
+                    list.setDirty(false);
+                    dbLoader.updateList(list);
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                  }
+
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                }
               }
 
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
+            },
+            new Response.ErrorListener() {
 
-        }, new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Update List Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Update List Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
               }
-            }
-          }
 
-        }) {
+            }
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
@@ -1123,50 +1145,55 @@ public class MainListFragment extends ListFragment implements
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_CATEGORY, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.PUT,
+            AppConfig.URL_UPDATE_CATEGORY,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Update Category Response: " + response);
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Update Category Response: " + response);
 
-            try {
-              boolean error = response.getBoolean("error");
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                category.setRowVersion(response.getInt("row_version"));
-                category.setDirty(false);
-                dbLoader.updateCategory(category);
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
+                  if (!error) {
+                    category.setRowVersion(response.getInt("row_version"));
+                    category.setDirty(false);
+                    dbLoader.updateCategory(category);
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                  }
+
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                }
               }
 
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
+            },
+            new Response.ErrorListener() {
 
-        }, new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Update Category Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Update Category Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
               }
-            }
-          }
 
-        }) {
+            }
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
@@ -1231,61 +1258,66 @@ public class MainListFragment extends ListFragment implements
         }
 
         final boolean finalLastTodo = lastTodo;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_TODO, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_TODO,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Insert Todo Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert Todo Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                todo.setRowVersion(response.getInt("row_version"));
-                todo.setDirty(false);
-                dbLoader.updateTodo(todo);
+                  if (!error) {
+                    todo.setRowVersion(response.getInt("row_version"));
+                    todo.setDirty(false);
+                    dbLoader.updateTodo(todo);
+                    if (finalLastTodo) {
+                      // updateTodoAdapter();
+                    }
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    if (finalLastTodo) {
+                      // updateTodoAdapter();
+                    }
+                  }
+
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                  if (finalLastTodo) {
+                    // updateTodoAdapter();
+                  }
+                }
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Insert Todo Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
                 if (finalLastTodo) {
                   // updateTodoAdapter();
                 }
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
-                if (finalLastTodo) {
-                  // updateTodoAdapter();
-                }
               }
 
-            } catch (JSONException e) {
-              e.printStackTrace();
-              if (finalLastTodo) {
-                // updateTodoAdapter();
-              }
             }
-          }
-
-        }, new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Insert Todo Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
-              }
-            }
-            if (finalLastTodo) {
-              // updateTodoAdapter();
-            }
-          }
-
-        }) {
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
@@ -1340,60 +1372,65 @@ public class MainListFragment extends ListFragment implements
         }
 
         final boolean finalLastList = lastList;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_LIST, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_LIST,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Insert List Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert List Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                list.setRowVersion(response.getInt("row_version"));
-                list.setDirty(false);
-                dbLoader.updateList(list);
+                  if (!error) {
+                    list.setRowVersion(response.getInt("row_version"));
+                    list.setDirty(false);
+                    dbLoader.updateList(list);
+                    if (finalLastList) {
+                      updateListAdapter();
+                    }
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    if (finalLastList) {
+                      updateListAdapter();
+                    }
+                  }
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                  if (finalLastList) {
+                    updateListAdapter();
+                  }
+                }
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Insert List Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
                 if (finalLastList) {
                   updateListAdapter();
                 }
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
-                if (finalLastList) {
-                  updateListAdapter();
-                }
               }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              if (finalLastList) {
-                updateListAdapter();
-              }
-            }
-          }
 
-        }, new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Insert List Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
-              }
             }
-            if (finalLastList) {
-              updateListAdapter();
-            }
-          }
-
-        }) {
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
@@ -1443,60 +1480,65 @@ public class MainListFragment extends ListFragment implements
         }
 
         final boolean finalLastCategory = lastCategory;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_CATEGORY, jsonRequest, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_CATEGORY,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
 
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Insert Category Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert Category Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
 
-              if (!error) {
-                category.setRowVersion(response.getInt("row_version"));
-                category.setDirty(false);
-                dbLoader.updateCategory(category);
+                  if (!error) {
+                    category.setRowVersion(response.getInt("row_version"));
+                    category.setDirty(false);
+                    dbLoader.updateCategory(category);
+                    if (finalLastCategory) {
+                      updateCategoryAdapter();
+                    }
+                  } else {
+                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    if (finalLastCategory) {
+                      updateCategoryAdapter();
+                    }
+                  }
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                  if (finalLastCategory) {
+                    updateCategoryAdapter();
+                  }
+                }
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String message = error.getMessage();
+                Log.e(TAG, "Insert Category Error: " + message);
+                if (message != null) {
+                  if (message.contains("failed to connect")) {
+                    // Sikertelen kapcsolódás.
+                    if (getView() != null)
+                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
+                      // látható.
+                      AppController.showWhiteTextSnackbar(
+                          Snackbar.make(coordinatorLayout,
+                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
+                      );
+                  }
+                }
                 if (finalLastCategory) {
                   updateCategoryAdapter();
                 }
-              } else {
-                Log.d(TAG, "Error Message: " + response.getString("message"));
-                if (finalLastCategory) {
-                  updateCategoryAdapter();
-                }
               }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              if (finalLastCategory) {
-                updateCategoryAdapter();
-              }
-            }
-          }
 
-        }, new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Insert Category Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
-              }
             }
-            if (finalLastCategory) {
-              updateCategoryAdapter();
-            }
-          }
-
-        }) {
+        ) {
 
           @Override
           public Map<String, String> getHeaders() throws AuthFailureError {
