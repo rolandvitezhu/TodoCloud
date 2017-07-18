@@ -3,6 +3,9 @@ package com.example.todocloud.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class User implements Parcelable {
 
   private long _id;
@@ -22,16 +25,19 @@ public class User implements Parcelable {
     this.apiKey = apiKey;
   }
 
-  /**
-   * Parcelben tárolt User objektumból normál User objektumot készít.
-   * @param in User objektumot tároló Parcel objektum.
-   */
   protected User(Parcel in) {
     _id = in.readLong();
     userOnlineId = in.readString();
     name = in.readString();
     email = in.readString();
     apiKey = in.readString();
+  }
+
+  public User(JSONObject jsonUser) throws JSONException {
+    userOnlineId = jsonUser.getString("user_online_id");
+    name = jsonUser.getString("name");
+    email = jsonUser.getString("email");
+    apiKey = jsonUser.getString("api_key");
   }
 
   public long get_id() {

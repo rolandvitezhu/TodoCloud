@@ -365,7 +365,7 @@ public class DbLoader {
    * adatbázisban. Feltételek: dirty == 1 és row_version > 0.
    * @return A frissítendő Todo-kat tartalmazza.
    */
-  public ArrayList<Todo> getUpdatableTodos() {
+  public ArrayList<Todo> getTodosToUpdate() {
     open();
     String where = DbConstants.Todo.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.Todo.KEY_DIRTY + "=" + 1 + " AND "
@@ -393,7 +393,7 @@ public class DbLoader {
    * adatbázisba. Feltételek: dirty == 1 és row_version == 0.
    * @return A beszúrandó Todo-kat tartalmazza.
    */
-  public ArrayList<Todo> getInsertableTodos() {
+  public ArrayList<Todo> getTodosToInsert() {
     open();
     String where = DbConstants.Todo.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.Todo.KEY_DIRTY + "=" + 1 + " AND " +
@@ -723,7 +723,7 @@ public class DbLoader {
    * adatbázisban. Feltételek: dirty == 1 és row_version > 0.
    * @return A frissítendő List-eket tartalmazza.
    */
-  public ArrayList<List> getUpdatableLists() {
+  public ArrayList<List> getListsToUpdate() {
     open();
     String where = DbConstants.List.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.List.KEY_DIRTY + "=" + 1 + " AND "
@@ -748,7 +748,7 @@ public class DbLoader {
    * adatbázisba. Feltételek: dirty == 1 és row_version == 0.
    * @return A beszúrandó List-eket tartalmazza.
    */
-  public ArrayList<List> getInsertableLists() {
+  public ArrayList<List> getListsToInsert() {
     open();
     String where = DbConstants.List.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.List.KEY_DIRTY + "=" + 1 + " AND " +
@@ -917,7 +917,7 @@ public class DbLoader {
    * távoli adatbázisban. Feltételek: dirty == 1 és row_version > 0.
    * @return A frissítendő Category-ket tartalmazza.
    */
-  public ArrayList<Category> getUpdatableCategories() {
+  public ArrayList<Category> getCategoriesToUpdate() {
     open();
     String where = DbConstants.Category.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.Category.KEY_DIRTY + "=" + 1 + " AND "
@@ -942,7 +942,7 @@ public class DbLoader {
    * távoli adatbázisba. Feltételek: dirty == 1 és row_version == 0.
    * @return A beszúrandó Category-kat tartalmazza.
    */
-  public ArrayList<Category> getInsertableCategories() {
+  public ArrayList<Category> getCategoriesToInsert() {
     open();
     String where = DbConstants.Category.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "' AND " +
         DbConstants.Category.KEY_DIRTY + "=" + 1 + " AND " +

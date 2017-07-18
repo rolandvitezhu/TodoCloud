@@ -43,7 +43,7 @@ public class RegisterFragment extends Fragment {
   private static final String TAG = RegisterFragment.class.getSimpleName();
 
   private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
+  private TextView formSubmissionErrors;
   private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
   private TextInputEditText tietName, tietEmail, tietPassword, tietConfirmPassword;
 
@@ -75,7 +75,7 @@ public class RegisterFragment extends Fragment {
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_register, container, false);
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
-    tvFormSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
+    formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
     tilName = (TextInputLayout) view.findViewById(R.id.tilName);
     tilEmail = (TextInputLayout) view.findViewById(R.id.tilEmail);
     tilPassword = (TextInputLayout) view.findViewById(R.id.tilPassword);
@@ -148,87 +148,117 @@ public class RegisterFragment extends Fragment {
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
   }
 
-  /**
-   * Regisztrálja a felhasználót a szerveren.
-   * @param user_online_id Felhasználó online_id-ja.
-   * @param name Felhasználó neve.
-   * @param email Felhasználó email-je.
-   * @param _id Felhasználó _id-ja.
-   * @param password Felhasználó jelszava.
-   */
-  private void register(final String user_online_id, final String name, final String email,
-                        final String password, final long _id) {
+  private void register(
+      final String user_online_id,
+      final String name,
+      final String email,
+      final String password,
+      final long _id
+  ) {
     String tag_json_object_request = "request_register";
 
     JSONObject jsonRequest = new JSONObject();
     try {
-      jsonRequest.put("user_online_id", user_online_id);
-      jsonRequest.put("name", name);
-      jsonRequest.put("email", email);
-      jsonRequest.put("password", password);
+      putUserData(user_online_id, name, email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
     }
 
-    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.POST,
-        AppConfig.URL_REGISTER, jsonRequest, new Response.Listener<JSONObject>() {
+    JsonObjectRequest registerRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_REGISTER,
+        jsonRequest,
+        new Response.Listener<JSONObject>() {
 
-      @Override
-      public void onResponse(JSONObject response) {
-        Log.d(TAG, "Register Response: " + response);
-        try {
-          boolean error = response.getBoolean("error");
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Register Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
 
-          if (!error) {
-            listener.onClickLinkToLogin();
-          } else {
-            String message = response.getString("message");
-            if (message != null && message.contains("Sorry, this email already existed")) {
-              tvFormSubmissionErrors.setText(R.string.this_email_already_existed);
-              tvFormSubmissionErrors.setVisibility(View.VISIBLE);
-            } else if (
-                message != null && message.contains(
-                    "Oops! An error occurred while registereing")) {
-              // A hiba oka általában, hogy már regisztrált userOnlineId-t generált a rendszer. Ez
-              // esetben ettől különböző userOnlineId-t generálunk és ismét megkíséreljük a
-              // regisztrációt.
-              InstallationIdHelper.getNewInstallationId();
-              String new_user_online_id =
-                  OnlineIdGenerator.generateOnlineId(
-                      DbConstants.User.DATABASE_TABLE, _id);
-              register(new_user_online_id, name, email, password, _id);
+              if (!error) {
+                listener.onClickLinkToLogin();
+              } else {
+                String message = response.getString("message");
+                if (message != null) {
+                  if (message.contains("Sorry, this email already existed")) {
+                    showErrorMessage();
+                  } else if (message.contains("Oops! An error occurred while registereing")) {
+                    handleError();
+                  }
+                }
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              hideFormSubmissionErrors();
             }
           }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          hideTVFormSubmissionErrors();
+
+          private void showErrorMessage() {
+            formSubmissionErrors.setText(R.string.this_email_already_existed);
+            formSubmissionErrors.setVisibility(View.VISIBLE);
+          }
+
+          /**
+           * Generally the cause of error is, that the userOnlineId generated by the client is
+           * already registered in the remote database. In this case, it generate a different
+           * userOnlineId, and send the registration request again.
+           */
+          private void handleError() {
+            InstallationIdHelper.getNewInstallationId();
+            String new_user_online_id = OnlineIdGenerator.generateOnlineId(
+                DbConstants.User.DATABASE_TABLE,
+                _id
+            );
+            register(new_user_online_id, name, email, password, _id);
+          }
+
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Register Error: " + errorMessage);
+            if (errorMessage != null) {
+              showErrorMessage(errorMessage);
+            }
+          }
+
+          private void showErrorMessage(String errorMessage) {
+            if (errorMessage.contains("failed to connect")) {
+              hideFormSubmissionErrors();
+              Snackbar snackbar = Snackbar.make(
+                  coordinatorLayout,
+                  R.string.failed_to_connect,
+                  Snackbar.LENGTH_LONG
+              );
+              AppController.showWhiteTextSnackbar(snackbar);
+            } else {
+              hideFormSubmissionErrors();
+              Snackbar snackbar = Snackbar.make(coordinatorLayout,
+                  R.string.an_error_occurred, Snackbar.LENGTH_LONG);
+              AppController.showWhiteTextSnackbar(snackbar);
+            }
+          }
+
         }
-      }
+    );
 
-    }, new Response.ErrorListener() {
+    AppController.getInstance().addToRequestQueue(registerRequest, tag_json_object_request);
+  }
 
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        Log.e(TAG, "Register Error: " + error.getMessage());
-        if (error.getMessage() != null && error.getMessage().contains("failed to connect")) {
-          hideTVFormSubmissionErrors();
-          // Sikertelen kapcsolódás.
-          AppController.showWhiteTextSnackbar(
-              Snackbar.make(coordinatorLayout,
-                  R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-          );
-        } else {
-          hideTVFormSubmissionErrors();
-          AppController.showWhiteTextSnackbar(
-              Snackbar.make(coordinatorLayout,
-                  R.string.an_error_occurred, Snackbar.LENGTH_LONG)
-          );
-        }
-      }
-
-    });
-
-    AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
+  private void putUserData(
+      String user_online_id,
+      String name,
+      String email,
+      String password,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("user_online_id", user_online_id);
+    jsonRequest.put("name", name);
+    jsonRequest.put("email", email);
+    jsonRequest.put("password", password);
   }
 
   /**
@@ -311,9 +341,9 @@ public class RegisterFragment extends Fragment {
     return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$");
   }
 
-  private void hideTVFormSubmissionErrors() {
-    tvFormSubmissionErrors.setText("");
-    tvFormSubmissionErrors.setVisibility(View.GONE);
+  private void hideFormSubmissionErrors() {
+    formSubmissionErrors.setText("");
+    formSubmissionErrors.setVisibility(View.GONE);
   }
 
   private class MyTextWatcher implements TextWatcher {

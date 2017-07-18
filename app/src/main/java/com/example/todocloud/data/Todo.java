@@ -3,6 +3,9 @@ package com.example.todocloud.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -59,6 +62,21 @@ public class Todo implements Parcelable {
     rowVersion = in.readInt();
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
+  }
+
+  public Todo(JSONObject jsonTodo) throws JSONException {
+    todoOnlineId = jsonTodo.getString("todo_online_id");
+    userOnlineId = jsonTodo.getString("user_online_id");
+    listOnlineId = jsonTodo.getString("list_online_id");
+    title = jsonTodo.getString("title");
+    priority = jsonTodo.getInt("priority") != 0;
+    dueDate = jsonTodo.getString("due_date");
+    reminderDateTime = jsonTodo.getString("reminder_datetime");
+    description = jsonTodo.getString("description");
+    completed = jsonTodo.getInt("completed") != 0;
+    rowVersion = jsonTodo.getInt("row_version");
+    deleted = jsonTodo.getInt("deleted") != 0;
+    dirty = false;
   }
 
 	public long get_id() {

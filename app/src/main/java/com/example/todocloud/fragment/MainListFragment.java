@@ -601,7 +601,7 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void updateTodosInLocalDb(ArrayList<Todo> todos) {
+  private void updateTodosInLocalDatabase(ArrayList<Todo> todos) {
     for (Todo todo : todos) {
       boolean exists = dbLoader.isTodoExists(todo.getTodoOnlineId());
       if (!exists) {
@@ -612,7 +612,7 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  private void updateListsInLocalDb(ArrayList<com.example.todocloud.data.List> lists) {
+  private void updateListsInLocalDatabase(ArrayList<com.example.todocloud.data.List> lists) {
     for (com.example.todocloud.data.List list : lists) {
       boolean exists = dbLoader.isListExists(list.getListOnlineId());
       if (!exists) {
@@ -623,7 +623,7 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  private void updateCategoriesInLocalDb(ArrayList<Category> categories) {
+  private void updateCategoriesInLocalDatabase(ArrayList<Category> categories) {
     for (Category category : categories) {
       boolean exists = dbLoader.isCategoryExists(category.getCategoryOnlineId());
       if (!exists) {
@@ -634,17 +634,11 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  /**
-   * A kliens aktuális sorverziója alapján lekéri a szerverről a frissítendő sorokat. Ezek között
-   * szerepel olyan, ami még nem létezik a kliens adatbázisában és olyan, ami létezik, de módosí-
-   * tandó. A lekért sorokat a kliens az adatbázisba beszúrja/frissíti, majd frissíti az adaptert.
-   */
   private void getTodos() {
-
     String tag_string_request = "request_get_todos";
 
-    String url = prepareUrl();
-    StringRequest stringRequest = new StringRequest(
+    String url = prepareGetTodosUrl();
+    StringRequest getTodosRequest = new StringRequest(
         Request.Method.GET,
         url,
         new Response.Listener<String>() {
@@ -653,44 +647,36 @@ public class MainListFragment extends ListFragment implements
           public void onResponse(String response) {
             Log.d(TAG, "Get Todos Response: " + response);
             try {
-              JSONObject jsonObject = new JSONObject(response);
-              boolean error = jsonObject.getBoolean("error");
+              JSONObject jsonResponse = new JSONObject(response);
+              boolean error = jsonResponse.getBoolean("error");
 
               if (!error) {
-
-                JSONArray jaTodos = jsonObject.getJSONArray("todos");
-                ArrayList<Todo> todos = new ArrayList<>();
-
-                for (int i = 0; i < jaTodos.length(); i++) {
-                  JSONObject joTodo = jaTodos.getJSONObject(i);
-                  Todo todo = new Todo();
-                  todo.setTodoOnlineId(joTodo.getString("todo_online_id"));
-                  todo.setUserOnlineId(joTodo.getString("user_online_id"));
-                  todo.setListOnlineId(joTodo.getString("list_online_id"));
-                  todo.setTitle(joTodo.getString("title"));
-                  todo.setPriority(joTodo.getInt("priority") != 0);
-                  todo.setDueDate(joTodo.getString("due_date"));
-                  todo.setReminderDateTime(joTodo.getString("reminder_datetime"));
-                  todo.setDescription(joTodo.getString("description"));
-                  todo.setCompleted(joTodo.getInt("completed") != 0);
-                  todo.setRowVersion(joTodo.getInt("row_version"));
-                  todo.setDeleted(joTodo.getInt("deleted") != 0);
-                  todo.setDirty(false);
-                  todos.add(todo);
-                }
-
+                ArrayList<Todo> todos = getTodos(jsonResponse);
                 if (!todos.isEmpty()) {
-                  updateTodosInLocalDb(todos);
+                  updateTodosInLocalDatabase(todos);
                 }
 
                 getLists();
-
               } else {
-                Log.d(TAG, "Error Message: " + jsonObject.getString("message"));
+                String message = jsonResponse.getString("message");
+                Log.d(TAG, "Error Message: " + message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
             }
+          }
+
+          @NonNull
+          private ArrayList<Todo> getTodos(JSONObject jsonResponse) throws JSONException {
+            JSONArray jsonTodos = jsonResponse.getJSONArray("todos");
+            ArrayList<Todo> todos = new ArrayList<>();
+
+            for (int i = 0; i < jsonTodos.length(); i++) {
+              JSONObject jsonTodo = jsonTodos.getJSONObject(i);
+              Todo todo = new Todo(jsonTodo);
+              todos.add(todo);
+            }
+            return todos;
           }
 
         },
@@ -698,18 +684,23 @@ public class MainListFragment extends ListFragment implements
 
           @Override
           public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Get Todos Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Get Todos Error: " + errorMessage);
+            if (errorMessage != null) {
+              showErrorMessage(errorMessage);
+            }
+          }
+
+          private void showErrorMessage(String errorMessage) {
+            if (errorMessage.contains("failed to connect")) {
+              // Android Studio hotswap/coldswap may cause getView == null
+              if (getView() != null) {
+                Snackbar snackbar = Snackbar.make(
+                    coordinatorLayout,
+                    R.string.failed_to_connect,
+                    Snackbar.LENGTH_LONG
+                );
+                AppController.showWhiteTextSnackbar(snackbar);
               }
             }
           }
@@ -726,73 +717,61 @@ public class MainListFragment extends ListFragment implements
 
     };
 
-    AppController.getInstance().addToRequestQueue(stringRequest, tag_string_request);
-
+    AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
   }
 
   @NonNull
-  private String prepareUrl() {
+  private String prepareGetTodosUrl() {
     int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
-    return AppConfig.URL_GET_TODOS.substring(0, end) +
-        dbLoader.getTodoRowVersion();
+    return AppConfig.URL_GET_TODOS.substring(0, end)
+        + dbLoader.getTodoRowVersion();
   }
 
-  /**
-   * A kliens aktuális sorverziója alapján lekéri a szerverről a frissítendő sorokat. Ezek között
-   * szerepel olyan, ami még nem létezik a kliens adatbázisában és olyan, ami létezik, de módosí-
-   * tandó. A lekért sorokat a kliens az adatbázisba beszúrja/frissíti, majd frissíti az adaptert.
-   */
   private void getLists() {
-
     String tag_string_request = "request_get_lists";
 
-    // URL összeállítása.
-    int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
-    String URL = AppConfig.URL_GET_LISTS.substring(0, end) +
-        dbLoader.getListRowVersion();
-
-    StringRequest stringRequest = new StringRequest(
+    String url = prepareGetListsUrl();
+    StringRequest getListsRequest = new StringRequest(
         Request.Method.GET,
-        URL,
+        url,
         new Response.Listener<String>() {
 
           @Override
           public void onResponse(String response) {
             Log.d(TAG, "Get Lists Response: " + response);
             try {
-              JSONObject jsonObject = new JSONObject(response);
-              boolean error = jsonObject.getBoolean("error");
+              JSONObject jsonResponse = new JSONObject(response);
+              boolean error = jsonResponse.getBoolean("error");
 
               if (!error) {
-
-                JSONArray jaLists = jsonObject.getJSONArray("lists");
-                ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
-
-                for (int i = 0; i < jaLists.length(); i++) {
-                  JSONObject joList = jaLists.getJSONObject(i);
-                  com.example.todocloud.data.List list = new com.example.todocloud.data.List();
-                  list.setListOnlineId(joList.getString("list_online_id"));
-                  list.setUserOnlineId(joList.getString("user_online_id"));
-                  list.setCategoryOnlineId(joList.getString("category_online_id"));
-                  list.setTitle(joList.getString("title"));
-                  list.setRowVersion(joList.getInt("row_version"));
-                  list.setDeleted(joList.getInt("deleted") != 0);
-                  list.setDirty(false);
-                  lists.add(list);
-                }
-
+                ArrayList<com.example.todocloud.data.List> lists = getLists(jsonResponse);
                 if (!lists.isEmpty()) {
-                  updateListsInLocalDb(lists);
+                  updateListsInLocalDatabase(lists);
                 }
 
                 getCategories();
 
               } else {
-                Log.d(TAG, "Error Message: " + jsonObject.getString("message"));
+                String message = jsonResponse.getString("message");
+                Log.d(TAG, "Error Message: " + message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
             }
+          }
+
+          @NonNull
+          private ArrayList<com.example.todocloud.data.List> getLists(JSONObject jsonResponse) throws JSONException {
+            JSONArray jsonLists = jsonResponse.getJSONArray("lists");
+            ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
+
+            for (int i = 0; i < jsonLists.length(); i++) {
+              JSONObject jsonList = jsonLists.getJSONObject(i);
+              com.example.todocloud.data.List list =
+                  new com.example.todocloud.data.List(jsonList);
+              lists.add(list);
+            }
+            return lists;
           }
 
         },
@@ -800,18 +779,23 @@ public class MainListFragment extends ListFragment implements
 
           @Override
           public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Get Lists Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Get Lists Error: " + errorMessage);
+            if (errorMessage != null) {
+              showErrorMessage(errorMessage);
+            }
+          }
+
+          private void showErrorMessage(String errorMessage) {
+            if (errorMessage.contains("failed to connect")) {
+              // Android Studio hotswap/coldswap may cause getView == null
+              if (getView() != null) {
+                Snackbar snackbar = Snackbar.make(
+                    coordinatorLayout,
+                    R.string.failed_to_connect,
+                    Snackbar.LENGTH_LONG
+                );
+                AppController.showWhiteTextSnackbar(snackbar);
               }
             }
           }
@@ -828,65 +812,59 @@ public class MainListFragment extends ListFragment implements
 
     };
 
-    AppController.getInstance().addToRequestQueue(stringRequest, tag_string_request);
-
+    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
   }
 
-  /**
-   * A kliens aktuális sorverziója alapján lekéri a szerverről a frissítendő sorokat. Ezek között
-   * szerepel olyan, ami még nem létezik a kliens adatbázisában és olyan, ami létezik, de módosí-
-   * tandó. A lekért sorokat a kliens az adatbázisba beszúrja/frissíti, majd frissíti az adaptert.
-   */
-  private void getCategories() {
+  @NonNull
+  private String prepareGetListsUrl() {
+    int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
+    return AppConfig.URL_GET_LISTS.substring(0, end)
+        + dbLoader.getListRowVersion();
+  }
 
+  private void getCategories() {
     String tag_string_request = "request_get_categories";
 
-    // URL összeállítása.
-    int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
-    String URL = AppConfig.URL_GET_CATEGORIES.substring(0, end) +
-        dbLoader.getCategoryRowVersion();
-
-    StringRequest stringRequest = new StringRequest(
+    String url = prepareGetCategoriesUrl();
+    StringRequest getCategoriesRequest = new StringRequest(
         Request.Method.GET,
-        URL,
+        url,
         new Response.Listener<String>() {
 
           @Override
           public void onResponse(String response) {
             Log.d(TAG, "Get Categories Response: " + response);
             try {
-              JSONObject jsonObject = new JSONObject(response);
-              boolean error = jsonObject.getBoolean("error");
+              JSONObject jsonResponse = new JSONObject(response);
+              boolean error = jsonResponse.getBoolean("error");
 
               if (!error) {
-
-                JSONArray jaCategories = jsonObject.getJSONArray("categories");
-                ArrayList<Category> categories = new ArrayList<>();
-
-                for (int i = 0; i < jaCategories.length(); i++) {
-                  JSONObject joCategory = jaCategories.getJSONObject(i);
-                  Category category = new Category();
-                  category.setCategoryOnlineId(joCategory.getString("category_online_id"));
-                  category.setUserOnlineId(joCategory.getString("user_online_id"));
-                  category.setTitle(joCategory.getString("title"));
-                  category.setRowVersion(joCategory.getInt("row_version"));
-                  category.setDeleted(joCategory.getInt("deleted") != 0);
-                  category.setDirty(false);
-                  categories.add(category);
-                }
-
+                ArrayList<Category> categories = getCategories(jsonResponse);
                 if (!categories.isEmpty()) {
-                  updateCategoriesInLocalDb(categories);
+                  updateCategoriesInLocalDatabase(categories);
                 }
 
                 updateTodos();
-
               } else {
-                Log.d(TAG, "Error Message: " + jsonObject.getString("message"));
+                String message = jsonResponse.getString("message");
+                Log.d(TAG, "Error Message: " + message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
             }
+          }
+
+          @NonNull
+          private ArrayList<Category> getCategories(JSONObject jsonResponse) throws JSONException {
+            JSONArray jsonCategories = jsonResponse.getJSONArray("categories");
+            ArrayList<Category> categories = new ArrayList<>();
+
+            for (int i = 0; i < jsonCategories.length(); i++) {
+              JSONObject jsonCategory = jsonCategories.getJSONObject(i);
+              Category category = new Category(jsonCategory);
+              categories.add(category);
+            }
+            return categories;
           }
 
         },
@@ -894,18 +872,23 @@ public class MainListFragment extends ListFragment implements
 
           @Override
           public void onErrorResponse(VolleyError error) {
-            String message = error.getMessage();
-            Log.e(TAG, "Get Categories Error: " + message);
-            if (message != null) {
-              if (message.contains("failed to connect")) {
-                // Sikertelen kapcsolódás.
-                if (getView() != null)
-                  // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                  // látható.
-                  AppController.showWhiteTextSnackbar(
-                      Snackbar.make(coordinatorLayout,
-                          R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                  );
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Get Categories Error: " + errorMessage);
+            if (errorMessage != null) {
+              showErrorMessage(errorMessage);
+            }
+          }
+
+          private void showErrorMessage(String errorMessage) {
+            if (errorMessage.contains("failed to connect")) {
+              // Android Studio hotswap/coldswap may cause getView == null
+              if (getView() != null) {
+                Snackbar snackbar = Snackbar.make(
+                    coordinatorLayout,
+                    R.string.failed_to_connect,
+                    Snackbar.LENGTH_LONG
+                );
+                AppController.showWhiteTextSnackbar(snackbar);
               }
             }
           }
@@ -922,50 +905,30 @@ public class MainListFragment extends ListFragment implements
 
     };
 
-    AppController.getInstance().addToRequestQueue(stringRequest, tag_string_request);
-
+    AppController.getInstance().addToRequestQueue(getCategoriesRequest, tag_string_request);
   }
 
-  /**
-   * Feltölti a szerverre az összes frissítendő sort a helyi adatbázisból.
-   */
+  @NonNull
+  private String prepareGetCategoriesUrl() {
+    int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
+    return AppConfig.URL_GET_CATEGORIES.substring(0, end) +
+        dbLoader.getCategoryRowVersion();
+  }
+
   private void updateTodos() {
+    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
 
-    ArrayList<Todo> todos = dbLoader.getUpdatableTodos();
-
-    if (!todos.isEmpty()) {
-      for (final Todo todo : todos) {
-
-        String tag_json_object_request = "request_update_todo";
-
+    if (!todosToUpdate.isEmpty()) {
+      String tag_json_object_request = "request_update_todo";
+      for (final Todo todoToUpdate : todosToUpdate) {
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("todo_online_id", todo.getTodoOnlineId().trim());
-          if (todo.getListOnlineId() != null) {
-            jsonRequest.put("list_online_id", todo.getListOnlineId().trim());
-          } else {
-            jsonRequest.put("list_online_id", "");
-          }
-          jsonRequest.put("title", todo.getTitle().trim());
-          jsonRequest.put("priority", todo.isPriority() ? 1 : 0);
-          jsonRequest.put("due_date", todo.getDueDate().trim());
-          if (todo.getReminderDateTime() != null) {
-            jsonRequest.put("reminder_datetime", todo.getReminderDateTime().trim());
-          } else {
-            jsonRequest.put("reminder_datetime", "");
-          }
-          if (todo.getDescription() != null) {
-            jsonRequest.put("description", todo.getDescription().trim());
-          } else {
-            jsonRequest.put("description", "");
-          }
-          jsonRequest.put("completed", todo.isCompleted() ? 1 : 0);
-          jsonRequest.put("deleted", todo.getDeleted() ? 1 : 0);
+          putTodoData(todoToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest updateTodosRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.PUT,
             AppConfig.URL_UPDATE_TODO,
             jsonRequest,
@@ -974,20 +937,24 @@ public class MainListFragment extends ListFragment implements
               @Override
               public void onResponse(JSONObject response) {
                 Log.d(TAG, "Update Todo Response: " + response);
-
                 try {
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    todo.setRowVersion(response.getInt("row_version"));
-                    todo.setDirty(false);
-                    dbLoader.updateTodo(todo);
+                    makeTodoUpToDate(response);
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
                 }
+              }
+
+              private void makeTodoUpToDate(JSONObject response) throws JSONException {
+                todoToUpdate.setRowVersion(response.getInt("row_version"));
+                todoToUpdate.setDirty(false);
+                dbLoader.updateTodo(todoToUpdate);
               }
 
             },
@@ -995,18 +962,23 @@ public class MainListFragment extends ListFragment implements
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Update Todo Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Update Todo Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
+                }
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
                   }
                 }
               }
@@ -1023,41 +995,50 @@ public class MainListFragment extends ListFragment implements
 
         };
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
+        AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
       }
     }
     updateLists();
-
   }
 
-  /**
-   * Feltölti a szerverre az összes frissítendő sort a helyi adatbázisból.
-   */
+  private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
+    jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
+    if (todoData.getListOnlineId() != null) {
+      jsonRequest.put("list_online_id", todoData.getListOnlineId().trim());
+    } else {
+      jsonRequest.put("list_online_id", "");
+    }
+    jsonRequest.put("title", todoData.getTitle().trim());
+    jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
+    jsonRequest.put("due_date", todoData.getDueDate().trim());
+    if (todoData.getReminderDateTime() != null) {
+      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
+    } else {
+      jsonRequest.put("reminder_datetime", "");
+    }
+    if (todoData.getDescription() != null) {
+      jsonRequest.put("description", todoData.getDescription().trim());
+    } else {
+      jsonRequest.put("description", "");
+    }
+    jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
+    jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
+  }
+
   private void updateLists() {
+    ArrayList<com.example.todocloud.data.List> listsToUpdate = dbLoader.getListsToUpdate();
 
-    ArrayList<com.example.todocloud.data.List> lists = dbLoader.getUpdatableLists();
-
-    if (!lists.isEmpty()) {
-      for (final com.example.todocloud.data.List list : lists) {
-
-        String tag_json_object_request = "request_update_list";
-
+    if (!listsToUpdate.isEmpty()) {
+      String tag_json_object_request = "request_update_list";
+      for (final com.example.todocloud.data.List listToUpdate : listsToUpdate) {
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("list_online_id", list.getListOnlineId().trim());
-          if (list.getCategoryOnlineId() != null) {
-            jsonRequest.put("category_online_id", list.getCategoryOnlineId().trim());
-          } else {
-            jsonRequest.put("category_online_id", "");
-          }
-          jsonRequest.put("title", list.getTitle().trim());
-          jsonRequest.put("deleted", list.getDeleted() ? 1 : 0);
+          putListData(listToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest updateListsRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.PUT,
             AppConfig.URL_UPDATE_LIST,
             jsonRequest,
@@ -1066,16 +1047,14 @@ public class MainListFragment extends ListFragment implements
               @Override
               public void onResponse(JSONObject response) {
                 Log.d(TAG, "Update List Response: " + response);
-
                 try {
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    list.setRowVersion(response.getInt("row_version"));
-                    list.setDirty(false);
-                    dbLoader.updateList(list);
+                    makeListUpToDate(response);
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
                   }
 
                 } catch (JSONException e) {
@@ -1083,23 +1062,34 @@ public class MainListFragment extends ListFragment implements
                 }
               }
 
+              private void makeListUpToDate(JSONObject response) throws JSONException {
+                listToUpdate.setRowVersion(response.getInt("row_version"));
+                listToUpdate.setDirty(false);
+                dbLoader.updateList(listToUpdate);
+              }
+
             },
             new Response.ErrorListener() {
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Update List Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Update List Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
+                }
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
                   }
                 }
               }
@@ -1116,36 +1106,40 @@ public class MainListFragment extends ListFragment implements
 
         };
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
+        AppController.getInstance().addToRequestQueue(updateListsRequest, tag_json_object_request);
       }
     }
     updateCategories();
-
   }
 
-  /**
-   * Feltölti a szerverre az összes frissítendő sort a helyi adatbázisból.
-   */
+  private void putListData(
+      com.example.todocloud.data.List listData,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("list_online_id", listData.getListOnlineId().trim());
+    if (listData.getCategoryOnlineId() != null) {
+      jsonRequest.put("category_online_id", listData.getCategoryOnlineId().trim());
+    } else {
+      jsonRequest.put("category_online_id", "");
+    }
+    jsonRequest.put("title", listData.getTitle().trim());
+    jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
+  }
+
   private void updateCategories() {
+    ArrayList<Category> categoriesToUpdate = dbLoader.getCategoriesToUpdate();
 
-    ArrayList<Category> categories = dbLoader.getUpdatableCategories();
-
-    if (!categories.isEmpty()) {
-      for (final Category category : categories) {
-
-        String tag_json_object_request = "request_update_category";
-
+    if (!categoriesToUpdate.isEmpty()) {
+      String tag_json_object_request = "request_update_category";
+      for (final Category categoryToUpdate : categoriesToUpdate) {
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("category_online_id", category.getCategoryOnlineId().trim());
-          jsonRequest.put("title", category.getTitle().trim());
-          jsonRequest.put("deleted", category.getDeleted() ? 1 : 0);
+          putCategoryData(categoryToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest updateCategoriesRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.PUT,
             AppConfig.URL_UPDATE_CATEGORY,
             jsonRequest,
@@ -1154,16 +1148,14 @@ public class MainListFragment extends ListFragment implements
               @Override
               public void onResponse(JSONObject response) {
                 Log.d(TAG, "Update Category Response: " + response);
-
                 try {
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    category.setRowVersion(response.getInt("row_version"));
-                    category.setDirty(false);
-                    dbLoader.updateCategory(category);
+                    makeCategoryUpToDate(response);
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
                   }
 
                 } catch (JSONException e) {
@@ -1171,23 +1163,34 @@ public class MainListFragment extends ListFragment implements
                 }
               }
 
+              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
+                categoryToUpdate.setRowVersion(response.getInt("row_version"));
+                categoryToUpdate.setDirty(false);
+                dbLoader.updateCategory(categoryToUpdate);
+              }
+
             },
             new Response.ErrorListener() {
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Update Category Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Update Category Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
+                }
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
                   }
                 }
               }
@@ -1204,61 +1207,36 @@ public class MainListFragment extends ListFragment implements
 
         };
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
+        AppController.getInstance().addToRequestQueue(updateCategoriesRequest, tag_json_object_request);
       }
     }
     insertTodos();
-
   }
 
-  /**
-   * Feltölti a szerverre az összes beszúrandó sort a helyi adatbázisból.
-   */
+  private void putCategoryData(
+      Category categoryData,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
+    jsonRequest.put("title", categoryData.getTitle().trim());
+    jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
+  }
+
   private void insertTodos() {
+    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
 
-    ArrayList<Todo> todos = dbLoader.getInsertableTodos();
-
-    if (!todos.isEmpty()) {
-      int i = 1;
-      for (final Todo todo : todos) {
-        boolean lastTodo = false;
-        if (i++ == todos.size()) {
-          // Az utolsó kérés feldolgozását követően frissül az adapter.
-          lastTodo = true;
-        }
-
-        String tag_json_object_request = "request_insert_todo";
+    if (!todosToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_todo";
+      for (final Todo todoToInsert : todosToInsert) {
 
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("todo_online_id", todo.getTodoOnlineId().trim());
-          if (todo.getListOnlineId() != null) {
-            jsonRequest.put("list_online_id", todo.getListOnlineId().trim());
-          } else {
-            jsonRequest.put("list_online_id", "");
-          }
-          jsonRequest.put("title", todo.getTitle().trim());
-          jsonRequest.put("priority", todo.isPriority() ? 1 : 0);
-          jsonRequest.put("due_date", todo.getDueDate().trim());
-          if (todo.getReminderDateTime() != null) {
-            jsonRequest.put("reminder_datetime", todo.getReminderDateTime().trim());
-          } else {
-            jsonRequest.put("reminder_datetime", "");
-          }
-          if (todo.getDescription() != null) {
-            jsonRequest.put("description", todo.getDescription().trim());
-          } else {
-            jsonRequest.put("description", "");
-          }
-          jsonRequest.put("completed", todo.isCompleted() ? 1 : 0);
-          jsonRequest.put("deleted", todo.getDeleted() ? 1 : 0);
+          putTodoData(todoToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        final boolean finalLastTodo = lastTodo;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.POST,
             AppConfig.URL_INSERT_TODO,
             jsonRequest,
@@ -1271,25 +1249,21 @@ public class MainListFragment extends ListFragment implements
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    todo.setRowVersion(response.getInt("row_version"));
-                    todo.setDirty(false);
-                    dbLoader.updateTodo(todo);
-                    if (finalLastTodo) {
-                      // updateTodoAdapter();
-                    }
+                    makeTodoUpToDate(response);
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
-                    if (finalLastTodo) {
-                      // updateTodoAdapter();
-                    }
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
                   }
 
                 } catch (JSONException e) {
                   e.printStackTrace();
-                  if (finalLastTodo) {
-                    // updateTodoAdapter();
-                  }
                 }
+              }
+
+              private void makeTodoUpToDate(JSONObject response) throws JSONException {
+                todoToInsert.setRowVersion(response.getInt("row_version"));
+                todoToInsert.setDirty(false);
+                dbLoader.updateTodo(todoToInsert);
               }
 
             },
@@ -1297,22 +1271,24 @@ public class MainListFragment extends ListFragment implements
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Insert Todo Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
-                  }
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert Todo Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
                 }
-                if (finalLastTodo) {
-                  // updateTodoAdapter();
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
+                  }
                 }
               }
 
@@ -1328,50 +1304,33 @@ public class MainListFragment extends ListFragment implements
 
         };
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
+        AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
       }
-    } else {
-      // Ha nem szükséges kérést végrehajtani, akkor frissül az adapter.
-      // updateTodoAdapter();
     }
     insertLists();
-
   }
 
-  /**
-   * Feltölti a szerverre az összes beszúrandó sort a helyi adatbázisból.
-   */
   private void insertLists() {
+    ArrayList<com.example.todocloud.data.List> listsToInsert = dbLoader.getListsToInsert();
 
-    ArrayList<com.example.todocloud.data.List> lists = dbLoader.getInsertableLists();
-
-    if (!lists.isEmpty()) {
-      int i = 1;
-      for (final com.example.todocloud.data.List list : lists) {
-        boolean lastList = false;
-        if (i++ == lists.size()) {
-          // Az utolsó kérés feldolgozását követően frissül az adapter.
-          lastList = true;
+    if (!listsToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_list";
+      int requestsCount = listsToInsert.size();
+      int currentRequest = 1;
+      boolean lastRequestProcessed = false;
+      for (final com.example.todocloud.data.List listToInsert : listsToInsert) {
+        if (currentRequest++ == requestsCount) {
+          lastRequestProcessed = true;
         }
-
-        String tag_json_object_request = "request_insert_list";
 
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("list_online_id", list.getListOnlineId().trim());
-          if (list.getCategoryOnlineId() != null) {
-            jsonRequest.put("category_online_id", list.getCategoryOnlineId().trim());
-          } else {
-            jsonRequest.put("category_online_id", "");
-          }
-          jsonRequest.put("title", list.getTitle().trim());
-          jsonRequest.put("deleted", list.getDeleted() ? 1 : 0);
+          putListData(listToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        final boolean finalLastList = lastList;
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.POST,
             AppConfig.URL_INSERT_LIST,
@@ -1385,24 +1344,29 @@ public class MainListFragment extends ListFragment implements
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    list.setRowVersion(response.getInt("row_version"));
-                    list.setDirty(false);
-                    dbLoader.updateList(list);
-                    if (finalLastList) {
+                    makeListUpToDate(response);
+                    if (LAST_REQUEST_PROCESSED) {
                       updateListAdapter();
                     }
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
-                    if (finalLastList) {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                    if (LAST_REQUEST_PROCESSED) {
                       updateListAdapter();
                     }
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
-                  if (finalLastList) {
+                  if (LAST_REQUEST_PROCESSED) {
                     updateListAdapter();
                   }
                 }
+              }
+
+              private void makeListUpToDate(JSONObject response) throws JSONException {
+                listToInsert.setRowVersion(response.getInt("row_version"));
+                listToInsert.setDirty(false);
+                dbLoader.updateList(listToInsert);
               }
 
             },
@@ -1410,22 +1374,27 @@ public class MainListFragment extends ListFragment implements
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Insert List Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
-                  }
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert List Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
                 }
-                if (finalLastList) {
+                if (LAST_REQUEST_PROCESSED) {
                   updateListAdapter();
+                }
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
+                  }
                 }
               }
 
@@ -1442,45 +1411,35 @@ public class MainListFragment extends ListFragment implements
         };
 
         AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
       }
     } else {
-      // Ha nem szükséges kérést végrehajtani, akkor frissül az adapter.
       updateListAdapter();
     }
     insertCategories();
-
   }
 
-  /**
-   * Feltölti a szerverre az összes beszúrandó sort a helyi adatbázisból.
-   */
   private void insertCategories() {
+    ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
 
-    ArrayList<Category> categories = dbLoader.getInsertableCategories();
-
-    if (!categories.isEmpty()) {
-      int i = 1;
-      for (final Category category : categories) {
-        boolean lastCategory = false;
-        if (i++ == categories.size()) {
-          // Az utolsó kérés feldolgozását követően frissül az adapter.
-          lastCategory = true;
+    if (!categoriesToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_category";
+      int requestsCount = categoriesToInsert.size();
+      int currentRequest = 1;
+      boolean lastRequestProcessed = false;
+      for (final Category categoryToInsert : categoriesToInsert) {
+        if (currentRequest++ == requestsCount) {
+          lastRequestProcessed = true;
         }
-
-        String tag_json_object_request = "request_insert_category";
 
         JSONObject jsonRequest = new JSONObject();
         try {
-          jsonRequest.put("category_online_id", category.getCategoryOnlineId().trim());
-          jsonRequest.put("title", category.getTitle().trim());
-          jsonRequest.put("deleted", category.getDeleted() ? 1 : 0);
+          putCategoryData(categoryToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
         }
 
-        final boolean finalLastCategory = lastCategory;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
+        JsonObjectRequest insertCategoriesRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.POST,
             AppConfig.URL_INSERT_CATEGORY,
             jsonRequest,
@@ -1493,24 +1452,29 @@ public class MainListFragment extends ListFragment implements
                   boolean error = response.getBoolean("error");
 
                   if (!error) {
-                    category.setRowVersion(response.getInt("row_version"));
-                    category.setDirty(false);
-                    dbLoader.updateCategory(category);
-                    if (finalLastCategory) {
+                    makeCategoryUpToDate(response);
+                    if (LAST_REQUEST_PROCESSED) {
                       updateCategoryAdapter();
                     }
                   } else {
-                    Log.d(TAG, "Error Message: " + response.getString("message"));
-                    if (finalLastCategory) {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                    if (LAST_REQUEST_PROCESSED) {
                       updateCategoryAdapter();
                     }
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
-                  if (finalLastCategory) {
+                  if (LAST_REQUEST_PROCESSED) {
                     updateCategoryAdapter();
                   }
                 }
+              }
+
+              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
+                categoryToInsert.setRowVersion(response.getInt("row_version"));
+                categoryToInsert.setDirty(false);
+                dbLoader.updateCategory(categoryToInsert);
               }
 
             },
@@ -1518,22 +1482,27 @@ public class MainListFragment extends ListFragment implements
 
               @Override
               public void onErrorResponse(VolleyError error) {
-                String message = error.getMessage();
-                Log.e(TAG, "Insert Category Error: " + message);
-                if (message != null) {
-                  if (message.contains("failed to connect")) {
-                    // Sikertelen kapcsolódás.
-                    if (getView() != null)
-                      // Hotswap/Coldswap esetén olyan View-n is meghívódhat a Snackbar, amelyik nem
-                      // látható.
-                      AppController.showWhiteTextSnackbar(
-                          Snackbar.make(coordinatorLayout,
-                              R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-                      );
-                  }
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert Category Error: " + errorMessage);
+                if (errorMessage != null) {
+                  showErrorMessage(errorMessage);
                 }
-                if (finalLastCategory) {
+                if (LAST_REQUEST_PROCESSED) {
                   updateCategoryAdapter();
+                }
+              }
+
+              private void showErrorMessage(String errorMessage) {
+                if (errorMessage.contains("failed to connect")) {
+                  // Android Studio hotswap/coldswap may cause getView == null
+                  if (getView() != null) {
+                    Snackbar snackbar = Snackbar.make(
+                        coordinatorLayout,
+                        R.string.failed_to_connect,
+                        Snackbar.LENGTH_LONG
+                    );
+                    AppController.showWhiteTextSnackbar(snackbar);
+                  }
                 }
               }
 
@@ -1549,23 +1518,22 @@ public class MainListFragment extends ListFragment implements
 
         };
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-
+        AppController.getInstance().addToRequestQueue(insertCategoriesRequest, tag_json_object_request);
       }
     } else {
-      // Ha nem szükséges kérést végrehajtani, akkor frissül az adapter.
       updateCategoryAdapter();
     }
-
   }
 
   /**
-   * Elvégez minden szinkronizációhoz szükséges műveletet.
+   * Call update and insert methods only, if get requests processed successfully. Otherwise the
+   * client will have data in the local database with the biggest current row_version before it
+   * get all of the data from the remote database, which is missing in the local database. Hence
+   * it don't will get that data.
+   * If an error occurs in the processing of the requests, they should be aborted and start the
+   * whole processing from the beginning, with the call of get methods.
    */
   private void sync() {
-    // Ha a getTodos nem futott le, akkor ne futtassuk az updateUsers és insertUsers-t sem! Ellen-
-    // kező esetben olyan row_version lesz a kliensben, ami nagyobb, mint a kliensre még le nem
-    // kért soroké, így azokat nem fogja lekérni.
     getTodos();
     swipeRefreshLayout.setRefreshing(false);
   }

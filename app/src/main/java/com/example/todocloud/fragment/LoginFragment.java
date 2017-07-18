@@ -39,7 +39,7 @@ public class LoginFragment extends Fragment {
   private static final String TAG = LoginFragment.class.getSimpleName();
 
   private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
+  private TextView formSubmissionErrors;
   private TextInputLayout tilEmail, tilPassword;
   private TextInputEditText tietEmail, tietPassword;
 
@@ -72,7 +72,7 @@ public class LoginFragment extends Fragment {
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_login, container, false);
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
-    tvFormSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
+    formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
     tilEmail = (TextInputLayout) view.findViewById(R.id.tilEmail);
     tilPassword = (TextInputLayout) view.findViewById(R.id.tilPassword);
     tietEmail = (TextInputEditText) view.findViewById(R.id.tietEmail);
@@ -177,92 +177,115 @@ public class LoginFragment extends Fragment {
     }
   }
 
-  /**
-   * Bejelentkezteti a felhasználót.
-   * @param email Felhasználó email-je.
-   * @param password Felhasználó jelszava.
-   */
   private void login(String email, String password) {
     String tag_json_object_request = "request_login";
 
     JSONObject jsonRequest = new JSONObject();
     try {
-      jsonRequest.put("email", email);
-      jsonRequest.put("password", password);
+      putUserData(email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
     }
 
-    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.POST,
-        AppConfig.URL_LOGIN, jsonRequest, new Response.Listener<JSONObject>() {
+    JsonObjectRequest loginRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_LOGIN,
+        jsonRequest,
+        new Response.Listener<JSONObject>() {
 
-      @Override
-      public void onResponse(JSONObject response) {
-        Log.d(TAG, "Login Response: " + response);
-        try {
-          boolean error = response.getBoolean("error");
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Login Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
 
-          if (!error) {
-            hideTVFormSubmissionErrors();
+              if (!error) {
+                hideFormSubmissionErrors();
+                handleLogin(response);
+              } else {
+                String message = response.getString("message");
+                if (message != null) {
+                  showErrorMessage(message);
+                }
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              hideFormSubmissionErrors();
+            }
+          }
 
-            User user = new User();
-            user.setUserOnlineId(response.getString("user_online_id"));
-            user.setName(response.getString("name"));
-            user.setEmail(response.getString("email"));
-            user.setApiKey(response.getString("api_key"));
+          private void showErrorMessage(String message) {
+            if (message.contains("Login failed. Incorrect credentials")) {
+              formSubmissionErrors.setText(R.string.invalid_username_or_password);
+              formSubmissionErrors.setVisibility(View.VISIBLE);
+            } else if (message.contains("An error occurred. Please try again")) {
+              hideFormSubmissionErrors();
+              Snackbar snackbar = Snackbar.make(
+                  coordinatorLayout,
+                  R.string.an_error_occurred,
+                  Snackbar.LENGTH_LONG
+              );
+              AppController.showWhiteTextSnackbar(snackbar);
+            }
+          }
 
+          private void handleLogin(JSONObject response) throws JSONException {
+            User user = new User(response);
             dbLoader.createUser(user);
             sessionManager.setLogin(true);
             listener.onLogin();
-          } else {
-            String message = response.getString("message");
-            if (message != null && message.contains("Login failed. Incorrect credentials")) {
-              tvFormSubmissionErrors.setText(R.string.invalid_username_or_password);
-              tvFormSubmissionErrors.setVisibility(View.VISIBLE);
-            } else if (
-                message != null && message.contains("An error occurred. Please try again")) {
-              hideTVFormSubmissionErrors();
-              AppController.showWhiteTextSnackbar(
-                  Snackbar.make(coordinatorLayout,
-                      R.string.an_error_occurred, Snackbar.LENGTH_LONG)
-              );
+          }
+
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Login Error: " + errorMessage);
+            if (errorMessage != null) {
+              showErrorMessage(errorMessage);
             }
           }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          hideTVFormSubmissionErrors();
+
+          private void showErrorMessage(String errorMessage) {
+            if (errorMessage.contains("failed to connect")) {
+              hideFormSubmissionErrors();
+              Snackbar snackbar = Snackbar.make(
+                  coordinatorLayout,
+                  R.string.failed_to_connect,
+                  Snackbar.LENGTH_LONG
+              );
+              AppController.showWhiteTextSnackbar(snackbar);
+            } else {
+              hideFormSubmissionErrors();
+              Snackbar snackbar = Snackbar.make(
+                  coordinatorLayout,
+                  R.string.an_error_occurred,
+                  Snackbar.LENGTH_LONG
+              );
+              AppController.showWhiteTextSnackbar(snackbar);
+            }
+          }
+
         }
-      }
+    );
 
-    }, new Response.ErrorListener() {
-
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        Log.e(TAG, "Login Error: " + error.getMessage());
-        if (error.getMessage() != null && error.getMessage().contains("failed to connect")) {
-          hideTVFormSubmissionErrors();
-          // Sikertelen kapcsolódás.
-          AppController.showWhiteTextSnackbar(
-              Snackbar.make(coordinatorLayout,
-                  R.string.failed_to_connect, Snackbar.LENGTH_LONG)
-          );
-        } else {
-          hideTVFormSubmissionErrors();
-          AppController.showWhiteTextSnackbar(
-              Snackbar.make(coordinatorLayout,
-                  R.string.an_error_occurred, Snackbar.LENGTH_LONG)
-          );
-        }
-      }
-
-    });
-
-    AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
+    AppController.getInstance().addToRequestQueue(loginRequest, tag_json_object_request);
   }
 
-  private void hideTVFormSubmissionErrors() {
-    tvFormSubmissionErrors.setText("");
-    tvFormSubmissionErrors.setVisibility(View.GONE);
+  private void putUserData(
+      String email,
+      String password,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("email", email);
+    jsonRequest.put("password", password);
+  }
+
+  private void hideFormSubmissionErrors() {
+    formSubmissionErrors.setText("");
+    formSubmissionErrors.setVisibility(View.GONE);
   }
 
   private class MyTextWatcher implements TextWatcher {

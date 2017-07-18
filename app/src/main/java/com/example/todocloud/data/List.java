@@ -3,6 +3,9 @@ package com.example.todocloud.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class List implements Parcelable {
 
   private long _id;
@@ -40,6 +43,16 @@ public class List implements Parcelable {
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
     numberOfTodos = in.readInt();
+  }
+
+  public List(JSONObject jsonList) throws JSONException {
+    listOnlineId = jsonList.getString("list_online_id");
+    userOnlineId = jsonList.getString("user_online_id");
+    categoryOnlineId = jsonList.getString("category_online_id");
+    title = jsonList.getString("title");
+    rowVersion = jsonList.getInt("row_version");
+    deleted = jsonList.getInt("deleted") != 0;
+    dirty = false;
   }
 
   public static final Creator<List> CREATOR = new Creator<List>() {

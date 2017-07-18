@@ -3,6 +3,9 @@ package com.example.todocloud.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Category implements Parcelable {
 
   private long _id;
@@ -39,6 +42,15 @@ public class Category implements Parcelable {
     rowVersion = in.readInt();
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
+  }
+
+  public Category(JSONObject jsonCategory) throws JSONException {
+    categoryOnlineId = jsonCategory.getString("category_online_id");
+    userOnlineId = jsonCategory.getString("user_online_id");
+    title = jsonCategory.getString("title");
+    rowVersion = jsonCategory.getInt("row_version");
+    deleted = jsonCategory.getInt("deleted") != 0;
+    dirty = false;
   }
 
   @Override

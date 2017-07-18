@@ -76,12 +76,12 @@ public class AppController extends Application {
     }
   }
 
-  public static void showWhiteTextSnackbar(Snackbar snackbarToShow) {
-    View snackbarView = snackbarToShow.getView();
+  public static void showWhiteTextSnackbar(Snackbar snackbar) {
+    View snackbarView = snackbar.getView();
     TextView snackbarText = (TextView)
         snackbarView.findViewById(android.support.design.R.id.snackbar_text);
     snackbarText.setTextColor(Color.WHITE);
-    snackbarToShow.show();
+    snackbar.show();
   }
 
 }
