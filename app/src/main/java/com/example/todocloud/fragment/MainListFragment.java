@@ -733,8 +733,6 @@ public class MainListFragment extends ListFragment implements
         dbLoader.getTodoRowVersion();
   }
 
-  ;
-
   /**
    * A kliens aktuális sorverziója alapján lekéri a szerverről a frissítendő sorokat. Ezek között
    * szerepel olyan, ami még nem létezik a kliens adatbázisában és olyan, ami létezik, de módosí-
