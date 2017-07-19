@@ -54,7 +54,10 @@ public class ListDataSynchronizer extends DataSynchronizer {
 
               if (!error) {
                 ArrayList<com.example.todocloud.data.List> lists = getLists(jsonResponse);
-                onSyncListDataListener.onGetLists(lists);
+                if (!lists.isEmpty()) {
+                  updateListsInLocalDatabase(lists);
+                }
+                onSyncListDataListener.onGetLists();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -65,9 +68,7 @@ public class ListDataSynchronizer extends DataSynchronizer {
           }
 
           @NonNull
-          private ArrayList<com.example.todocloud.data.List> getLists(
-              JSONObject jsonResponse
-          ) throws JSONException {
+          private ArrayList<List> getLists(JSONObject jsonResponse) throws JSONException {
             JSONArray jsonLists = jsonResponse.getJSONArray("lists");
             ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
 
@@ -78,6 +79,17 @@ public class ListDataSynchronizer extends DataSynchronizer {
               lists.add(list);
             }
             return lists;
+          }
+
+          private void updateListsInLocalDatabase(ArrayList<List> lists) {
+            for (List list : lists) {
+              boolean exists = dbLoader.isListExists(list.getListOnlineId());
+              if (!exists) {
+                dbLoader.createList(list);
+              } else {
+                dbLoader.updateList(list);
+              }
+            }
           }
 
         },
@@ -115,7 +127,7 @@ public class ListDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncListDataListener {
-    void onGetLists(ArrayList<List> lists);
+    void onGetLists();
     void onSyncError(String errorMessage);
   }
 
