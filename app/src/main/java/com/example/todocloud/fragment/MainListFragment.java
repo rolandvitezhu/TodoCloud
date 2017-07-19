@@ -43,6 +43,7 @@ import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.example.todocloud.datasynchronizer.ListDataSynchronizer;
 import com.example.todocloud.datasynchronizer.TodoDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 
@@ -61,7 +62,7 @@ public class MainListFragment extends ListFragment implements
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment,
-    TodoDataSynchronizer.OnSyncTodoDataListener {
+    TodoDataSynchronizer.OnSyncTodoDataListener, ListDataSynchronizer.OnSyncListDataListener {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -72,6 +73,7 @@ public class MainListFragment extends ListFragment implements
   private ListAdapter listAdapter;
 
   private TodoDataSynchronizer todoDataSynchronizer;
+  private ListDataSynchronizer listDataSynchronizer;
 
   private SwipeRefreshLayout swipeRefreshLayout;
   private CoordinatorLayout coordinatorLayout;
@@ -107,6 +109,9 @@ public class MainListFragment extends ListFragment implements
 
     todoDataSynchronizer = new TodoDataSynchronizer(dbLoader);
     todoDataSynchronizer.setOnSyncTodoDataListener(this);
+    listDataSynchronizer = new ListDataSynchronizer(dbLoader);
+    listDataSynchronizer.setOnSyncListDataListener(this);
+
     todoDataSynchronizer.getTodos();
   }
 
@@ -639,108 +644,6 @@ public class MainListFragment extends ListFragment implements
         dbLoader.updateCategory(category);
       }
     }
-  }
-
-  @NonNull
-  private String prepareGetTodosUrl() {
-    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
-    return AppConfig.URL_GET_TODOS.substring(0, end)
-        + dbLoader.getTodoRowVersion();
-  }
-
-  private void getLists() {
-    String tag_string_request = "request_get_lists";
-
-    String url = prepareGetListsUrl();
-    StringRequest getListsRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Lists Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<com.example.todocloud.data.List> lists = getLists(jsonResponse);
-                if (!lists.isEmpty()) {
-                  updateListsInLocalDatabase(lists);
-                }
-
-                getCategories();
-
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<com.example.todocloud.data.List> getLists(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonLists = jsonResponse.getJSONArray("lists");
-            ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
-
-            for (int i = 0; i < jsonLists.length(); i++) {
-              JSONObject jsonList = jsonLists.getJSONObject(i);
-              com.example.todocloud.data.List list =
-                  new com.example.todocloud.data.List(jsonList);
-              lists.add(list);
-            }
-            return lists;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Lists Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
-  }
-
-  @NonNull
-  private String prepareGetListsUrl() {
-    int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
-    return AppConfig.URL_GET_LISTS.substring(0, end)
-        + dbLoader.getListRowVersion();
   }
 
   private void getCategories() {
@@ -1899,7 +1802,15 @@ public class MainListFragment extends ListFragment implements
     if (!todos.isEmpty()) {
       updateTodosInLocalDatabase(todos);
     }
-    getLists();
+    listDataSynchronizer.getLists();
+  }
+
+  @Override
+  public void onGetLists(ArrayList<com.example.todocloud.data.List> lists) {
+    if (!lists.isEmpty()) {
+      updateListsInLocalDatabase(lists);
+    }
+    getCategories();
   }
 
   @Override
