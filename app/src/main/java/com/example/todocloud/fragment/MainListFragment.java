@@ -614,128 +614,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void insertLists() {
-    ArrayList<com.example.todocloud.data.List> listsToInsert = dbLoader.getListsToInsert();
-
-    if (!listsToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_list";
-      int requestsCount = listsToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final com.example.todocloud.data.List listToInsert : listsToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putListData(listToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_LIST,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert List Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeListUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateListAdapter();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateListAdapter();
-                    }
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  if (LAST_REQUEST_PROCESSED) {
-                    updateListAdapter();
-                  }
-                }
-              }
-
-              private void makeListUpToDate(JSONObject response) throws JSONException {
-                listToInsert.setRowVersion(response.getInt("row_version"));
-                listToInsert.setDirty(false);
-                dbLoader.updateList(listToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert List Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-                if (LAST_REQUEST_PROCESSED) {
-                  updateListAdapter();
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-      }
-    } else {
-      updateListAdapter();
-    }
-    insertCategories();
-  }
-
-  private void putListData(
-      com.example.todocloud.data.List listData,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("list_online_id", listData.getListOnlineId().trim());
-    if (listData.getCategoryOnlineId() != null) {
-      jsonRequest.put("category_online_id", listData.getCategoryOnlineId().trim());
-    } else {
-      jsonRequest.put("category_online_id", "");
-    }
-    jsonRequest.put("title", listData.getTitle().trim());
-    jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
-  }
-
   private void insertCategories() {
     ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
 
@@ -1332,7 +1210,17 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishInsertTodos() {
-    insertLists();
+    listDataSynchronizer.insertLists();
+  }
+
+  @Override
+  public void onFinishInsertLists() {
+    insertCategories();
+  }
+
+  @Override
+  public void onProcessLastListRequest() {
+    updateListAdapter();
   }
 
   @Override

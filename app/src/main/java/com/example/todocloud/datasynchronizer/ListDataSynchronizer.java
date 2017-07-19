@@ -1,7 +1,6 @@
 package com.example.todocloud.datasynchronizer;
 
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
@@ -10,7 +9,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.example.todocloud.R;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.List;
@@ -194,6 +192,100 @@ public class ListDataSynchronizer extends DataSynchronizer {
     onSyncListDataListener.onFinishUpdateLists();
   }
 
+  public void insertLists() {
+    ArrayList<List> listsToInsert = dbLoader.getListsToInsert();
+
+    if (!listsToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_list";
+      int requestsCount = listsToInsert.size();
+      int currentRequest = 1;
+      boolean lastRequestProcessed = false;
+      for (final List listToInsert : listsToInsert) {
+        if (currentRequest++ == requestsCount) {
+          lastRequestProcessed = true;
+        }
+
+        JSONObject jsonRequest = new JSONObject();
+        try {
+          putListData(listToInsert, jsonRequest);
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
+
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_LIST,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
+
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert List Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
+
+                  if (!error) {
+                    makeListUpToDate(response);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncListDataListener.onProcessLastListRequest();
+                    }
+                  } else {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncListDataListener.onProcessLastListRequest();
+                    }
+                  }
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                  if (LAST_REQUEST_PROCESSED) {
+                    onSyncListDataListener.onProcessLastListRequest();
+                  }
+                }
+              }
+
+              private void makeListUpToDate(JSONObject response) throws JSONException {
+                listToInsert.setRowVersion(response.getInt("row_version"));
+                listToInsert.setDirty(false);
+                dbLoader.updateList(listToInsert);
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert List Error: " + errorMessage);
+                if (errorMessage != null) {
+                  onSyncListDataListener.onSyncError(errorMessage);
+                }
+                if (LAST_REQUEST_PROCESSED) {
+                  onSyncListDataListener.onProcessLastListRequest();
+                }
+              }
+
+            }
+        ) {
+
+          @Override
+          public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("authorization", dbLoader.getApiKey());
+            return headers;
+          }
+
+        };
+
+        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
+      }
+    } else {
+      onSyncListDataListener.onProcessLastListRequest();
+    }
+    onSyncListDataListener.onFinishInsertLists();
+  }
+
   @NonNull
   private String prepareGetListsUrl() {
     int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
@@ -215,6 +307,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
   public interface OnSyncListDataListener {
     void onFinishGetLists();
     void onFinishUpdateLists();
+    void onFinishInsertLists();
+    void onProcessLastListRequest();
     void onSyncError(String errorMessage);
   }
 
