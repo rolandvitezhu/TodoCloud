@@ -24,11 +24,9 @@ import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.CategoryAdapter;
 import com.example.todocloud.adapter.ListAdapter;
@@ -43,11 +41,11 @@ import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.example.todocloud.datasynchronizer.CategoryDataSynchronizer;
 import com.example.todocloud.datasynchronizer.ListDataSynchronizer;
 import com.example.todocloud.datasynchronizer.TodoDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -62,7 +60,8 @@ public class MainListFragment extends ListFragment implements
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment,
-    TodoDataSynchronizer.OnSyncTodoDataListener, ListDataSynchronizer.OnSyncListDataListener {
+    TodoDataSynchronizer.OnSyncTodoDataListener, ListDataSynchronizer.OnSyncListDataListener,
+    CategoryDataSynchronizer.OnSyncCategoryDataListener {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -74,6 +73,7 @@ public class MainListFragment extends ListFragment implements
 
   private TodoDataSynchronizer todoDataSynchronizer;
   private ListDataSynchronizer listDataSynchronizer;
+  private CategoryDataSynchronizer categoryDataSynchronizer;
 
   private SwipeRefreshLayout swipeRefreshLayout;
   private CoordinatorLayout coordinatorLayout;
@@ -111,6 +111,8 @@ public class MainListFragment extends ListFragment implements
     todoDataSynchronizer.setOnSyncTodoDataListener(this);
     listDataSynchronizer = new ListDataSynchronizer(dbLoader);
     listDataSynchronizer.setOnSyncListDataListener(this);
+    categoryDataSynchronizer = new CategoryDataSynchronizer(dbLoader);
+    categoryDataSynchronizer.setOnSyncCategoryDataListener(this);
 
     todoDataSynchronizer.getTodos();
   }
@@ -644,99 +646,6 @@ public class MainListFragment extends ListFragment implements
         dbLoader.updateCategory(category);
       }
     }
-  }
-
-  private void getCategories() {
-    String tag_string_request = "request_get_categories";
-
-    String url = prepareGetCategoriesUrl();
-    StringRequest getCategoriesRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Categories Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<Category> categories = getCategories(jsonResponse);
-                if (!categories.isEmpty()) {
-                  updateCategoriesInLocalDatabase(categories);
-                }
-
-                updateTodos();
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<Category> getCategories(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonCategories = jsonResponse.getJSONArray("categories");
-            ArrayList<Category> categories = new ArrayList<>();
-
-            for (int i = 0; i < jsonCategories.length(); i++) {
-              JSONObject jsonCategory = jsonCategories.getJSONObject(i);
-              Category category = new Category(jsonCategory);
-              categories.add(category);
-            }
-            return categories;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Categories Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getCategoriesRequest, tag_string_request);
-  }
-
-  @NonNull
-  private String prepareGetCategoriesUrl() {
-    int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
-    return AppConfig.URL_GET_CATEGORIES.substring(0, end) +
-        dbLoader.getCategoryRowVersion();
   }
 
   private void updateTodos() {
@@ -1810,7 +1719,15 @@ public class MainListFragment extends ListFragment implements
     if (!lists.isEmpty()) {
       updateListsInLocalDatabase(lists);
     }
-    getCategories();
+    categoryDataSynchronizer.getCategories();
+  }
+
+  @Override
+  public void onGetCategories(ArrayList<Category> categories) {
+    if (!categories.isEmpty()) {
+      updateCategoriesInLocalDatabase(categories);
+    }
+    updateTodos();
   }
 
   @Override
