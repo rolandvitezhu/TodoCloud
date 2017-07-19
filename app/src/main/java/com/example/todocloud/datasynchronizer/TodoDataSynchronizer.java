@@ -55,7 +55,10 @@ public class TodoDataSynchronizer extends DataSynchronizer {
 
               if (!error) {
                 ArrayList<Todo> todos = getTodos(jsonResponse);
-                onSyncTodoDataListener.onGetTodos(todos);
+                if (!todos.isEmpty()) {
+                  updateTodosInLocalDatabase(todos);
+                }
+                onSyncTodoDataListener.onGetTodos();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -76,6 +79,17 @@ public class TodoDataSynchronizer extends DataSynchronizer {
               todos.add(todo);
             }
             return todos;
+          }
+
+          private void updateTodosInLocalDatabase(ArrayList<Todo> todos) {
+            for (Todo todo : todos) {
+              boolean exists = dbLoader.isTodoExists(todo.getTodoOnlineId());
+              if (!exists) {
+                dbLoader.createTodo(todo);
+              } else {
+                dbLoader.updateTodo(todo);
+              }
+            }
           }
 
         },
@@ -209,7 +223,7 @@ public class TodoDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncTodoDataListener {
-    void onGetTodos(ArrayList<Todo> todos);
+    void onGetTodos();
     void onUpdateTodos();
     void onSyncError(String errorMessage);
   }

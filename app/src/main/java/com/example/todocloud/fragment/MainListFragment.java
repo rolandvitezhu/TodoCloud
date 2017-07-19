@@ -615,17 +615,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void updateTodosInLocalDatabase(ArrayList<Todo> todos) {
-    for (Todo todo : todos) {
-      boolean exists = dbLoader.isTodoExists(todo.getTodoOnlineId());
-      if (!exists) {
-        dbLoader.createTodo(todo);
-      } else {
-        dbLoader.updateTodo(todo);
-      }
-    }
-  }
-
   private void updateListsInLocalDatabase(ArrayList<com.example.todocloud.data.List> lists) {
     for (com.example.todocloud.data.List list : lists) {
       boolean exists = dbLoader.isListExists(list.getListOnlineId());
@@ -1621,10 +1610,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onGetTodos(ArrayList<Todo> todos) {
-    if (!todos.isEmpty()) {
-      updateTodosInLocalDatabase(todos);
-    }
+  public void onGetTodos() {
     listDataSynchronizer.getLists();
   }
 
