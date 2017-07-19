@@ -1,13 +1,16 @@
 package com.example.todocloud.datasynchronizer;
 
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.example.todocloud.R;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.List;
@@ -53,7 +56,7 @@ public class ListDataSynchronizer extends DataSynchronizer {
               boolean error = jsonResponse.getBoolean("error");
 
               if (!error) {
-                ArrayList<com.example.todocloud.data.List> lists = getLists(jsonResponse);
+                ArrayList<List> lists = getLists(jsonResponse);
                 if (!lists.isEmpty()) {
                   updateListsInLocalDatabase(lists);
                 }
@@ -70,12 +73,11 @@ public class ListDataSynchronizer extends DataSynchronizer {
           @NonNull
           private ArrayList<List> getLists(JSONObject jsonResponse) throws JSONException {
             JSONArray jsonLists = jsonResponse.getJSONArray("lists");
-            ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
+            ArrayList<List> lists = new ArrayList<>();
 
             for (int i = 0; i < jsonLists.length(); i++) {
               JSONObject jsonList = jsonLists.getJSONObject(i);
-              com.example.todocloud.data.List list =
-                  new com.example.todocloud.data.List(jsonList);
+              List list = new List(jsonList);
               lists.add(list);
             }
             return lists;
@@ -119,6 +121,79 @@ public class ListDataSynchronizer extends DataSynchronizer {
     AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
   }
 
+  public void updateLists() {
+    ArrayList<List> listsToUpdate = dbLoader.getListsToUpdate();
+
+    if (!listsToUpdate.isEmpty()) {
+      String tag_json_object_request = "request_update_list";
+      for (final List listToUpdate : listsToUpdate) {
+        JSONObject jsonRequest = new JSONObject();
+        try {
+          putListData(listToUpdate, jsonRequest);
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
+
+        JsonObjectRequest updateListsRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.PUT,
+            AppConfig.URL_UPDATE_LIST,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
+
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Update List Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
+
+                  if (!error) {
+                    makeListUpToDate(response);
+                  } else {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                  }
+
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                }
+              }
+
+              private void makeListUpToDate(JSONObject response) throws JSONException {
+                listToUpdate.setRowVersion(response.getInt("row_version"));
+                listToUpdate.setDirty(false);
+                dbLoader.updateList(listToUpdate);
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Update List Error: " + errorMessage);
+                if (errorMessage != null) {
+                  onSyncListDataListener.onSyncError(errorMessage);
+                }
+              }
+
+            }
+        ) {
+
+          @Override
+          public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("authorization", dbLoader.getApiKey());
+            return headers;
+          }
+
+        };
+
+        AppController.getInstance().addToRequestQueue(updateListsRequest, tag_json_object_request);
+      }
+    }
+    onSyncListDataListener.onFinishUpdateLists();
+  }
+
   @NonNull
   private String prepareGetListsUrl() {
     int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
@@ -126,8 +201,20 @@ public class ListDataSynchronizer extends DataSynchronizer {
         + dbLoader.getListRowVersion();
   }
 
+  private void putListData(List listData, JSONObject jsonRequest) throws JSONException {
+    jsonRequest.put("list_online_id", listData.getListOnlineId().trim());
+    if (listData.getCategoryOnlineId() != null) {
+      jsonRequest.put("category_online_id", listData.getCategoryOnlineId().trim());
+    } else {
+      jsonRequest.put("category_online_id", "");
+    }
+    jsonRequest.put("title", listData.getTitle().trim());
+    jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
+  }
+
   public interface OnSyncListDataListener {
     void onFinishGetLists();
+    void onFinishUpdateLists();
     void onSyncError(String errorMessage);
   }
 
