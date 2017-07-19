@@ -615,102 +615,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void updateCategories() {
-    ArrayList<Category> categoriesToUpdate = dbLoader.getCategoriesToUpdate();
-
-    if (!categoriesToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_category";
-      for (final Category categoryToUpdate : categoriesToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putCategoryData(categoryToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest updateCategoriesRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_CATEGORY,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update Category Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeCategoryUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-                categoryToUpdate.setRowVersion(response.getInt("row_version"));
-                categoryToUpdate.setDirty(false);
-                dbLoader.updateCategory(categoryToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(updateCategoriesRequest, tag_json_object_request);
-      }
-    }
-    insertTodos();
-  }
-
-  private void putCategoryData(
-      Category categoryData,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
-    jsonRequest.put("title", categoryData.getTitle().trim());
-    jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
-  }
-
   private void insertTodos() {
     ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
 
@@ -1050,6 +954,15 @@ public class MainListFragment extends ListFragment implements
     } else {
       updateCategoryAdapter();
     }
+  }
+
+  private void putCategoryData(
+      Category categoryData,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
+    jsonRequest.put("title", categoryData.getTitle().trim());
+    jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
   }
 
   /**
@@ -1522,7 +1435,12 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishUpdateLists() {
-    updateCategories();
+    categoryDataSynchronizer.updateCategories();
+  }
+
+  @Override
+  public void onFinishUpdateCategories() {
+    insertTodos();
   }
 
   @Override
