@@ -194,6 +194,99 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
     onSyncCategoryDataListener.onFinishUpdateCategories();
   }
 
+  public void insertCategories() {
+    ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
+
+    if (!categoriesToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_category";
+      int requestsCount = categoriesToInsert.size();
+      int currentRequest = 1;
+      boolean lastRequestProcessed = false;
+      for (final Category categoryToInsert : categoriesToInsert) {
+        if (currentRequest++ == requestsCount) {
+          lastRequestProcessed = true;
+        }
+
+        JSONObject jsonRequest = new JSONObject();
+        try {
+          putCategoryData(categoryToInsert, jsonRequest);
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
+
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
+        JsonObjectRequest insertCategoriesRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_CATEGORY,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
+
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert Category Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
+
+                  if (!error) {
+                    makeCategoryUpToDate(response);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                    }
+                  } else {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                    }
+                  }
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                  if (LAST_REQUEST_PROCESSED) {
+                    onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                  }
+                }
+              }
+
+              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
+                categoryToInsert.setRowVersion(response.getInt("row_version"));
+                categoryToInsert.setDirty(false);
+                dbLoader.updateCategory(categoryToInsert);
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert Category Error: " + errorMessage);
+                if (errorMessage != null) {
+                  onSyncCategoryDataListener.onSyncError(errorMessage);
+                }
+                if (LAST_REQUEST_PROCESSED) {
+                  onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                }
+              }
+
+            }
+        ) {
+
+          @Override
+          public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("authorization", dbLoader.getApiKey());
+            return headers;
+          }
+
+        };
+
+        AppController.getInstance().addToRequestQueue(insertCategoriesRequest, tag_json_object_request);
+      }
+    } else {
+      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+    }
+  }
+
   @NonNull
   private String prepareGetCategoriesUrl() {
     int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
@@ -213,6 +306,7 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
   public interface OnSyncCategoryDataListener {
     void onFinishGetCategories();
     void onFinishUpdateCategories();
+    void onProcessLastCategoryRequest();
     void onSyncError(String errorMessage);
   }
 

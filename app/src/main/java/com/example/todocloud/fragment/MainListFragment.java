@@ -8,7 +8,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.view.ActionMode;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,15 +22,10 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.CategoryAdapter;
 import com.example.todocloud.adapter.ListAdapter;
 import com.example.todocloud.adapter.PredefinedListAdapter;
-import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.customcomponent.ExpandableHeightExpandableListView;
 import com.example.todocloud.customcomponent.ExpandableHeightListView;
@@ -45,13 +39,9 @@ import com.example.todocloud.datasynchronizer.ListDataSynchronizer;
 import com.example.todocloud.datasynchronizer.TodoDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainListFragment extends ListFragment implements
     CategoryCreateFragment.ICategoryCreateFragment, CategoryModifyFragment.ICategoryModifyFragment,
@@ -614,122 +604,6 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void insertCategories() {
-    ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
-
-    if (!categoriesToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_category";
-      int requestsCount = categoriesToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final Category categoryToInsert : categoriesToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putCategoryData(categoryToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
-        JsonObjectRequest insertCategoriesRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_CATEGORY,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert Category Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeCategoryUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateCategoryAdapter();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateCategoryAdapter();
-                    }
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  if (LAST_REQUEST_PROCESSED) {
-                    updateCategoryAdapter();
-                  }
-                }
-              }
-
-              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-                categoryToInsert.setRowVersion(response.getInt("row_version"));
-                categoryToInsert.setDirty(false);
-                dbLoader.updateCategory(categoryToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-                if (LAST_REQUEST_PROCESSED) {
-                  updateCategoryAdapter();
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(insertCategoriesRequest, tag_json_object_request);
-      }
-    } else {
-      updateCategoryAdapter();
-    }
-  }
-
-  private void putCategoryData(
-      Category categoryData,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
-    jsonRequest.put("title", categoryData.getTitle().trim());
-    jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
-  }
-
   /**
    * Call update and insert methods only, if get requests processed successfully. Otherwise the
    * client will have data in the local database with the biggest current row_version before it
@@ -1215,12 +1089,17 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishInsertLists() {
-    insertCategories();
+    categoryDataSynchronizer.insertCategories();
   }
 
   @Override
   public void onProcessLastListRequest() {
     updateListAdapter();
+  }
+
+  @Override
+  public void onProcessLastCategoryRequest() {
+    updateCategoryAdapter();
   }
 
   @Override
