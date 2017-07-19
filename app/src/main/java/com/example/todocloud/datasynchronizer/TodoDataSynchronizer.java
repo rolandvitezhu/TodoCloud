@@ -191,6 +191,87 @@ public class TodoDataSynchronizer extends DataSynchronizer {
     onSyncTodoDataListener.onFinishUpdateTodos();
   }
 
+  public void insertTodos() {
+    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
+
+    if (!todosToInsert.isEmpty()) {
+      String tag_json_object_request = "request_insert_todo";
+      for (final Todo todoToInsert : todosToInsert) {
+
+        JSONObject jsonRequest = new JSONObject();
+        try {
+          putTodoData(todoToInsert, jsonRequest);
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
+
+        JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
+            JsonObjectRequest.Method.POST,
+            AppConfig.URL_INSERT_TODO,
+            jsonRequest,
+            new Response.Listener<JSONObject>() {
+
+              @Override
+              public void onResponse(JSONObject response) {
+                Log.d(TAG, "Insert Todo Response: " + response);
+                try {
+                  boolean error = response.getBoolean("error");
+
+                  if (!error) {
+                    makeTodoUpToDate(response);
+                  } else {
+                    String message = response.getString("message");
+                    Log.d(TAG, "Error Message: " + message);
+                  }
+
+                } catch (JSONException e) {
+                  e.printStackTrace();
+                }
+              }
+
+              private void makeTodoUpToDate(JSONObject response) throws JSONException {
+                todoToInsert.setRowVersion(response.getInt("row_version"));
+                todoToInsert.setDirty(false);
+                dbLoader.updateTodo(todoToInsert);
+              }
+
+            },
+            new Response.ErrorListener() {
+
+              @Override
+              public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getMessage();
+                Log.e(TAG, "Insert Todo Error: " + errorMessage);
+                if (errorMessage != null) {
+                  onSyncTodoDataListener.onSyncError(errorMessage);
+                }
+              }
+
+            }
+        ) {
+
+          @Override
+          public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("authorization", dbLoader.getApiKey());
+            return headers;
+          }
+
+        };
+
+        AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
+      }
+    }
+    onSyncTodoDataListener.onFinishInsertTodos();
+  }
+
+  @NonNull
+  private String prepareGetTodosUrl() {
+    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
+    return AppConfig.URL_GET_TODOS.substring(0, end)
+        + dbLoader.getTodoRowVersion();
+  }
+
   private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
     jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
     if (todoData.getListOnlineId() != null) {
@@ -215,16 +296,10 @@ public class TodoDataSynchronizer extends DataSynchronizer {
     jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
   }
 
-  @NonNull
-  private String prepareGetTodosUrl() {
-    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
-    return AppConfig.URL_GET_TODOS.substring(0, end)
-        + dbLoader.getTodoRowVersion();
-  }
-
   public interface OnSyncTodoDataListener {
     void onFinishGetTodos();
     void onFinishUpdateTodos();
+    void onFinishInsertTodos();
     void onSyncError(String errorMessage);
   }
 

@@ -37,7 +37,6 @@ import com.example.todocloud.customcomponent.ExpandableHeightExpandableListView;
 import com.example.todocloud.customcomponent.ExpandableHeightListView;
 import com.example.todocloud.data.Category;
 import com.example.todocloud.data.PredefinedListItem;
-import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
@@ -613,118 +612,6 @@ public class MainListFragment extends ListFragment implements
     arguments.putParcelable("list", list);
     listModifyFragment.setArguments(arguments);
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
-  }
-
-  private void insertTodos() {
-    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
-
-    if (!todosToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_todo";
-      for (final Todo todoToInsert : todosToInsert) {
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToInsert.setRowVersion(response.getInt("row_version"));
-                todoToInsert.setDirty(false);
-                dbLoader.updateTodo(todoToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
-      }
-    }
-    insertLists();
-  }
-
-  private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
-    jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
-    if (todoData.getListOnlineId() != null) {
-      jsonRequest.put("list_online_id", todoData.getListOnlineId().trim());
-    } else {
-      jsonRequest.put("list_online_id", "");
-    }
-    jsonRequest.put("title", todoData.getTitle().trim());
-    jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
-    jsonRequest.put("due_date", todoData.getDueDate().trim());
-    if (todoData.getReminderDateTime() != null) {
-      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
-    } else {
-      jsonRequest.put("reminder_datetime", "");
-    }
-    if (todoData.getDescription() != null) {
-      jsonRequest.put("description", todoData.getDescription().trim());
-    } else {
-      jsonRequest.put("description", "");
-    }
-    jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
-    jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
   }
 
   private void insertLists() {
@@ -1440,7 +1327,12 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishUpdateCategories() {
-    insertTodos();
+    todoDataSynchronizer.insertTodos();
+  }
+
+  @Override
+  public void onFinishInsertTodos() {
+    insertLists();
   }
 
   @Override
