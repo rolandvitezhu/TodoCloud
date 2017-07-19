@@ -59,7 +59,7 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
                 if (!categories.isEmpty()) {
                   updateCategoriesInLocalDatabase(categories);
                 }
-                onSyncCategoryDataListener.onGetCategories();
+                onSyncCategoryDataListener.onFinishGetCategories();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -128,7 +128,7 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncCategoryDataListener {
-    void onGetCategories();
+    void onFinishGetCategories();
     void onSyncError(String errorMessage);
   }
 

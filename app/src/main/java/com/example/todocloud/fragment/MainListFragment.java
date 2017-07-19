@@ -1588,22 +1588,22 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onGetTodos() {
+  public void onFinishGetTodos() {
     listDataSynchronizer.getLists();
   }
 
   @Override
-  public void onGetLists() {
+  public void onFinishGetLists() {
     categoryDataSynchronizer.getCategories();
   }
 
   @Override
-  public void onGetCategories() {
+  public void onFinishGetCategories() {
     todoDataSynchronizer.updateTodos();
   }
 
   @Override
-  public void onUpdateTodos() {
+  public void onFinishUpdateTodos() {
     updateLists();
   }
 

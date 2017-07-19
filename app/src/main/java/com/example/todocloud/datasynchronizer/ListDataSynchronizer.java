@@ -57,7 +57,7 @@ public class ListDataSynchronizer extends DataSynchronizer {
                 if (!lists.isEmpty()) {
                   updateListsInLocalDatabase(lists);
                 }
-                onSyncListDataListener.onGetLists();
+                onSyncListDataListener.onFinishGetLists();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -127,7 +127,7 @@ public class ListDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncListDataListener {
-    void onGetLists();
+    void onFinishGetLists();
     void onSyncError(String errorMessage);
   }
 

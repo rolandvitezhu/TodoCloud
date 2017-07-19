@@ -58,7 +58,7 @@ public class TodoDataSynchronizer extends DataSynchronizer {
                 if (!todos.isEmpty()) {
                   updateTodosInLocalDatabase(todos);
                 }
-                onSyncTodoDataListener.onGetTodos();
+                onSyncTodoDataListener.onFinishGetTodos();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -188,7 +188,7 @@ public class TodoDataSynchronizer extends DataSynchronizer {
         AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
       }
     }
-    onSyncTodoDataListener.onUpdateTodos();
+    onSyncTodoDataListener.onFinishUpdateTodos();
   }
 
   private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
@@ -223,8 +223,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncTodoDataListener {
-    void onGetTodos();
-    void onUpdateTodos();
+    void onFinishGetTodos();
+    void onFinishUpdateTodos();
     void onSyncError(String errorMessage);
   }
 
