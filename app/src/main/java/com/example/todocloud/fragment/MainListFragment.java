@@ -43,6 +43,7 @@ import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.example.todocloud.datasynchronizer.TodoDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 
 import org.json.JSONArray;
@@ -59,7 +60,8 @@ public class MainListFragment extends ListFragment implements
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment {
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment,
+    TodoDataSynchronizer.OnSyncTodoDataListener {
 
   private static final String TAG = MainListFragment.class.getSimpleName();
 
@@ -68,6 +70,8 @@ public class MainListFragment extends ListFragment implements
   private PredefinedListAdapter predefinedListAdapter;
   private CategoryAdapter categoryAdapter;
   private ListAdapter listAdapter;
+
+  private TodoDataSynchronizer todoDataSynchronizer;
 
   private SwipeRefreshLayout swipeRefreshLayout;
   private CoordinatorLayout coordinatorLayout;
@@ -100,7 +104,10 @@ public class MainListFragment extends ListFragment implements
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
-    getTodos();
+
+    todoDataSynchronizer = new TodoDataSynchronizer(dbLoader);
+    todoDataSynchronizer.setOnSyncTodoDataListener(this);
+    todoDataSynchronizer.getTodos();
   }
 
   @Override
@@ -632,92 +639,6 @@ public class MainListFragment extends ListFragment implements
         dbLoader.updateCategory(category);
       }
     }
-  }
-
-  private void getTodos() {
-    String tag_string_request = "request_get_todos";
-
-    String url = prepareGetTodosUrl();
-    StringRequest getTodosRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Todos Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<Todo> todos = getTodos(jsonResponse);
-                if (!todos.isEmpty()) {
-                  updateTodosInLocalDatabase(todos);
-                }
-
-                getLists();
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<Todo> getTodos(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonTodos = jsonResponse.getJSONArray("todos");
-            ArrayList<Todo> todos = new ArrayList<>();
-
-            for (int i = 0; i < jsonTodos.length(); i++) {
-              JSONObject jsonTodo = jsonTodos.getJSONObject(i);
-              Todo todo = new Todo(jsonTodo);
-              todos.add(todo);
-            }
-            return todos;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Todos Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
   }
 
   @NonNull
@@ -1534,7 +1455,7 @@ public class MainListFragment extends ListFragment implements
    * whole processing from the beginning, with the call of get methods.
    */
   private void sync() {
-    getTodos();
+    todoDataSynchronizer.getTodos();
     swipeRefreshLayout.setRefreshing(false);
   }
 
@@ -1971,6 +1892,33 @@ public class MainListFragment extends ListFragment implements
   @Override
   public void onLogout() {
     listener.onLogout();
+  }
+
+  @Override
+  public void onGetTodos(ArrayList<Todo> todos) {
+    if (!todos.isEmpty()) {
+      updateTodosInLocalDatabase(todos);
+    }
+    getLists();
+  }
+
+  @Override
+  public void onSyncError(String errorMessage) {
+    showErrorMessage(errorMessage);
+  }
+
+  private void showErrorMessage(String errorMessage) {
+    if (errorMessage.contains("failed to connect")) {
+      // Android Studio hotswap/coldswap may cause getView == null
+      if (getView() != null) {
+        Snackbar snackbar = Snackbar.make(
+            coordinatorLayout,
+            R.string.failed_to_connect,
+            Snackbar.LENGTH_LONG
+        );
+        AppController.showWhiteTextSnackbar(snackbar);
+      }
+    }
   }
 
   public interface IMainListFragment {
