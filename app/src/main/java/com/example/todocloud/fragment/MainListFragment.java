@@ -648,116 +648,6 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  private void updateTodos() {
-    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
-
-    if (!todosToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_todo";
-      for (final Todo todoToUpdate : todosToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest updateTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToUpdate.setRowVersion(response.getInt("row_version"));
-                todoToUpdate.setDirty(false);
-                dbLoader.updateTodo(todoToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
-      }
-    }
-    updateLists();
-  }
-
-  private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
-    jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
-    if (todoData.getListOnlineId() != null) {
-      jsonRequest.put("list_online_id", todoData.getListOnlineId().trim());
-    } else {
-      jsonRequest.put("list_online_id", "");
-    }
-    jsonRequest.put("title", todoData.getTitle().trim());
-    jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
-    jsonRequest.put("due_date", todoData.getDueDate().trim());
-    if (todoData.getReminderDateTime() != null) {
-      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
-    } else {
-      jsonRequest.put("reminder_datetime", "");
-    }
-    if (todoData.getDescription() != null) {
-      jsonRequest.put("description", todoData.getDescription().trim());
-    } else {
-      jsonRequest.put("description", "");
-    }
-    jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
-    jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
-  }
-
   private void updateLists() {
     ArrayList<com.example.todocloud.data.List> listsToUpdate = dbLoader.getListsToUpdate();
 
@@ -1041,6 +931,30 @@ public class MainListFragment extends ListFragment implements
       }
     }
     insertLists();
+  }
+
+  private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
+    jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
+    if (todoData.getListOnlineId() != null) {
+      jsonRequest.put("list_online_id", todoData.getListOnlineId().trim());
+    } else {
+      jsonRequest.put("list_online_id", "");
+    }
+    jsonRequest.put("title", todoData.getTitle().trim());
+    jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
+    jsonRequest.put("due_date", todoData.getDueDate().trim());
+    if (todoData.getReminderDateTime() != null) {
+      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
+    } else {
+      jsonRequest.put("reminder_datetime", "");
+    }
+    if (todoData.getDescription() != null) {
+      jsonRequest.put("description", todoData.getDescription().trim());
+    } else {
+      jsonRequest.put("description", "");
+    }
+    jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
+    jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
   }
 
   private void insertLists() {
@@ -1727,7 +1641,12 @@ public class MainListFragment extends ListFragment implements
     if (!categories.isEmpty()) {
       updateCategoriesInLocalDatabase(categories);
     }
-    updateTodos();
+    todoDataSynchronizer.updateTodos();
+  }
+
+  @Override
+  public void onUpdateTodos() {
+    updateLists();
   }
 
   @Override
