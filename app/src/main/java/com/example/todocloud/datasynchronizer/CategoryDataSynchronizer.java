@@ -56,7 +56,10 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
 
               if (!error) {
                 ArrayList<Category> categories = getCategories(jsonResponse);
-                onSyncCategoryDataListener.onGetCategories(categories);
+                if (!categories.isEmpty()) {
+                  updateCategoriesInLocalDatabase(categories);
+                }
+                onSyncCategoryDataListener.onGetCategories();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -77,6 +80,17 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
               categories.add(category);
             }
             return categories;
+          }
+
+          private void updateCategoriesInLocalDatabase(ArrayList<Category> categories) {
+            for (Category category : categories) {
+              boolean exists = dbLoader.isCategoryExists(category.getCategoryOnlineId());
+              if (!exists) {
+                dbLoader.createCategory(category);
+              } else {
+                dbLoader.updateCategory(category);
+              }
+            }
           }
 
         },
@@ -114,7 +128,7 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
   }
 
   public interface OnSyncCategoryDataListener {
-    void onGetCategories(ArrayList<Category> categories);
+    void onGetCategories();
     void onSyncError(String errorMessage);
   }
 
