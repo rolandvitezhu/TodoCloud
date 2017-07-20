@@ -593,17 +593,8 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  /**
-   * Call update and insert methods only, if get requests processed successfully. Otherwise the
-   * client will have data in the local database with the biggest current row_version before it
-   * get all of the data from the remote database, which is missing in the local database. Hence
-   * it don't will get that data.
-   * If an error occurs in the processing of the requests, they should be aborted and start the
-   * whole processing from the beginning, with the call of get methods.
-   */
   private void syncData() {
     dataSynchronizer.syncData();
-    swipeRefreshLayout.setRefreshing(false);
   }
 
   private AdapterView.OnItemClickListener predefinedListItemClicked =
@@ -1053,7 +1044,7 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishSyncData() {
-
+    swipeRefreshLayout.setRefreshing(false);
   }
 
   @Override
