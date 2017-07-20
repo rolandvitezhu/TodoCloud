@@ -11,7 +11,6 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,22 +20,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.todocloud.R;
-import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
-import com.example.todocloud.data.User;
 import com.example.todocloud.datastorage.DbLoader;
+import com.example.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.example.todocloud.helper.SessionManager;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class LoginUserFragment extends Fragment {
-
-  private static final String TAG = LoginUserFragment.class.getSimpleName();
+public class LoginUserFragment extends Fragment
+    implements UserDataSynchronizer.OnLoginUserListener {
 
   private CoordinatorLayout coordinatorLayout;
   private TextView formSubmissionErrors;
@@ -46,6 +37,7 @@ public class LoginUserFragment extends Fragment {
   private SessionManager sessionManager;
   private DbLoader dbLoader;
   private ILoginUserFragment listener;
+  private UserDataSynchronizer userDataSynchronizer;
 
   @Override
   public void onAttach(Context context) {
@@ -62,6 +54,8 @@ public class LoginUserFragment extends Fragment {
       listener.onFinishLoginUser();
     } else {
       dbLoader = new DbLoader();
+      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+      userDataSynchronizer.setOnLoginUserListener(this);
     }
   }
 
@@ -109,7 +103,7 @@ public class LoginUserFragment extends Fragment {
           dbLoader.reCreateDb();
           String email = tietEmail.getText().toString().trim();
           String password = tietPassword.getText().toString().trim();
-          loginUser(email, password);
+          userDataSynchronizer.loginUser(email, password);
         }
       }
 
@@ -176,116 +170,56 @@ public class LoginUserFragment extends Fragment {
     }
   }
 
-  private void loginUser(String email, String password) {
-    String tag_json_object_request = "request_login";
-
-    JSONObject jsonRequest = new JSONObject();
-    try {
-      putUserData(email, password, jsonRequest);
-    } catch (JSONException e) {
-      e.printStackTrace();
-      hideFormSubmissionErrors();
-    }
-
-    JsonObjectRequest loginRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.POST,
-        AppConfig.URL_LOGIN,
-        jsonRequest,
-        new Response.Listener<JSONObject>() {
-
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Login Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
-
-              if (!error) {
-                hideFormSubmissionErrors();
-                handleLogin(response);
-              } else {
-                String message = response.getString("message");
-                if (message != null) {
-                  showErrorMessage(message);
-                }
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              hideFormSubmissionErrors();
-            }
-          }
-
-          private void showErrorMessage(String message) {
-            if (message.contains("Login failed. Incorrect credentials")) {
-              formSubmissionErrors.setText(R.string.invalid_username_or_password);
-              formSubmissionErrors.setVisibility(View.VISIBLE);
-            } else if (message.contains("An error occurred. Please try again")) {
-              hideFormSubmissionErrors();
-              Snackbar snackbar = Snackbar.make(
-                  coordinatorLayout,
-                  R.string.an_error_occurred,
-                  Snackbar.LENGTH_LONG
-              );
-              AppController.showWhiteTextSnackbar(snackbar);
-            }
-          }
-
-          private void handleLogin(JSONObject response) throws JSONException {
-            User user = new User(response);
-            dbLoader.createUser(user);
-            sessionManager.setLogin(true);
-            listener.onFinishLoginUser();
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Login Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              hideFormSubmissionErrors();
-              Snackbar snackbar = Snackbar.make(
-                  coordinatorLayout,
-                  R.string.failed_to_connect,
-                  Snackbar.LENGTH_LONG
-              );
-              AppController.showWhiteTextSnackbar(snackbar);
-            } else {
-              hideFormSubmissionErrors();
-              Snackbar snackbar = Snackbar.make(
-                  coordinatorLayout,
-                  R.string.an_error_occurred,
-                  Snackbar.LENGTH_LONG
-              );
-              AppController.showWhiteTextSnackbar(snackbar);
-            }
-          }
-
-        }
-    );
-
-    AppController.getInstance().addToRequestQueue(loginRequest, tag_json_object_request);
+  @Override
+  public void onFinishLoginUser() {
+    hideFormSubmissionErrors();
+    listener.onFinishLoginUser();
   }
 
-  private void putUserData(
-      String email,
-      String password,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("email", email);
-    jsonRequest.put("password", password);
+  @Override
+  public void onSyncError(String errorMessage) {
+    showErrorMessage(errorMessage);
+  }
+
+  private void showErrorMessage(String errorMessage) {
+    if (errorMessage.contains("failed to connect")) {
+      hideFormSubmissionErrors();
+      showFailedToConnectError();
+    } else if (errorMessage.contains("Login failed. Incorrect credentials")) {
+      showIncorrectCredentialsError();
+    } else if (errorMessage.contains("JSONException")) {
+      hideFormSubmissionErrors();
+    } else {
+      showAnErrorOccurredError();
+    }
   }
 
   private void hideFormSubmissionErrors() {
     formSubmissionErrors.setText("");
     formSubmissionErrors.setVisibility(View.GONE);
+  }
+
+  private void showFailedToConnectError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.failed_to_connect,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
+  }
+
+  private void showIncorrectCredentialsError() {
+    formSubmissionErrors.setText(R.string.invalid_username_or_password);
+    formSubmissionErrors.setVisibility(View.VISIBLE);
+  }
+
+  private void showAnErrorOccurredError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.an_error_occurred,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
   }
 
   private class MyTextWatcher implements TextWatcher {

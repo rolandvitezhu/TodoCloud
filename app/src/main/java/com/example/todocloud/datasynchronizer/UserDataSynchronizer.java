@@ -7,10 +7,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
+import com.example.todocloud.data.User;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.helper.InstallationIdHelper;
 import com.example.todocloud.helper.OnlineIdGenerator;
+import com.example.todocloud.helper.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +48,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
 
     JSONObject jsonRequest = new JSONObject();
     try {
-      putUserData(user_online_id, name, email, password, jsonRequest);
+      putUserRegisterData(user_online_id, name, email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
       String errorMessage = "JSONException";
@@ -116,7 +118,72 @@ public class UserDataSynchronizer extends DataSynchronizer {
     AppController.getInstance().addToRequestQueue(registerRequest, tag_json_object_request);
   }
 
-  private void putUserData(
+  public void loginUser(String email, String password) {
+    String tag_json_object_request = "request_login";
+
+    JSONObject jsonRequest = new JSONObject();
+    try {
+      putUserLoginData(email, password, jsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "JSONException";
+      onLoginUserListener.onSyncError(errorMessage);
+    }
+
+    JsonObjectRequest loginRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_LOGIN,
+        jsonRequest,
+        new Response.Listener<JSONObject>() {
+
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Login Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
+
+              if (!error) {
+                handleLogin(response);
+                onLoginUserListener.onFinishLoginUser();
+              } else {
+                String message = response.getString("message");
+                if (message != null) {
+                  onLoginUserListener.onSyncError(message);
+                }
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "JSONException";
+              onLoginUserListener.onSyncError(errorMessage);
+            }
+          }
+
+          private void handleLogin(JSONObject response) throws JSONException {
+            User user = new User(response);
+            dbLoader.createUser(user);
+            SessionManager sessionManager = SessionManager.getInstance();
+            sessionManager.setLogin(true);
+          }
+
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Login Error: " + errorMessage);
+            if (errorMessage != null) {
+              onLoginUserListener.onSyncError(errorMessage);
+            }
+          }
+
+        }
+    );
+
+    AppController.getInstance().addToRequestQueue(loginRequest, tag_json_object_request);
+  }
+
+  private void putUserRegisterData(
       String user_online_id,
       String name,
       String email,
@@ -125,6 +192,15 @@ public class UserDataSynchronizer extends DataSynchronizer {
   ) throws JSONException {
     jsonRequest.put("user_online_id", user_online_id);
     jsonRequest.put("name", name);
+    jsonRequest.put("email", email);
+    jsonRequest.put("password", password);
+  }
+
+  private void putUserLoginData(
+      String email,
+      String password,
+      JSONObject jsonRequest
+  ) throws JSONException {
     jsonRequest.put("email", email);
     jsonRequest.put("password", password);
   }
