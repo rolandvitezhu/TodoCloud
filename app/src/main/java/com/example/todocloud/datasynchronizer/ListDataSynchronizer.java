@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ListDataSynchronizer extends DataSynchronizer {
+public class ListDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
 

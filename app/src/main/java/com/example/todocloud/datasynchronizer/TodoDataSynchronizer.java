@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TodoDataSynchronizer extends DataSynchronizer {
+public class TodoDataSynchronizer {
 
   private static final String TAG = TodoDataSynchronizer.class.getSimpleName();
 
