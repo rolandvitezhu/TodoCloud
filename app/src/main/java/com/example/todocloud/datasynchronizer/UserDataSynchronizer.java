@@ -17,7 +17,7 @@ import com.example.todocloud.helper.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class UserDataSynchronizer extends DataSynchronizer {
+public class UserDataSynchronizer {
 
   private static final String TAG = UserDataSynchronizer.class.getSimpleName();
 
