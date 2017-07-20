@@ -224,6 +224,7 @@ public class RegisterUserFragment extends Fragment
 
   @Override
   public void onFinishRegisterUser() {
+    hideFormSubmissionErrors();
     listener.onFinishRegisterUser();
   }
 
