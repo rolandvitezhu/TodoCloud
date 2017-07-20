@@ -1108,6 +1108,8 @@ public class MainListFragment extends ListFragment implements
   private void showErrorMessage(String errorMessage) {
     if (errorMessage.contains("failed to connect")) {
       showFailedToConnectError();
+    } else {
+      showAnErrorOccurredError();
     }
   }
 
@@ -1121,6 +1123,15 @@ public class MainListFragment extends ListFragment implements
       );
       AppController.showWhiteTextSnackbar(snackbar);
     }
+  }
+
+  private void showAnErrorOccurredError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.an_error_occurred,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
   }
 
   public interface IMainListFragment {

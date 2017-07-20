@@ -239,8 +239,6 @@ public class RegisterUserFragment extends Fragment
       showFailedToConnectError();
     } else if (errorMessage.contains("Sorry, this email already existed")) {
       showThisEmailAlreadyExistedError();
-    } else if (errorMessage.contains("JSONException")) {
-      hideFormSubmissionErrors();
     } else {
       hideFormSubmissionErrors();
       showAnErrorOccurredError();

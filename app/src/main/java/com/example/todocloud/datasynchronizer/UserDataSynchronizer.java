@@ -51,7 +51,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
       putUserRegisterData(user_online_id, name, email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
-      String errorMessage = "JSONException";
+      String errorMessage = "Unknown error";
       onRegisterUserListener.onSyncError(errorMessage);
     }
 
@@ -71,7 +71,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
                 onRegisterUserListener.onFinishRegisterUser();
               } else {
                 String message = response.getString("message");
-                if (message == null) message = "";
+                if (message == null) message = "Unknown error";
                 if (message.contains("Oops! An error occurred while registereing")) {
                   handleError();
                 } else {
@@ -80,7 +80,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
               }
             } catch (JSONException e) {
               e.printStackTrace();
-              String errorMessage = "JSONException";
+              String errorMessage = "Unknown error";
               onRegisterUserListener.onSyncError(errorMessage);
             }
           }
@@ -106,7 +106,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Register Error: " + errorMessage);
-            if (errorMessage == null) errorMessage = "";
+            if (errorMessage == null) errorMessage = "Unknown error";
             onRegisterUserListener.onSyncError(errorMessage);
           }
 
@@ -124,7 +124,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
       putUserLoginData(email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
-      String errorMessage = "JSONException";
+      String errorMessage = "Unknown error";
       onLoginUserListener.onSyncError(errorMessage);
     }
 
@@ -145,12 +145,12 @@ public class UserDataSynchronizer extends DataSynchronizer {
                 onLoginUserListener.onFinishLoginUser();
               } else {
                 String message = response.getString("message");
-                if (message == null) message = "";
+                if (message == null) message = "Unknown error";
                 onLoginUserListener.onSyncError(message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
-              String errorMessage = "JSONException";
+              String errorMessage = "Unknown error";
               onLoginUserListener.onSyncError(errorMessage);
             }
           }
@@ -169,7 +169,7 @@ public class UserDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Login Error: " + errorMessage);
-            if (errorMessage == null) errorMessage = "";
+            if (errorMessage == null) errorMessage = "Unknown error";
             onLoginUserListener.onSyncError(errorMessage);
           }
 

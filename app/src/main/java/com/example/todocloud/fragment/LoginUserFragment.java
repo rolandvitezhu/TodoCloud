@@ -187,9 +187,8 @@ public class LoginUserFragment extends Fragment
       showFailedToConnectError();
     } else if (errorMessage.contains("Login failed. Incorrect credentials")) {
       showIncorrectCredentialsError();
-    } else if (errorMessage.contains("JSONException")) {
-      hideFormSubmissionErrors();
     } else {
+      hideFormSubmissionErrors();
       showAnErrorOccurredError();
     }
   }

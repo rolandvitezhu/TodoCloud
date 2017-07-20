@@ -62,9 +62,13 @@ public class ListDataSynchronizer extends DataSynchronizer {
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncListDataListener.onSyncError(message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncListDataListener.onSyncError(errorMessage);
             }
           }
 
@@ -99,9 +103,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Get Lists Error: " + errorMessage);
-            if (errorMessage != null) {
-              onSyncListDataListener.onSyncError(errorMessage);
-            }
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncListDataListener.onSyncError(errorMessage);
           }
 
         }
@@ -130,6 +133,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
           putListData(listToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncListDataListener.onSyncError(errorMessage);
         }
 
         JsonObjectRequest updateListsRequest = new JsonObjectRequest(
@@ -149,10 +154,14 @@ public class ListDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncListDataListener.onSyncError(message);
                   }
 
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncListDataListener.onSyncError(errorMessage);
                 }
               }
 
@@ -169,9 +178,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Update List Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncListDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncListDataListener.onSyncError(errorMessage);
               }
 
             }
@@ -211,6 +219,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
           putListData(listToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncListDataListener.onSyncError(errorMessage);
           if (LAST_REQUEST_PROCESSED) {
             onSyncListDataListener.onProcessLastListRequest();
           }
@@ -236,12 +246,16 @@ public class ListDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncListDataListener.onSyncError(message);
                     if (LAST_REQUEST_PROCESSED) {
                       onSyncListDataListener.onProcessLastListRequest();
                     }
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncListDataListener.onSyncError(errorMessage);
                   if (LAST_REQUEST_PROCESSED) {
                     onSyncListDataListener.onProcessLastListRequest();
                   }
@@ -261,9 +275,8 @@ public class ListDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Insert List Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncListDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncListDataListener.onSyncError(errorMessage);
                 if (LAST_REQUEST_PROCESSED) {
                   onSyncListDataListener.onProcessLastListRequest();
                 }

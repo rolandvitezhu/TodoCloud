@@ -62,9 +62,13 @@ public class TodoDataSynchronizer extends DataSynchronizer {
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncTodoDataListener.onSyncError(message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncTodoDataListener.onSyncError(errorMessage);
             }
           }
 
@@ -99,9 +103,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Get Todos Error: " + errorMessage);
-            if (errorMessage != null) {
-              onSyncTodoDataListener.onSyncError(errorMessage);
-            }
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncTodoDataListener.onSyncError(errorMessage);
           }
 
         }
@@ -130,6 +133,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
           putTodoData(todoToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncTodoDataListener.onSyncError(errorMessage);
         }
 
         JsonObjectRequest updateTodosRequest = new JsonObjectRequest(
@@ -149,9 +154,13 @@ public class TodoDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncTodoDataListener.onSyncError(message);
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncTodoDataListener.onSyncError(errorMessage);
                 }
               }
 
@@ -168,9 +177,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Update Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncTodoDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncTodoDataListener.onSyncError(errorMessage);
               }
 
             }
@@ -203,6 +211,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
           putTodoData(todoToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncTodoDataListener.onSyncError(errorMessage);
         }
 
         JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
@@ -222,10 +232,14 @@ public class TodoDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncTodoDataListener.onSyncError(message);
                   }
 
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncTodoDataListener.onSyncError(errorMessage);
                 }
               }
 
@@ -242,9 +256,8 @@ public class TodoDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Insert Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncTodoDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncTodoDataListener.onSyncError(errorMessage);
               }
 
             }

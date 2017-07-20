@@ -64,9 +64,13 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncCategoryDataListener.onSyncError(message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncCategoryDataListener.onSyncError(errorMessage);
             }
           }
 
@@ -101,9 +105,8 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Get Categories Error: " + errorMessage);
-            if (errorMessage != null) {
-              onSyncCategoryDataListener.onSyncError(errorMessage);
-            }
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncCategoryDataListener.onSyncError(errorMessage);
           }
 
         }
@@ -132,6 +135,8 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
           putCategoryData(categoryToUpdate, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncCategoryDataListener.onSyncError(errorMessage);
         }
 
         JsonObjectRequest updateCategoriesRequest = new JsonObjectRequest(
@@ -151,10 +156,14 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncCategoryDataListener.onSyncError(message);
                   }
 
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncCategoryDataListener.onSyncError(errorMessage);
                 }
               }
 
@@ -171,9 +180,8 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Update Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncCategoryDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncCategoryDataListener.onSyncError(errorMessage);
               }
 
             }
@@ -213,6 +221,8 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
           putCategoryData(categoryToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          String errorMessage = "Unknown error";
+          onSyncCategoryDataListener.onSyncError(errorMessage);
           if (LAST_REQUEST_PROCESSED) {
             onSyncCategoryDataListener.onProcessLastCategoryRequest();
           }
@@ -238,12 +248,16 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
+                    if (message == null) message = "Unknown error";
+                    onSyncCategoryDataListener.onSyncError(message);
                     if (LAST_REQUEST_PROCESSED) {
                       onSyncCategoryDataListener.onProcessLastCategoryRequest();
                     }
                   }
                 } catch (JSONException e) {
                   e.printStackTrace();
+                  String errorMessage = "Unknown error";
+                  onSyncCategoryDataListener.onSyncError(errorMessage);
                   if (LAST_REQUEST_PROCESSED) {
                     onSyncCategoryDataListener.onProcessLastCategoryRequest();
                   }
@@ -263,9 +277,8 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
               public void onErrorResponse(VolleyError error) {
                 String errorMessage = error.getMessage();
                 Log.e(TAG, "Insert Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  onSyncCategoryDataListener.onSyncError(errorMessage);
-                }
+                if (errorMessage == null) errorMessage = "Unknown error";
+                onSyncCategoryDataListener.onSyncError(errorMessage);
                 if (LAST_REQUEST_PROCESSED) {
                   onSyncCategoryDataListener.onProcessLastCategoryRequest();
                 }
