@@ -33,8 +33,6 @@ import com.example.todocloud.helper.SessionManager;
 public class RegisterUserFragment extends Fragment
     implements UserDataSynchronizer.OnRegisterUserListener {
 
-  private static final String TAG = RegisterUserFragment.class.getSimpleName();
-
   private CoordinatorLayout coordinatorLayout;
   private TextView formSubmissionErrors;
   private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
@@ -43,6 +41,7 @@ public class RegisterUserFragment extends Fragment
   private SessionManager sessionManager;
   private DbLoader dbLoader;
   private IRegisterUserFragment listener;
+  private UserDataSynchronizer userDataSynchronizer;
 
   @Override
   public void onAttach(Context context) {
@@ -53,13 +52,14 @@ public class RegisterUserFragment extends Fragment
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    Context applicationContext = AppController.getAppContext();
     sessionManager = SessionManager.getInstance();
 
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
     } else {
-      dbLoader = new DbLoader(applicationContext);
+      dbLoader = new DbLoader();
+      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+      userDataSynchronizer.setOnRegisterUserListener(this);
     }
   }
 
@@ -116,7 +116,7 @@ public class RegisterUserFragment extends Fragment
           String name = tietName.getText().toString().trim();
           String email = tietEmail.getText().toString().trim();
           String password = tietPassword.getText().toString().trim();
-          register(user_online_id, name, email, password, _id);
+          userDataSynchronizer.registerUser(user_online_id, name, email, password, _id);
         }
       }
 
