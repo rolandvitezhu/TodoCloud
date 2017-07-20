@@ -204,7 +204,14 @@ public class TodoDataSynchronizer {
 
     if (!todosToInsert.isEmpty()) {
       String tag_json_object_request = "request_insert_todo";
+      int requestsCount = todosToInsert.size();
+      int currentRequest = 1;
+      boolean lastRequestProcessed = false;
       for (final Todo todoToInsert : todosToInsert) {
+        if (currentRequest++ == requestsCount) {
+          lastRequestProcessed = true;
+        }
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
 
         JSONObject jsonRequest = new JSONObject();
         try {
@@ -213,6 +220,9 @@ public class TodoDataSynchronizer {
           e.printStackTrace();
           String errorMessage = "Unknown error";
           onSyncTodoDataListener.onSyncError(errorMessage);
+          if (LAST_REQUEST_PROCESSED) {
+            onSyncTodoDataListener.onProcessLastTodoRequest();
+          }
         }
 
         JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
@@ -229,17 +239,26 @@ public class TodoDataSynchronizer {
 
                   if (!error) {
                     makeTodoUpToDate(response);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncTodoDataListener.onProcessLastTodoRequest();
+                    }
                   } else {
                     String message = response.getString("message");
                     Log.d(TAG, "Error Message: " + message);
                     if (message == null) message = "Unknown error";
                     onSyncTodoDataListener.onSyncError(message);
+                    if (LAST_REQUEST_PROCESSED) {
+                      onSyncTodoDataListener.onProcessLastTodoRequest();
+                    }
                   }
 
                 } catch (JSONException e) {
                   e.printStackTrace();
                   String errorMessage = "Unknown error";
                   onSyncTodoDataListener.onSyncError(errorMessage);
+                  if (LAST_REQUEST_PROCESSED) {
+                    onSyncTodoDataListener.onProcessLastTodoRequest();
+                  }
                 }
               }
 
@@ -258,6 +277,9 @@ public class TodoDataSynchronizer {
                 Log.e(TAG, "Insert Todo Error: " + errorMessage);
                 if (errorMessage == null) errorMessage = "Unknown error";
                 onSyncTodoDataListener.onSyncError(errorMessage);
+                if (LAST_REQUEST_PROCESSED) {
+                  onSyncTodoDataListener.onProcessLastTodoRequest();
+                }
               }
 
             }
@@ -274,6 +296,8 @@ public class TodoDataSynchronizer {
 
         AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
       }
+    } else {
+      onSyncTodoDataListener.onProcessLastTodoRequest();
     }
     onSyncTodoDataListener.onFinishInsertTodos();
   }
@@ -313,6 +337,7 @@ public class TodoDataSynchronizer {
     void onFinishGetTodos();
     void onFinishUpdateTodos();
     void onFinishInsertTodos();
+    void onProcessLastTodoRequest();
     void onSyncError(String errorMessage);
   }
 

@@ -13,6 +13,7 @@ public class DataSynchronizer implements
 
   private OnSyncDataListener onSyncDataListener;
 
+  private boolean isLastTodoRequestProcessed;
   private boolean isLastListRequestProcessed;
   private boolean isLastCategoryRequestProcessed;
 
@@ -43,12 +44,15 @@ public class DataSynchronizer implements
   }
 
   private void initializeSyncStates() {
+    isLastTodoRequestProcessed = false;
     isLastListRequestProcessed = false;
     isLastCategoryRequestProcessed = false;
   }
 
   private boolean isSynchronizationCompleted() {
-    return isLastListRequestProcessed && isLastCategoryRequestProcessed;
+    return isLastTodoRequestProcessed
+        && isLastListRequestProcessed
+        && isLastCategoryRequestProcessed;
   }
 
   @Override
@@ -89,6 +93,12 @@ public class DataSynchronizer implements
   @Override
   public void onFinishInsertLists() {
     categoryDataSynchronizer.insertCategories();
+  }
+
+  @Override
+  public void onProcessLastTodoRequest() {
+    isLastTodoRequestProcessed = true;
+    if (isSynchronizationCompleted()) onSyncDataListener.onFinishSyncData();
   }
 
   @Override
