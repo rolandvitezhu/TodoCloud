@@ -944,7 +944,10 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  private void moveListIntoCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+  private void moveListIntoCategory(
+      com.example.todocloud.data.List list,
+      String categoryOnlineId
+  ) {
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
@@ -952,7 +955,10 @@ public class MainListFragment extends ListFragment implements
     updateCategoryAdapter();
   }
 
-  private void moveListIntoAnotherCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+  private void moveListIntoAnotherCategory(
+      com.example.todocloud.data.List list,
+      String categoryOnlineId
+  ) {
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
