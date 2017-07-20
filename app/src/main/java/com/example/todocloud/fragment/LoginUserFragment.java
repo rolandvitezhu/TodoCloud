@@ -34,9 +34,9 @@ import com.example.todocloud.helper.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class LoginFragment extends Fragment {
+public class LoginUserFragment extends Fragment {
 
-  private static final String TAG = LoginFragment.class.getSimpleName();
+  private static final String TAG = LoginUserFragment.class.getSimpleName();
 
   private CoordinatorLayout coordinatorLayout;
   private TextView formSubmissionErrors;
@@ -45,32 +45,31 @@ public class LoginFragment extends Fragment {
 
   private SessionManager sessionManager;
   private DbLoader dbLoader;
-  private ILoginFragment listener;
+  private ILoginUserFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ILoginFragment) context;
+    listener = (ILoginUserFragment) context;
   }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    sessionManager = new SessionManager(getActivity());
+    sessionManager = SessionManager.getInstance();
 
     if (sessionManager.isLoggedIn()) {
-      // A felhasználó bejelentkezett, a MainListFragment-et jelenítjük meg.
-      listener.onLogin();
+      listener.onFinishLoginUser();
+    } else {
+      dbLoader = new DbLoader(getActivity());
     }
-
-    dbLoader = new DbLoader(getActivity());
   }
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_login, container, false);
+    View view = inflater.inflate(R.layout.fragment_login_user, container, false);
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
     formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
     tilEmail = (TextInputLayout) view.findViewById(R.id.tilEmail);
@@ -110,7 +109,7 @@ public class LoginFragment extends Fragment {
           dbLoader.reCreateDb();
           String email = tietEmail.getText().toString().trim();
           String password = tietPassword.getText().toString().trim();
-          login(email, password);
+          loginUser(email, password);
         }
       }
 
@@ -123,8 +122,8 @@ public class LoginFragment extends Fragment {
 
       @Override
       public void onClick(View v) {
-        // A RegisterFragment-et jelenítjük meg.
-        listener.onClickLinkToRegister();
+        // A RegisterUserFragment-et jelenítjük meg.
+        listener.onClickLinkToRegisterUser();
       }
 
     });
@@ -177,7 +176,7 @@ public class LoginFragment extends Fragment {
     }
   }
 
-  private void login(String email, String password) {
+  private void loginUser(String email, String password) {
     String tag_json_object_request = "request_login";
 
     JSONObject jsonRequest = new JSONObject();
@@ -185,6 +184,7 @@ public class LoginFragment extends Fragment {
       putUserData(email, password, jsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
+      hideFormSubmissionErrors();
     }
 
     JsonObjectRequest loginRequest = new JsonObjectRequest(
@@ -233,7 +233,7 @@ public class LoginFragment extends Fragment {
             User user = new User(response);
             dbLoader.createUser(user);
             sessionManager.setLogin(true);
-            listener.onLogin();
+            listener.onFinishLoginUser();
           }
 
         },
@@ -320,9 +320,9 @@ public class LoginFragment extends Fragment {
 
   }
 
-  public interface ILoginFragment {
-    void onClickLinkToRegister();
-    void onLogin();
+  public interface ILoginUserFragment {
+    void onClickLinkToRegisterUser();
+    void onFinishLoginUser();
     void onSetActionBarTitle(String title);
   }
 
