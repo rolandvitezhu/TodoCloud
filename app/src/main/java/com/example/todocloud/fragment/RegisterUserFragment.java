@@ -247,18 +247,9 @@ public class RegisterUserFragment extends Fragment
     }
   }
 
-  private void showAnErrorOccurredError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.an_error_occurred,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
-  }
-
-  private void showThisEmailAlreadyExistedError() {
-    formSubmissionErrors.setText(R.string.this_email_already_existed);
-    formSubmissionErrors.setVisibility(View.VISIBLE);
+  private void hideFormSubmissionErrors() {
+    formSubmissionErrors.setText("");
+    formSubmissionErrors.setVisibility(View.GONE);
   }
 
   private void showFailedToConnectError() {
@@ -270,9 +261,18 @@ public class RegisterUserFragment extends Fragment
     AppController.showWhiteTextSnackbar(snackbar);
   }
 
-  private void hideFormSubmissionErrors() {
-    formSubmissionErrors.setText("");
-    formSubmissionErrors.setVisibility(View.GONE);
+  private void showThisEmailAlreadyExistedError() {
+    formSubmissionErrors.setText(R.string.this_email_already_existed);
+    formSubmissionErrors.setVisibility(View.VISIBLE);
+  }
+
+  private void showAnErrorOccurredError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.an_error_occurred,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
   }
 
   private class MyTextWatcher implements TextWatcher {
