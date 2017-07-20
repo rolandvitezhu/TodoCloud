@@ -34,9 +34,7 @@ import com.example.todocloud.data.PredefinedListItem;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
-import com.example.todocloud.datasynchronizer.CategoryDataSynchronizer;
-import com.example.todocloud.datasynchronizer.ListDataSynchronizer;
-import com.example.todocloud.datasynchronizer.TodoDataSynchronizer;
+import com.example.todocloud.datasynchronizer.DataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 
 import java.util.ArrayList;
@@ -49,16 +47,13 @@ public class MainListFragment extends ListFragment implements
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment,
-    TodoDataSynchronizer.OnSyncTodoDataListener, ListDataSynchronizer.OnSyncListDataListener,
-    CategoryDataSynchronizer.OnSyncCategoryDataListener {
+    DataSynchronizer.OnSyncDataListener {
 
   private DbLoader dbLoader;
 
   private IMainListFragment listener;
 
-  private TodoDataSynchronizer todoDataSynchronizer;
-  private ListDataSynchronizer listDataSynchronizer;
-  private CategoryDataSynchronizer categoryDataSynchronizer;
+  private DataSynchronizer dataSynchronizer;
 
   private PredefinedListAdapter predefinedListAdapter;
   private CategoryAdapter categoryAdapter;
@@ -94,14 +89,10 @@ public class MainListFragment extends ListFragment implements
     updateCategoryAdapter();
     updateListAdapter();
 
-    todoDataSynchronizer = new TodoDataSynchronizer(dbLoader);
-    todoDataSynchronizer.setOnSyncTodoDataListener(this);
-    listDataSynchronizer = new ListDataSynchronizer(dbLoader);
-    listDataSynchronizer.setOnSyncListDataListener(this);
-    categoryDataSynchronizer = new CategoryDataSynchronizer(dbLoader);
-    categoryDataSynchronizer.setOnSyncCategoryDataListener(this);
+    dataSynchronizer = new DataSynchronizer(dbLoader);
+    dataSynchronizer.setOnSyncDataListener(this);
 
-    todoDataSynchronizer.getTodos();
+    dataSynchronizer.syncData();
   }
 
   @Override
@@ -610,8 +601,8 @@ public class MainListFragment extends ListFragment implements
    * If an error occurs in the processing of the requests, they should be aborted and start the
    * whole processing from the beginning, with the call of get methods.
    */
-  private void sync() {
-    todoDataSynchronizer.getTodos();
+  private void syncData() {
+    dataSynchronizer.syncData();
     swipeRefreshLayout.setRefreshing(false);
   }
 
@@ -991,7 +982,7 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onRefresh() {
-    sync();
+    syncData();
   }
 
   @Override
@@ -1051,46 +1042,6 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onFinishGetTodos() {
-    listDataSynchronizer.getLists();
-  }
-
-  @Override
-  public void onFinishGetLists() {
-    categoryDataSynchronizer.getCategories();
-  }
-
-  @Override
-  public void onFinishGetCategories() {
-    todoDataSynchronizer.updateTodos();
-  }
-
-  @Override
-  public void onFinishUpdateTodos() {
-    listDataSynchronizer.updateLists();
-  }
-
-  @Override
-  public void onFinishUpdateLists() {
-    categoryDataSynchronizer.updateCategories();
-  }
-
-  @Override
-  public void onFinishUpdateCategories() {
-    todoDataSynchronizer.insertTodos();
-  }
-
-  @Override
-  public void onFinishInsertTodos() {
-    listDataSynchronizer.insertLists();
-  }
-
-  @Override
-  public void onFinishInsertLists() {
-    categoryDataSynchronizer.insertCategories();
-  }
-
-  @Override
   public void onProcessLastListRequest() {
     updateListAdapter();
   }
@@ -1098,6 +1049,11 @@ public class MainListFragment extends ListFragment implements
   @Override
   public void onProcessLastCategoryRequest() {
     updateCategoryAdapter();
+  }
+
+  @Override
+  public void onFinishSyncData() {
+
   }
 
   @Override
