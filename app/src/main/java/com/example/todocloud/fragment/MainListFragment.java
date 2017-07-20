@@ -1109,15 +1109,19 @@ public class MainListFragment extends ListFragment implements
 
   private void showErrorMessage(String errorMessage) {
     if (errorMessage.contains("failed to connect")) {
-      // Android Studio hotswap/coldswap may cause getView == null
-      if (getView() != null) {
-        Snackbar snackbar = Snackbar.make(
-            coordinatorLayout,
-            R.string.failed_to_connect,
-            Snackbar.LENGTH_LONG
-        );
-        AppController.showWhiteTextSnackbar(snackbar);
-      }
+      showFailedToConnectError();
+    }
+  }
+
+  private void showFailedToConnectError() {
+    // Android Studio hotswap/coldswap may cause getView == null
+    if (getView() != null) {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.failed_to_connect,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
     }
   }
 
