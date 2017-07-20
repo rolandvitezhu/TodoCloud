@@ -71,12 +71,11 @@ public class UserDataSynchronizer extends DataSynchronizer {
                 onRegisterUserListener.onFinishRegisterUser();
               } else {
                 String message = response.getString("message");
-                if (message != null) {
-                  if (message.contains("Oops! An error occurred while registereing")) {
-                    handleError();
-                  } else {
-                    onRegisterUserListener.onSyncError(message);
-                  }
+                if (message == null) message = "";
+                if (message.contains("Oops! An error occurred while registereing")) {
+                  handleError();
+                } else {
+                  onRegisterUserListener.onSyncError(message);
                 }
               }
             } catch (JSONException e) {
@@ -107,9 +106,8 @@ public class UserDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Register Error: " + errorMessage);
-            if (errorMessage != null) {
-              onRegisterUserListener.onSyncError(errorMessage);
-            }
+            if (errorMessage == null) errorMessage = "";
+            onRegisterUserListener.onSyncError(errorMessage);
           }
 
         }
@@ -147,9 +145,8 @@ public class UserDataSynchronizer extends DataSynchronizer {
                 onLoginUserListener.onFinishLoginUser();
               } else {
                 String message = response.getString("message");
-                if (message != null) {
-                  onLoginUserListener.onSyncError(message);
-                }
+                if (message == null) message = "";
+                onLoginUserListener.onSyncError(message);
               }
             } catch (JSONException e) {
               e.printStackTrace();
@@ -172,9 +169,8 @@ public class UserDataSynchronizer extends DataSynchronizer {
           public void onErrorResponse(VolleyError error) {
             String errorMessage = error.getMessage();
             Log.e(TAG, "Login Error: " + errorMessage);
-            if (errorMessage != null) {
-              onLoginUserListener.onSyncError(errorMessage);
-            }
+            if (errorMessage == null) errorMessage = "";
+            onLoginUserListener.onSyncError(errorMessage);
           }
 
         }
