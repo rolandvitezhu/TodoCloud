@@ -206,15 +206,18 @@ public class CategoryDataSynchronizer extends DataSynchronizer {
         if (currentRequest++ == requestsCount) {
           lastRequestProcessed = true;
         }
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
 
         JSONObject jsonRequest = new JSONObject();
         try {
           putCategoryData(categoryToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          if (LAST_REQUEST_PROCESSED) {
+            onSyncCategoryDataListener.onProcessLastCategoryRequest();
+          }
         }
 
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
         JsonObjectRequest insertCategoriesRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.POST,
             AppConfig.URL_INSERT_CATEGORY,

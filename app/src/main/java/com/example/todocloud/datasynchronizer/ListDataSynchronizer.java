@@ -204,15 +204,18 @@ public class ListDataSynchronizer extends DataSynchronizer {
         if (currentRequest++ == requestsCount) {
           lastRequestProcessed = true;
         }
+        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
 
         JSONObject jsonRequest = new JSONObject();
         try {
           putListData(listToInsert, jsonRequest);
         } catch (JSONException e) {
           e.printStackTrace();
+          if (LAST_REQUEST_PROCESSED) {
+            onSyncListDataListener.onProcessLastListRequest();
+          }
         }
 
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
             JsonObjectRequest.Method.POST,
             AppConfig.URL_INSERT_LIST,
