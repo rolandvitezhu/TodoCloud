@@ -1,20 +1,26 @@
 package com.example.todocloud.datastorage;
 
-import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.example.todocloud.app.AppController;
 
 public class DbHelper extends SQLiteOpenHelper {
 
   private static DbHelper instance;
 
-  public static synchronized DbHelper getInstance(Context context) {
-    if (instance == null) instance = new DbHelper(context.getApplicationContext());
+  public static synchronized DbHelper getInstance() {
+    if (instance == null) instance = new DbHelper();
     return instance;
   }
 
-	private DbHelper(Context context) {
-	  super(context, DbConstants.DATABASE_NAME, null, DbConstants.DATABASE_VERSION);
+	private DbHelper() {
+	  super(
+	      AppController.getAppContext(),
+        DbConstants.DATABASE_NAME,
+        null,
+        DbConstants.DATABASE_VERSION
+    );
   }
 
 	@Override

@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
           // Megnyitjuk a TodoModifyFragment-et a megfelelő tennivalóval (a Notification-höz
           // tartozóval).
-          DbLoader dbLoader = new DbLoader(this);
+          DbLoader dbLoader = new DbLoader();
           Todo todo = dbLoader.getTodo(id);
 
           TodoModifyFragment todoModifyFragment = new TodoModifyFragment();
@@ -223,7 +223,8 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     View navigationHeader = navigationView.getHeaderView(0);
     TextView tvName = (TextView) navigationHeader.findViewById(R.id.tvName);
     TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.tvEmail);
-    User user = new DbLoader(this).getUser();
+    DbLoader dbLoader = new DbLoader();
+    User user = dbLoader.getUser();
     tvName.setText(user.getName());
     tvEmail.setText(user.getEmail());
   }
@@ -302,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   public void onLogout() {
 
     // Emlékeztetők törlése.
-    DbLoader dbLoader = new DbLoader(getApplicationContext());
+    DbLoader dbLoader = new DbLoader();
     ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
       Intent service = new Intent(getApplicationContext(), ReminderService.class);

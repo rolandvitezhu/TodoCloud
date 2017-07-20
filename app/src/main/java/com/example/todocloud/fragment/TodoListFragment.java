@@ -50,7 +50,7 @@ public class TodoListFragment extends Fragment implements
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader(getActivity());
+    dbLoader = new DbLoader();
     updateTodoAdapterTest();
   }
 

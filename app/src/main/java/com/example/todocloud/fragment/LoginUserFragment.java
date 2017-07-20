@@ -61,7 +61,7 @@ public class LoginUserFragment extends Fragment {
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
     } else {
-      dbLoader = new DbLoader(getActivity());
+      dbLoader = new DbLoader();
     }
   }
 

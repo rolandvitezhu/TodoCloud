@@ -52,26 +52,24 @@ public class MainListFragment extends ListFragment implements
     TodoDataSynchronizer.OnSyncTodoDataListener, ListDataSynchronizer.OnSyncListDataListener,
     CategoryDataSynchronizer.OnSyncCategoryDataListener {
 
-  private static final String TAG = MainListFragment.class.getSimpleName();
-
   private DbLoader dbLoader;
 
-  private PredefinedListAdapter predefinedListAdapter;
-  private CategoryAdapter categoryAdapter;
-  private ListAdapter listAdapter;
+  private IMainListFragment listener;
 
   private TodoDataSynchronizer todoDataSynchronizer;
   private ListDataSynchronizer listDataSynchronizer;
   private CategoryDataSynchronizer categoryDataSynchronizer;
 
-  private SwipeRefreshLayout swipeRefreshLayout;
-  private CoordinatorLayout coordinatorLayout;
-  private ScrollView scrollView;
-
-  private IMainListFragment listener;
+  private PredefinedListAdapter predefinedListAdapter;
+  private CategoryAdapter categoryAdapter;
+  private ListAdapter listAdapter;
 
   private ExpandableHeightExpandableListView expandableListView;
   private ExpandableHeightListView list;
+
+  private SwipeRefreshLayout swipeRefreshLayout;
+  private CoordinatorLayout coordinatorLayout;
+  private ScrollView scrollView;
 
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
@@ -90,7 +88,7 @@ public class MainListFragment extends ListFragment implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader(getActivity());
+    dbLoader = new DbLoader();
     listener.onSetNavigationHeader();
     updatePredefinedListAdapter();
     updateCategoryAdapter();
