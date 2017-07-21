@@ -39,7 +39,11 @@ public class CategoryDataSynchronizer {
     this.onSyncCategoryDataListener = onSyncCategoryDataListener;
   }
 
-  public void getCategories() {
+  public void syncCategoryData() {
+    getCategories();
+  }
+
+  private void getCategories() {
     String tag_string_request = "request_get_categories";
 
     String url = prepareGetCategoriesUrl();
@@ -60,7 +64,7 @@ public class CategoryDataSynchronizer {
                 if (!categories.isEmpty()) {
                   updateCategoriesInLocalDatabase(categories);
                 }
-                onSyncCategoryDataListener.onFinishGetCategories();
+                updateCategories();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -124,7 +128,7 @@ public class CategoryDataSynchronizer {
     AppController.getInstance().addToRequestQueue(getCategoriesRequest, tag_string_request);
   }
 
-  public void updateCategories() {
+  private void updateCategories() {
     ArrayList<Category> categoriesToUpdate = dbLoader.getCategoriesToUpdate();
 
     if (!categoriesToUpdate.isEmpty()) {
@@ -199,10 +203,10 @@ public class CategoryDataSynchronizer {
         AppController.getInstance().addToRequestQueue(updateCategoriesRequest, tag_json_object_request);
       }
     }
-    onSyncCategoryDataListener.onFinishUpdateCategories();
+    insertCategories();
   }
 
-  public void insertCategories() {
+  private void insertCategories() {
     ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
 
     if (!categoriesToInsert.isEmpty()) {
@@ -224,7 +228,7 @@ public class CategoryDataSynchronizer {
           String errorMessage = "Unknown error";
           onSyncCategoryDataListener.onSyncError(errorMessage);
           if (LAST_REQUEST_PROCESSED) {
-            onSyncCategoryDataListener.onProcessLastCategoryRequest();
+            onSyncCategoryDataListener.onFinishSyncCategoryData();
           }
         }
 
@@ -243,7 +247,7 @@ public class CategoryDataSynchronizer {
                   if (!error) {
                     makeCategoryUpToDate(response);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                      onSyncCategoryDataListener.onFinishSyncCategoryData();
                     }
                   } else {
                     String message = response.getString("message");
@@ -251,7 +255,7 @@ public class CategoryDataSynchronizer {
                     if (message == null) message = "Unknown error";
                     onSyncCategoryDataListener.onSyncError(message);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                      onSyncCategoryDataListener.onFinishSyncCategoryData();
                     }
                   }
                 } catch (JSONException e) {
@@ -259,7 +263,7 @@ public class CategoryDataSynchronizer {
                   String errorMessage = "Unknown error";
                   onSyncCategoryDataListener.onSyncError(errorMessage);
                   if (LAST_REQUEST_PROCESSED) {
-                    onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                    onSyncCategoryDataListener.onFinishSyncCategoryData();
                   }
                 }
               }
@@ -280,7 +284,7 @@ public class CategoryDataSynchronizer {
                 if (errorMessage == null) errorMessage = "Unknown error";
                 onSyncCategoryDataListener.onSyncError(errorMessage);
                 if (LAST_REQUEST_PROCESSED) {
-                  onSyncCategoryDataListener.onProcessLastCategoryRequest();
+                  onSyncCategoryDataListener.onFinishSyncCategoryData();
                 }
               }
 
@@ -299,7 +303,7 @@ public class CategoryDataSynchronizer {
         AppController.getInstance().addToRequestQueue(insertCategoriesRequest, tag_json_object_request);
       }
     } else {
-      onSyncCategoryDataListener.onProcessLastCategoryRequest();
+      onSyncCategoryDataListener.onFinishSyncCategoryData();
     }
   }
 
@@ -320,9 +324,7 @@ public class CategoryDataSynchronizer {
   }
 
   public interface OnSyncCategoryDataListener {
-    void onFinishGetCategories();
-    void onFinishUpdateCategories();
-    void onProcessLastCategoryRequest();
+    void onFinishSyncCategoryData();
     void onSyncError(String errorMessage);
   }
 

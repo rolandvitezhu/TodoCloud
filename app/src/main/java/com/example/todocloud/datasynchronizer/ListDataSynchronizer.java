@@ -37,7 +37,11 @@ public class ListDataSynchronizer {
     this.onSyncListDataListener = onSyncListDataListener;
   }
 
-  public void getLists() {
+  public void syncListData() {
+    getLists();
+  }
+
+  private void getLists() {
     String tag_string_request = "request_get_lists";
 
     String url = prepareGetListsUrl();
@@ -58,7 +62,7 @@ public class ListDataSynchronizer {
                 if (!lists.isEmpty()) {
                   updateListsInLocalDatabase(lists);
                 }
-                onSyncListDataListener.onFinishGetLists();
+                updateLists();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -122,7 +126,7 @@ public class ListDataSynchronizer {
     AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
   }
 
-  public void updateLists() {
+  private void updateLists() {
     ArrayList<List> listsToUpdate = dbLoader.getListsToUpdate();
 
     if (!listsToUpdate.isEmpty()) {
@@ -197,10 +201,10 @@ public class ListDataSynchronizer {
         AppController.getInstance().addToRequestQueue(updateListsRequest, tag_json_object_request);
       }
     }
-    onSyncListDataListener.onFinishUpdateLists();
+    insertLists();
   }
 
-  public void insertLists() {
+  private void insertLists() {
     ArrayList<List> listsToInsert = dbLoader.getListsToInsert();
 
     if (!listsToInsert.isEmpty()) {
@@ -222,7 +226,7 @@ public class ListDataSynchronizer {
           String errorMessage = "Unknown error";
           onSyncListDataListener.onSyncError(errorMessage);
           if (LAST_REQUEST_PROCESSED) {
-            onSyncListDataListener.onProcessLastListRequest();
+            onSyncListDataListener.onFinishSyncListData();
           }
         }
 
@@ -241,7 +245,7 @@ public class ListDataSynchronizer {
                   if (!error) {
                     makeListUpToDate(response);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncListDataListener.onProcessLastListRequest();
+                      onSyncListDataListener.onFinishSyncListData();
                     }
                   } else {
                     String message = response.getString("message");
@@ -249,7 +253,7 @@ public class ListDataSynchronizer {
                     if (message == null) message = "Unknown error";
                     onSyncListDataListener.onSyncError(message);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncListDataListener.onProcessLastListRequest();
+                      onSyncListDataListener.onFinishSyncListData();
                     }
                   }
                 } catch (JSONException e) {
@@ -257,7 +261,7 @@ public class ListDataSynchronizer {
                   String errorMessage = "Unknown error";
                   onSyncListDataListener.onSyncError(errorMessage);
                   if (LAST_REQUEST_PROCESSED) {
-                    onSyncListDataListener.onProcessLastListRequest();
+                    onSyncListDataListener.onFinishSyncListData();
                   }
                 }
               }
@@ -278,7 +282,7 @@ public class ListDataSynchronizer {
                 if (errorMessage == null) errorMessage = "Unknown error";
                 onSyncListDataListener.onSyncError(errorMessage);
                 if (LAST_REQUEST_PROCESSED) {
-                  onSyncListDataListener.onProcessLastListRequest();
+                  onSyncListDataListener.onFinishSyncListData();
                 }
               }
 
@@ -297,9 +301,8 @@ public class ListDataSynchronizer {
         AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
       }
     } else {
-      onSyncListDataListener.onProcessLastListRequest();
+      onSyncListDataListener.onFinishSyncListData();
     }
-    onSyncListDataListener.onFinishInsertLists();
   }
 
   @NonNull
@@ -321,10 +324,7 @@ public class ListDataSynchronizer {
   }
 
   public interface OnSyncListDataListener {
-    void onFinishGetLists();
-    void onFinishUpdateLists();
-    void onFinishInsertLists();
-    void onProcessLastListRequest();
+    void onFinishSyncListData();
     void onSyncError(String errorMessage);
   }
 

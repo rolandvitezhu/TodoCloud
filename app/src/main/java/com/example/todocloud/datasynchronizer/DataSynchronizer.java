@@ -40,7 +40,9 @@ public class DataSynchronizer implements
    */
   public void syncData() {
     initializeSyncStates();
-    todoDataSynchronizer.getTodos();
+    todoDataSynchronizer.syncTodoData();
+    listDataSynchronizer.syncListData();
+    categoryDataSynchronizer.syncCategoryData();
   }
 
   private void initializeSyncStates() {
@@ -56,61 +58,21 @@ public class DataSynchronizer implements
   }
 
   @Override
-  public void onFinishGetTodos() {
-    listDataSynchronizer.getLists();
-  }
-
-  @Override
-  public void onFinishGetLists() {
-    categoryDataSynchronizer.getCategories();
-  }
-
-  @Override
-  public void onFinishGetCategories() {
-    todoDataSynchronizer.updateTodos();
-  }
-
-  @Override
-  public void onFinishUpdateTodos() {
-    listDataSynchronizer.updateLists();
-  }
-
-  @Override
-  public void onFinishUpdateLists() {
-    categoryDataSynchronizer.updateCategories();
-  }
-
-  @Override
-  public void onFinishUpdateCategories() {
-    todoDataSynchronizer.insertTodos();
-  }
-
-  @Override
-  public void onFinishInsertTodos() {
-    listDataSynchronizer.insertLists();
-  }
-
-  @Override
-  public void onFinishInsertLists() {
-    categoryDataSynchronizer.insertCategories();
-  }
-
-  @Override
-  public void onProcessLastTodoRequest() {
+  public void onFinishSyncTodoData() {
     isLastTodoRequestProcessed = true;
     if (isSynchronizationCompleted()) onSyncDataListener.onFinishSyncData();
   }
 
   @Override
-  public void onProcessLastListRequest() {
-    onSyncDataListener.onProcessLastListRequest();
+  public void onFinishSyncListData() {
+    onSyncDataListener.onFinishSyncListData();
     isLastListRequestProcessed = true;
     if (isSynchronizationCompleted()) onSyncDataListener.onFinishSyncData();
   }
 
   @Override
-  public void onProcessLastCategoryRequest() {
-    onSyncDataListener.onProcessLastCategoryRequest();
+  public void onFinishSyncCategoryData() {
+    onSyncDataListener.onFinishSyncCategoryData();
     isLastCategoryRequestProcessed = true;
     if (isSynchronizationCompleted()) onSyncDataListener.onFinishSyncData();
   }
@@ -122,8 +84,8 @@ public class DataSynchronizer implements
   }
 
   public interface OnSyncDataListener {
-    void onProcessLastListRequest();
-    void onProcessLastCategoryRequest();
+    void onFinishSyncListData();
+    void onFinishSyncCategoryData();
     void onFinishSyncData();
     void onSyncError(String errorMessage);
   }

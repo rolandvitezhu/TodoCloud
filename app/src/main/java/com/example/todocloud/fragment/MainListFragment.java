@@ -1039,12 +1039,12 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onProcessLastListRequest() {
+  public void onFinishSyncListData() {
     updateListAdapter();
   }
 
   @Override
-  public void onProcessLastCategoryRequest() {
+  public void onFinishSyncCategoryData() {
     updateCategoryAdapter();
   }
 

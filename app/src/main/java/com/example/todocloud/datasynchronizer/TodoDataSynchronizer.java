@@ -37,7 +37,11 @@ public class TodoDataSynchronizer {
     this.onSyncTodoDataListener = onSyncTodoDataListener;
   }
 
-  public void getTodos() {
+  public void syncTodoData() {
+    getTodos();
+  }
+
+  private void getTodos() {
     String tag_string_request = "request_get_todos";
 
     String url = prepareGetTodosUrl();
@@ -58,7 +62,7 @@ public class TodoDataSynchronizer {
                 if (!todos.isEmpty()) {
                   updateTodosInLocalDatabase(todos);
                 }
-                onSyncTodoDataListener.onFinishGetTodos();
+                updateTodos();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -122,7 +126,7 @@ public class TodoDataSynchronizer {
     AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
   }
 
-  public void updateTodos() {
+  private void updateTodos() {
     ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
 
     if (!todosToUpdate.isEmpty()) {
@@ -196,10 +200,10 @@ public class TodoDataSynchronizer {
         AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
       }
     }
-    onSyncTodoDataListener.onFinishUpdateTodos();
+    insertTodos();
   }
 
-  public void insertTodos() {
+  private void insertTodos() {
     ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
 
     if (!todosToInsert.isEmpty()) {
@@ -221,7 +225,7 @@ public class TodoDataSynchronizer {
           String errorMessage = "Unknown error";
           onSyncTodoDataListener.onSyncError(errorMessage);
           if (LAST_REQUEST_PROCESSED) {
-            onSyncTodoDataListener.onProcessLastTodoRequest();
+            onSyncTodoDataListener.onFinishSyncTodoData();
           }
         }
 
@@ -240,7 +244,7 @@ public class TodoDataSynchronizer {
                   if (!error) {
                     makeTodoUpToDate(response);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncTodoDataListener.onProcessLastTodoRequest();
+                      onSyncTodoDataListener.onFinishSyncTodoData();
                     }
                   } else {
                     String message = response.getString("message");
@@ -248,7 +252,7 @@ public class TodoDataSynchronizer {
                     if (message == null) message = "Unknown error";
                     onSyncTodoDataListener.onSyncError(message);
                     if (LAST_REQUEST_PROCESSED) {
-                      onSyncTodoDataListener.onProcessLastTodoRequest();
+                      onSyncTodoDataListener.onFinishSyncTodoData();
                     }
                   }
 
@@ -257,7 +261,7 @@ public class TodoDataSynchronizer {
                   String errorMessage = "Unknown error";
                   onSyncTodoDataListener.onSyncError(errorMessage);
                   if (LAST_REQUEST_PROCESSED) {
-                    onSyncTodoDataListener.onProcessLastTodoRequest();
+                    onSyncTodoDataListener.onFinishSyncTodoData();
                   }
                 }
               }
@@ -278,7 +282,7 @@ public class TodoDataSynchronizer {
                 if (errorMessage == null) errorMessage = "Unknown error";
                 onSyncTodoDataListener.onSyncError(errorMessage);
                 if (LAST_REQUEST_PROCESSED) {
-                  onSyncTodoDataListener.onProcessLastTodoRequest();
+                  onSyncTodoDataListener.onFinishSyncTodoData();
                 }
               }
 
@@ -297,9 +301,8 @@ public class TodoDataSynchronizer {
         AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
       }
     } else {
-      onSyncTodoDataListener.onProcessLastTodoRequest();
+      onSyncTodoDataListener.onFinishSyncTodoData();
     }
-    onSyncTodoDataListener.onFinishInsertTodos();
   }
 
   @NonNull
@@ -334,10 +337,7 @@ public class TodoDataSynchronizer {
   }
 
   public interface OnSyncTodoDataListener {
-    void onFinishGetTodos();
-    void onFinishUpdateTodos();
-    void onFinishInsertTodos();
-    void onProcessLastTodoRequest();
+    void onFinishSyncTodoData();
     void onSyncError(String errorMessage);
   }
 
