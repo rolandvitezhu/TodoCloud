@@ -44,21 +44,42 @@ public class UserDataSynchronizer {
       final String password,
       final long _id
   ) {
+    AppController appController = AppController.getInstance();
     String tag_json_object_request = "request_register";
+    JsonObjectRequest registerUserRequest = prepareRegisterUserRequest(
+        user_online_id,
+        name,
+        email,
+        password,
+        _id
+    );
+    appController.addToRequestQueue(registerUserRequest, tag_json_object_request);
+  }
 
-    JSONObject jsonRequest = new JSONObject();
-    try {
-      putUserRegisterData(user_online_id, name, email, password, jsonRequest);
-    } catch (JSONException e) {
-      e.printStackTrace();
-      String errorMessage = "Unknown error";
-      onRegisterUserListener.onSyncError(errorMessage);
-    }
+  public void loginUser(String email, String password) {
+    AppController appController = AppController.getInstance();
+    String tag_json_object_request = "request_login";
+    JsonObjectRequest loginUserRequest = prepareLoginUserRequest(email, password);
+    appController.addToRequestQueue(loginUserRequest, tag_json_object_request);
+  }
 
-    JsonObjectRequest registerRequest = new JsonObjectRequest(
+  private JsonObjectRequest prepareRegisterUserRequest(
+      final String user_online_id,
+      final String name,
+      final String email,
+      final String password,
+      final long _id
+  ) {
+    JSONObject registerUserJsonRequest = prepareRegisterUserJsonRequest(
+        user_online_id,
+        name,
+        email,
+        password
+    );
+    JsonObjectRequest registerUserRequest = new JsonObjectRequest(
         JsonObjectRequest.Method.POST,
         AppConfig.URL_REGISTER,
-        jsonRequest,
+        registerUserJsonRequest,
         new Response.Listener<JSONObject>() {
 
           @Override
@@ -112,26 +133,45 @@ public class UserDataSynchronizer {
 
         }
     );
-
-    AppController.getInstance().addToRequestQueue(registerRequest, tag_json_object_request);
+    return registerUserRequest;
   }
 
-  public void loginUser(String email, String password) {
-    String tag_json_object_request = "request_login";
-
-    JSONObject jsonRequest = new JSONObject();
+  private JSONObject prepareRegisterUserJsonRequest(
+      final String user_online_id,
+      final String name,
+      final String email,
+      final String password
+  ) {
+    JSONObject registerUserJsonRequest = new JSONObject();
     try {
-      putUserLoginData(email, password, jsonRequest);
+      putUserRegisterData(user_online_id, name, email, password, registerUserJsonRequest);
     } catch (JSONException e) {
       e.printStackTrace();
       String errorMessage = "Unknown error";
-      onLoginUserListener.onSyncError(errorMessage);
+      onRegisterUserListener.onSyncError(errorMessage);
     }
+    return registerUserJsonRequest;
+  }
 
-    JsonObjectRequest loginRequest = new JsonObjectRequest(
+  private void putUserRegisterData(
+      String user_online_id,
+      String name,
+      String email,
+      String password,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("user_online_id", user_online_id);
+    jsonRequest.put("name", name);
+    jsonRequest.put("email", email);
+    jsonRequest.put("password", password);
+  }
+
+  private JsonObjectRequest prepareLoginUserRequest(String email, String password) {
+    JSONObject loginUserJsonRequest = prepareLoginUserJsonRequest(email, password);
+    JsonObjectRequest loginUserRequest = new JsonObjectRequest(
         JsonObjectRequest.Method.POST,
         AppConfig.URL_LOGIN,
-        jsonRequest,
+        loginUserJsonRequest,
         new Response.Listener<JSONObject>() {
 
           @Override
@@ -175,21 +215,19 @@ public class UserDataSynchronizer {
 
         }
     );
-
-    AppController.getInstance().addToRequestQueue(loginRequest, tag_json_object_request);
+    return loginUserRequest;
   }
 
-  private void putUserRegisterData(
-      String user_online_id,
-      String name,
-      String email,
-      String password,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("user_online_id", user_online_id);
-    jsonRequest.put("name", name);
-    jsonRequest.put("email", email);
-    jsonRequest.put("password", password);
+  private JSONObject prepareLoginUserJsonRequest(String email, String password) {
+    JSONObject loginUserJsonRequest = new JSONObject();
+    try {
+      putUserLoginData(email, password, loginUserJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onLoginUserListener.onSyncError(errorMessage);
+    }
+    return loginUserJsonRequest;
   }
 
   private void putUserLoginData(
