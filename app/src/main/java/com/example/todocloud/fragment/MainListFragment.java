@@ -8,7 +8,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.view.ActionMode;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,60 +22,49 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.CategoryAdapter;
 import com.example.todocloud.adapter.ListAdapter;
 import com.example.todocloud.adapter.PredefinedListAdapter;
-import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.customcomponent.ExpandableHeightExpandableListView;
 import com.example.todocloud.customcomponent.ExpandableHeightListView;
 import com.example.todocloud.data.Category;
 import com.example.todocloud.data.PredefinedListItem;
-import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.example.todocloud.datasynchronizer.DataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainListFragment extends ListFragment implements
     CategoryCreateFragment.ICategoryCreateFragment, CategoryModifyFragment.ICategoryModifyFragment,
     ListCreateFragment.IListCreateFragment, ListModifyFragment.IListModifyFragment,
     ListInCategoryCreateFragment.IListInCategoryCreateFragment,
     ListMoveFragment.IListMoveFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment {
-
-  private static final String TAG = MainListFragment.class.getSimpleName();
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutFragment.ILogoutFragment,
+    DataSynchronizer.OnSyncDataListener {
 
   private DbLoader dbLoader;
+
+  private IMainListFragment listener;
+
+  private DataSynchronizer dataSynchronizer;
 
   private PredefinedListAdapter predefinedListAdapter;
   private CategoryAdapter categoryAdapter;
   private ListAdapter listAdapter;
 
+  private ExpandableHeightExpandableListView expandableListView;
+  private ExpandableHeightListView list;
+
   private SwipeRefreshLayout swipeRefreshLayout;
   private CoordinatorLayout coordinatorLayout;
   private ScrollView scrollView;
-
-  private IMainListFragment listener;
-
-  private ExpandableHeightExpandableListView expandableListView;
-  private ExpandableHeightListView list;
 
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
@@ -95,12 +83,16 @@ public class MainListFragment extends ListFragment implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader(getActivity());
+    dbLoader = new DbLoader();
     listener.onSetNavigationHeader();
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
-    getTodos();
+
+    dataSynchronizer = new DataSynchronizer(dbLoader);
+    dataSynchronizer.setOnSyncDataListener(this);
+
+    dataSynchronizer.syncData();
   }
 
   @Override
@@ -601,941 +593,8 @@ public class MainListFragment extends ListFragment implements
     listModifyFragment.show(getFragmentManager(), "ListModifyFragment");
   }
 
-  private void updateTodosInLocalDatabase(ArrayList<Todo> todos) {
-    for (Todo todo : todos) {
-      boolean exists = dbLoader.isTodoExists(todo.getTodoOnlineId());
-      if (!exists) {
-        dbLoader.createTodo(todo);
-      } else {
-        dbLoader.updateTodo(todo);
-      }
-    }
-  }
-
-  private void updateListsInLocalDatabase(ArrayList<com.example.todocloud.data.List> lists) {
-    for (com.example.todocloud.data.List list : lists) {
-      boolean exists = dbLoader.isListExists(list.getListOnlineId());
-      if (!exists) {
-        dbLoader.createList(list);
-      } else {
-        dbLoader.updateList(list);
-      }
-    }
-  }
-
-  private void updateCategoriesInLocalDatabase(ArrayList<Category> categories) {
-    for (Category category : categories) {
-      boolean exists = dbLoader.isCategoryExists(category.getCategoryOnlineId());
-      if (!exists) {
-        dbLoader.createCategory(category);
-      } else {
-        dbLoader.updateCategory(category);
-      }
-    }
-  }
-
-  private void getTodos() {
-    String tag_string_request = "request_get_todos";
-
-    String url = prepareGetTodosUrl();
-    StringRequest getTodosRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Todos Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<Todo> todos = getTodos(jsonResponse);
-                if (!todos.isEmpty()) {
-                  updateTodosInLocalDatabase(todos);
-                }
-
-                getLists();
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<Todo> getTodos(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonTodos = jsonResponse.getJSONArray("todos");
-            ArrayList<Todo> todos = new ArrayList<>();
-
-            for (int i = 0; i < jsonTodos.length(); i++) {
-              JSONObject jsonTodo = jsonTodos.getJSONObject(i);
-              Todo todo = new Todo(jsonTodo);
-              todos.add(todo);
-            }
-            return todos;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Todos Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
-  }
-
-  @NonNull
-  private String prepareGetTodosUrl() {
-    int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
-    return AppConfig.URL_GET_TODOS.substring(0, end)
-        + dbLoader.getTodoRowVersion();
-  }
-
-  private void getLists() {
-    String tag_string_request = "request_get_lists";
-
-    String url = prepareGetListsUrl();
-    StringRequest getListsRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Lists Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<com.example.todocloud.data.List> lists = getLists(jsonResponse);
-                if (!lists.isEmpty()) {
-                  updateListsInLocalDatabase(lists);
-                }
-
-                getCategories();
-
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<com.example.todocloud.data.List> getLists(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonLists = jsonResponse.getJSONArray("lists");
-            ArrayList<com.example.todocloud.data.List> lists = new ArrayList<>();
-
-            for (int i = 0; i < jsonLists.length(); i++) {
-              JSONObject jsonList = jsonLists.getJSONObject(i);
-              com.example.todocloud.data.List list =
-                  new com.example.todocloud.data.List(jsonList);
-              lists.add(list);
-            }
-            return lists;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Lists Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
-  }
-
-  @NonNull
-  private String prepareGetListsUrl() {
-    int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
-    return AppConfig.URL_GET_LISTS.substring(0, end)
-        + dbLoader.getListRowVersion();
-  }
-
-  private void getCategories() {
-    String tag_string_request = "request_get_categories";
-
-    String url = prepareGetCategoriesUrl();
-    StringRequest getCategoriesRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
-
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Categories Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
-
-              if (!error) {
-                ArrayList<Category> categories = getCategories(jsonResponse);
-                if (!categories.isEmpty()) {
-                  updateCategoriesInLocalDatabase(categories);
-                }
-
-                updateTodos();
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-
-          @NonNull
-          private ArrayList<Category> getCategories(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonCategories = jsonResponse.getJSONArray("categories");
-            ArrayList<Category> categories = new ArrayList<>();
-
-            for (int i = 0; i < jsonCategories.length(); i++) {
-              JSONObject jsonCategory = jsonCategories.getJSONObject(i);
-              Category category = new Category(jsonCategory);
-              categories.add(category);
-            }
-            return categories;
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Categories Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              // Android Studio hotswap/coldswap may cause getView == null
-              if (getView() != null) {
-                Snackbar snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    R.string.failed_to_connect,
-                    Snackbar.LENGTH_LONG
-                );
-                AppController.showWhiteTextSnackbar(snackbar);
-              }
-            }
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-
-    AppController.getInstance().addToRequestQueue(getCategoriesRequest, tag_string_request);
-  }
-
-  @NonNull
-  private String prepareGetCategoriesUrl() {
-    int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
-    return AppConfig.URL_GET_CATEGORIES.substring(0, end) +
-        dbLoader.getCategoryRowVersion();
-  }
-
-  private void updateTodos() {
-    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
-
-    if (!todosToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_todo";
-      for (final Todo todoToUpdate : todosToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest updateTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToUpdate.setRowVersion(response.getInt("row_version"));
-                todoToUpdate.setDirty(false);
-                dbLoader.updateTodo(todoToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
-      }
-    }
-    updateLists();
-  }
-
-  private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {
-    jsonRequest.put("todo_online_id", todoData.getTodoOnlineId().trim());
-    if (todoData.getListOnlineId() != null) {
-      jsonRequest.put("list_online_id", todoData.getListOnlineId().trim());
-    } else {
-      jsonRequest.put("list_online_id", "");
-    }
-    jsonRequest.put("title", todoData.getTitle().trim());
-    jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
-    jsonRequest.put("due_date", todoData.getDueDate().trim());
-    if (todoData.getReminderDateTime() != null) {
-      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
-    } else {
-      jsonRequest.put("reminder_datetime", "");
-    }
-    if (todoData.getDescription() != null) {
-      jsonRequest.put("description", todoData.getDescription().trim());
-    } else {
-      jsonRequest.put("description", "");
-    }
-    jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
-    jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
-  }
-
-  private void updateLists() {
-    ArrayList<com.example.todocloud.data.List> listsToUpdate = dbLoader.getListsToUpdate();
-
-    if (!listsToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_list";
-      for (final com.example.todocloud.data.List listToUpdate : listsToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putListData(listToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest updateListsRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_LIST,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update List Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeListUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeListUpToDate(JSONObject response) throws JSONException {
-                listToUpdate.setRowVersion(response.getInt("row_version"));
-                listToUpdate.setDirty(false);
-                dbLoader.updateList(listToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update List Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(updateListsRequest, tag_json_object_request);
-      }
-    }
-    updateCategories();
-  }
-
-  private void putListData(
-      com.example.todocloud.data.List listData,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("list_online_id", listData.getListOnlineId().trim());
-    if (listData.getCategoryOnlineId() != null) {
-      jsonRequest.put("category_online_id", listData.getCategoryOnlineId().trim());
-    } else {
-      jsonRequest.put("category_online_id", "");
-    }
-    jsonRequest.put("title", listData.getTitle().trim());
-    jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
-  }
-
-  private void updateCategories() {
-    ArrayList<Category> categoriesToUpdate = dbLoader.getCategoriesToUpdate();
-
-    if (!categoriesToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_category";
-      for (final Category categoryToUpdate : categoriesToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putCategoryData(categoryToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest updateCategoriesRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_CATEGORY,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update Category Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeCategoryUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-                categoryToUpdate.setRowVersion(response.getInt("row_version"));
-                categoryToUpdate.setDirty(false);
-                dbLoader.updateCategory(categoryToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(updateCategoriesRequest, tag_json_object_request);
-      }
-    }
-    insertTodos();
-  }
-
-  private void putCategoryData(
-      Category categoryData,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
-    jsonRequest.put("title", categoryData.getTitle().trim());
-    jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
-  }
-
-  private void insertTodos() {
-    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
-
-    if (!todosToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_todo";
-      for (final Todo todoToInsert : todosToInsert) {
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToInsert.setRowVersion(response.getInt("row_version"));
-                todoToInsert.setDirty(false);
-                dbLoader.updateTodo(todoToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert Todo Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
-      }
-    }
-    insertLists();
-  }
-
-  private void insertLists() {
-    ArrayList<com.example.todocloud.data.List> listsToInsert = dbLoader.getListsToInsert();
-
-    if (!listsToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_list";
-      int requestsCount = listsToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final com.example.todocloud.data.List listToInsert : listsToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putListData(listToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_LIST,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert List Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeListUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateListAdapter();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateListAdapter();
-                    }
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  if (LAST_REQUEST_PROCESSED) {
-                    updateListAdapter();
-                  }
-                }
-              }
-
-              private void makeListUpToDate(JSONObject response) throws JSONException {
-                listToInsert.setRowVersion(response.getInt("row_version"));
-                listToInsert.setDirty(false);
-                dbLoader.updateList(listToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert List Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-                if (LAST_REQUEST_PROCESSED) {
-                  updateListAdapter();
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
-      }
-    } else {
-      updateListAdapter();
-    }
-    insertCategories();
-  }
-
-  private void insertCategories() {
-    ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
-
-    if (!categoriesToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_category";
-      int requestsCount = categoriesToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final Category categoryToInsert : categoriesToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putCategoryData(categoryToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
-        JsonObjectRequest insertCategoriesRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_CATEGORY,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert Category Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeCategoryUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateCategoryAdapter();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      updateCategoryAdapter();
-                    }
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  if (LAST_REQUEST_PROCESSED) {
-                    updateCategoryAdapter();
-                  }
-                }
-              }
-
-              private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-                categoryToInsert.setRowVersion(response.getInt("row_version"));
-                categoryToInsert.setDirty(false);
-                dbLoader.updateCategory(categoryToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert Category Error: " + errorMessage);
-                if (errorMessage != null) {
-                  showErrorMessage(errorMessage);
-                }
-                if (LAST_REQUEST_PROCESSED) {
-                  updateCategoryAdapter();
-                }
-              }
-
-              private void showErrorMessage(String errorMessage) {
-                if (errorMessage.contains("failed to connect")) {
-                  // Android Studio hotswap/coldswap may cause getView == null
-                  if (getView() != null) {
-                    Snackbar snackbar = Snackbar.make(
-                        coordinatorLayout,
-                        R.string.failed_to_connect,
-                        Snackbar.LENGTH_LONG
-                    );
-                    AppController.showWhiteTextSnackbar(snackbar);
-                  }
-                }
-              }
-
-            }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
-          }
-
-        };
-
-        AppController.getInstance().addToRequestQueue(insertCategoriesRequest, tag_json_object_request);
-      }
-    } else {
-      updateCategoryAdapter();
-    }
-  }
-
-  /**
-   * Call update and insert methods only, if get requests processed successfully. Otherwise the
-   * client will have data in the local database with the biggest current row_version before it
-   * get all of the data from the remote database, which is missing in the local database. Hence
-   * it don't will get that data.
-   * If an error occurs in the processing of the requests, they should be aborted and start the
-   * whole processing from the beginning, with the call of get methods.
-   */
-  private void sync() {
-    getTodos();
-    swipeRefreshLayout.setRefreshing(false);
+  private void syncData() {
+    dataSynchronizer.syncData();
   }
 
   private AdapterView.OnItemClickListener predefinedListItemClicked =
@@ -1885,7 +944,10 @@ public class MainListFragment extends ListFragment implements
     }
   }
 
-  private void moveListIntoCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+  private void moveListIntoCategory(
+      com.example.todocloud.data.List list,
+      String categoryOnlineId
+  ) {
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
@@ -1893,7 +955,10 @@ public class MainListFragment extends ListFragment implements
     updateCategoryAdapter();
   }
 
-  private void moveListIntoAnotherCategory(com.example.todocloud.data.List list, String categoryOnlineId) {
+  private void moveListIntoAnotherCategory(
+      com.example.todocloud.data.List list,
+      String categoryOnlineId
+  ) {
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
@@ -1914,7 +979,7 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onRefresh() {
-    sync();
+    syncData();
   }
 
   @Override
@@ -1971,6 +1036,55 @@ public class MainListFragment extends ListFragment implements
   @Override
   public void onLogout() {
     listener.onLogout();
+  }
+
+  @Override
+  public void onFinishSyncListData() {
+    updateListAdapter();
+  }
+
+  @Override
+  public void onFinishSyncCategoryData() {
+    updateCategoryAdapter();
+  }
+
+  @Override
+  public void onFinishSyncData() {
+    swipeRefreshLayout.setRefreshing(false);
+  }
+
+  @Override
+  public void onSyncError(String errorMessage) {
+    showErrorMessage(errorMessage);
+  }
+
+  private void showErrorMessage(String errorMessage) {
+    if (errorMessage.contains("failed to connect")) {
+      showFailedToConnectError();
+    } else {
+      showAnErrorOccurredError();
+    }
+  }
+
+  private void showFailedToConnectError() {
+    // Android Studio hotswap/coldswap may cause getView == null
+    if (getView() != null) {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.failed_to_connect,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    }
+  }
+
+  private void showAnErrorOccurredError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.an_error_occurred,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
   }
 
   public interface IMainListFragment {

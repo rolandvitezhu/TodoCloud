@@ -47,7 +47,7 @@ public class ListMoveFragment extends AppCompatDialogFragment {
         WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
     spnrCategory = (Spinner) view.findViewById(R.id.listCategory);
-    final DbLoader dbLoader = new DbLoader(getContext());
+    final DbLoader dbLoader = new DbLoader();
     ArrayList<Category> categories = new ArrayList<Category>();
     categories.add(new Category(getString(R.string.itemListWithoutCategory)));
     categories.addAll(dbLoader.getCategories());

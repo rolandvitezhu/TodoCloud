@@ -11,7 +11,6 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -22,58 +21,53 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.todocloud.R;
-import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.User;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
-import com.example.todocloud.helper.InstallationIdHelper;
+import com.example.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
 import com.example.todocloud.helper.SessionManager;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class RegisterFragment extends Fragment {
-
-  private static final String TAG = RegisterFragment.class.getSimpleName();
+public class RegisterUserFragment extends Fragment
+    implements UserDataSynchronizer.OnRegisterUserListener {
 
   private CoordinatorLayout coordinatorLayout;
   private TextView formSubmissionErrors;
   private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
   private TextInputEditText tietName, tietEmail, tietPassword, tietConfirmPassword;
 
+  private SessionManager sessionManager;
   private DbLoader dbLoader;
-  private IRegisterFragment listener;
+  private IRegisterUserFragment listener;
+  private UserDataSynchronizer userDataSynchronizer;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IRegisterFragment) context;
+    listener = (IRegisterUserFragment) context;
   }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    SessionManager sessionManager = new SessionManager(getActivity());
+    sessionManager = SessionManager.getInstance();
 
-    // A felhasználó bejelentkezett, a MainListFragment-et jelenítjük meg.
     if (sessionManager.isLoggedIn()) {
-      listener.onLogin();
+      listener.onFinishLoginUser();
+    } else {
+      dbLoader = new DbLoader();
+      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+      userDataSynchronizer.setOnRegisterUserListener(this);
     }
-
-    dbLoader = new DbLoader(getActivity());
   }
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_register, container, false);
+    View view = inflater.inflate(R.layout.fragment_register_user, container, false);
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
     formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
     tilName = (TextInputLayout) view.findViewById(R.id.tilName);
@@ -122,7 +116,7 @@ public class RegisterFragment extends Fragment {
           String name = tietName.getText().toString().trim();
           String email = tietEmail.getText().toString().trim();
           String password = tietPassword.getText().toString().trim();
-          register(user_online_id, name, email, password, _id);
+          userDataSynchronizer.registerUser(user_online_id, name, email, password, _id);
         }
       }
 
@@ -146,119 +140,6 @@ public class RegisterFragment extends Fragment {
     if (getActivity() != null)
       // Ha háttérbe kerül a Fragment, akkor a kijelző elforgathatóvá válik.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-  }
-
-  private void register(
-      final String user_online_id,
-      final String name,
-      final String email,
-      final String password,
-      final long _id
-  ) {
-    String tag_json_object_request = "request_register";
-
-    JSONObject jsonRequest = new JSONObject();
-    try {
-      putUserData(user_online_id, name, email, password, jsonRequest);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-
-    JsonObjectRequest registerRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.POST,
-        AppConfig.URL_REGISTER,
-        jsonRequest,
-        new Response.Listener<JSONObject>() {
-
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Register Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
-
-              if (!error) {
-                listener.onClickLinkToLogin();
-              } else {
-                String message = response.getString("message");
-                if (message != null) {
-                  if (message.contains("Sorry, this email already existed")) {
-                    showErrorMessage();
-                  } else if (message.contains("Oops! An error occurred while registereing")) {
-                    handleError();
-                  }
-                }
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              hideFormSubmissionErrors();
-            }
-          }
-
-          private void showErrorMessage() {
-            formSubmissionErrors.setText(R.string.this_email_already_existed);
-            formSubmissionErrors.setVisibility(View.VISIBLE);
-          }
-
-          /**
-           * Generally the cause of error is, that the userOnlineId generated by the client is
-           * already registered in the remote database. In this case, it generate a different
-           * userOnlineId, and send the registration request again.
-           */
-          private void handleError() {
-            InstallationIdHelper.getNewInstallationId();
-            String new_user_online_id = OnlineIdGenerator.generateOnlineId(
-                DbConstants.User.DATABASE_TABLE,
-                _id
-            );
-            register(new_user_online_id, name, email, password, _id);
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Register Error: " + errorMessage);
-            if (errorMessage != null) {
-              showErrorMessage(errorMessage);
-            }
-          }
-
-          private void showErrorMessage(String errorMessage) {
-            if (errorMessage.contains("failed to connect")) {
-              hideFormSubmissionErrors();
-              Snackbar snackbar = Snackbar.make(
-                  coordinatorLayout,
-                  R.string.failed_to_connect,
-                  Snackbar.LENGTH_LONG
-              );
-              AppController.showWhiteTextSnackbar(snackbar);
-            } else {
-              hideFormSubmissionErrors();
-              Snackbar snackbar = Snackbar.make(coordinatorLayout,
-                  R.string.an_error_occurred, Snackbar.LENGTH_LONG);
-              AppController.showWhiteTextSnackbar(snackbar);
-            }
-          }
-
-        }
-    );
-
-    AppController.getInstance().addToRequestQueue(registerRequest, tag_json_object_request);
-  }
-
-  private void putUserData(
-      String user_online_id,
-      String name,
-      String email,
-      String password,
-      JSONObject jsonRequest
-  ) throws JSONException {
-    jsonRequest.put("user_online_id", user_online_id);
-    jsonRequest.put("name", name);
-    jsonRequest.put("email", email);
-    jsonRequest.put("password", password);
   }
 
   /**
@@ -341,9 +222,55 @@ public class RegisterFragment extends Fragment {
     return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$");
   }
 
+  @Override
+  public void onFinishRegisterUser() {
+    hideFormSubmissionErrors();
+    listener.onFinishRegisterUser();
+  }
+
+  @Override
+  public void onSyncError(String errorMessage) {
+    showErrorMessage(errorMessage);
+  }
+
+  private void showErrorMessage(String errorMessage) {
+    if (errorMessage.contains("failed to connect")) {
+      hideFormSubmissionErrors();
+      showFailedToConnectError();
+    } else if (errorMessage.contains("Sorry, this email already existed")) {
+      showThisEmailAlreadyExistedError();
+    } else {
+      hideFormSubmissionErrors();
+      showAnErrorOccurredError();
+    }
+  }
+
   private void hideFormSubmissionErrors() {
     formSubmissionErrors.setText("");
     formSubmissionErrors.setVisibility(View.GONE);
+  }
+
+  private void showFailedToConnectError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.failed_to_connect,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
+  }
+
+  private void showThisEmailAlreadyExistedError() {
+    formSubmissionErrors.setText(R.string.this_email_already_existed);
+    formSubmissionErrors.setVisibility(View.VISIBLE);
+  }
+
+  private void showAnErrorOccurredError() {
+    Snackbar snackbar = Snackbar.make(
+        coordinatorLayout,
+        R.string.an_error_occurred,
+        Snackbar.LENGTH_LONG
+    );
+    AppController.showWhiteTextSnackbar(snackbar);
   }
 
   private class MyTextWatcher implements TextWatcher {
@@ -384,9 +311,9 @@ public class RegisterFragment extends Fragment {
 
   }
 
-  public interface IRegisterFragment {
-    void onClickLinkToLogin();
-    void onLogin();
+  public interface IRegisterUserFragment {
+    void onFinishRegisterUser();
+    void onFinishLoginUser();
     void onSetActionBarTitle(String title);
   }
 

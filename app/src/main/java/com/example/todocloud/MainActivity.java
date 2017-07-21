@@ -23,10 +23,10 @@ import com.example.todocloud.data.PredefinedListItem;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.data.User;
 import com.example.todocloud.datastorage.DbLoader;
-import com.example.todocloud.fragment.LoginFragment;
+import com.example.todocloud.fragment.LoginUserFragment;
 import com.example.todocloud.fragment.LogoutFragment;
 import com.example.todocloud.fragment.MainListFragment;
-import com.example.todocloud.fragment.RegisterFragment;
+import com.example.todocloud.fragment.RegisterUserFragment;
 import com.example.todocloud.fragment.SettingsFragment;
 import com.example.todocloud.fragment.TodoCreateFragment;
 import com.example.todocloud.fragment.TodoListFragment;
@@ -37,7 +37,7 @@ import com.example.todocloud.service.ReminderService;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements MainListFragment.IMainListFragment,
-    LoginFragment.ILoginFragment, RegisterFragment.IRegisterFragment,
+    LoginUserFragment.ILoginUserFragment, RegisterUserFragment.IRegisterUserFragment,
     FragmentManager.OnBackStackChangedListener,
     TodoListFragment.ITodoListFragment,
     TodoModifyFragment.ITodoModifyFragmentActionBar,
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
         return;
       }
 
-      sessionManager = new SessionManager(getApplicationContext());
+      sessionManager = SessionManager.getInstance();
       if (sessionManager.isLoggedIn()) {
         // Bejelentkezett.
 
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
           // Megnyitjuk a TodoModifyFragment-et a megfelelő tennivalóval (a Notification-höz
           // tartozóval).
-          DbLoader dbLoader = new DbLoader(this);
+          DbLoader dbLoader = new DbLoader();
           Todo todo = dbLoader.getTodo(id);
 
           TodoModifyFragment todoModifyFragment = new TodoModifyFragment();
@@ -121,9 +121,9 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
         }
       } else {
         // Nem jelentkezett be.
-        LoginFragment loginFragment = new LoginFragment();
+        LoginUserFragment loginUserFragment = new LoginUserFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.FragmentContainer,
-            loginFragment).commit();
+            loginUserFragment).commit();
       }
 
       getSupportFragmentManager().addOnBackStackChangedListener(this);
@@ -223,7 +223,8 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     View navigationHeader = navigationView.getHeaderView(0);
     TextView tvName = (TextView) navigationHeader.findViewById(R.id.tvName);
     TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.tvEmail);
-    User user = new DbLoader(this).getUser();
+    DbLoader dbLoader = new DbLoader();
+    User user = dbLoader.getUser();
     tvName.setText(user.getName());
     tvEmail.setText(user.getEmail());
   }
@@ -256,8 +257,8 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
       super.onBackPressed();
     } else if (todoModifyFragment != null)
       todoModifyFragment.updateTodo();
-    else if (getSupportFragmentManager().findFragmentByTag("RegisterFragment") != null) {
-      // A RegisterFragment-ről visszanavigálva a LoginFragment-re.
+    else if (getSupportFragmentManager().findFragmentByTag("RegisterUserFragment") != null) {
+      // A RegisterUserFragment-ről visszanavigálva a LoginUserFragment-re.
       super.onBackPressed();
       onSetActionBarTitle(getString(R.string.login));
     } else if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -302,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   public void onLogout() {
 
     // Emlékeztetők törlése.
-    DbLoader dbLoader = new DbLoader(getApplicationContext());
+    DbLoader dbLoader = new DbLoader();
     ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
       Intent service = new Intent(getApplicationContext(), ReminderService.class);
@@ -312,46 +313,45 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     }
 
     sessionManager.setLogin(false);
-
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    LoginFragment loginFragment = new LoginFragment();
-    fragmentTransaction.replace(R.id.FragmentContainer, loginFragment);
-    fragmentTransaction.commit();
-
+    openLoginUserFragment();
     dbLoader.reCreateDb();
   }
 
-  /**
-   * Megnyitja a RegisterFragment-et.
-   */
   @Override
-  public void onClickLinkToRegister() {
+  public void onClickLinkToRegisterUser() {
+    openRegisterUserFragment();
+  }
+
+  private void openRegisterUserFragment() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    RegisterFragment registerFragment = new RegisterFragment();
-    fragmentTransaction.replace(R.id.FragmentContainer, registerFragment, "RegisterFragment");
+    RegisterUserFragment registerUserFragment = new RegisterUserFragment();
+    fragmentTransaction.replace(
+        R.id.FragmentContainer,
+        registerUserFragment,
+        "RegisterUserFragment"
+    );
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
 
-  /**
-   * Megnyitja a LoginFragment-et.
-   */
   @Override
-  public void onClickLinkToLogin() {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    LoginFragment loginFragment = new LoginFragment();
-    fragmentTransaction.replace(R.id.FragmentContainer, loginFragment);
-    fragmentTransaction.commit();
+  public void onFinishRegisterUser() {
+    openLoginUserFragment();
     onSetActionBarTitle(getString(R.string.login));
   }
 
+  private void openLoginUserFragment() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    LoginUserFragment loginUserFragment = new LoginUserFragment();
+    fragmentTransaction.replace(R.id.FragmentContainer, loginUserFragment);
+    fragmentTransaction.commit();
+  }
+
   @Override
-  public void onLogin() {
+  public void onFinishLoginUser() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openMainListFragment(fragmentManager);

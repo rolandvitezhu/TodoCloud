@@ -1,7 +1,6 @@
 package com.example.todocloud.datastorage;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -14,16 +13,13 @@ import java.util.ArrayList;
 
 public class DbLoader {
 
-	private DbHelper dbHelper;
 	private SQLiteDatabase sqLiteDatabase;
-  private Context context;
 
-	public DbLoader(Context context) {
-		this.context = context;
+	public DbLoader() {
 	}
 
   private void open() {
-    dbHelper = DbHelper.getInstance(context);
+    DbHelper dbHelper = DbHelper.getInstance();
     sqLiteDatabase = dbHelper.getWritableDatabase();
   }
 

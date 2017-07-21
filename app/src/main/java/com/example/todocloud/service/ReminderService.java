@@ -35,7 +35,7 @@ public class ReminderService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
-    dbLoader = new DbLoader(this);
+    dbLoader = new DbLoader();
   }
 
   @Override
