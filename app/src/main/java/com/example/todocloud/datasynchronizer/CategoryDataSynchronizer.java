@@ -22,24 +22,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CategoryDataSynchronizer {
+class CategoryDataSynchronizer {
 
   private static final String TAG = CategoryDataSynchronizer.class.getSimpleName();
 
   private OnSyncCategoryDataListener onSyncCategoryDataListener;
   private DbLoader dbLoader;
 
-  public CategoryDataSynchronizer(DbLoader dbLoader) {
+  CategoryDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
   }
 
-  public void setOnSyncCategoryDataListener(
+  void setOnSyncCategoryDataListener(
       OnSyncCategoryDataListener onSyncCategoryDataListener
   ) {
     this.onSyncCategoryDataListener = onSyncCategoryDataListener;
   }
 
-  public void syncCategoryData() {
+  void syncCategoryData() {
     getCategories();
   }
 
@@ -323,7 +323,7 @@ public class CategoryDataSynchronizer {
     jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
   }
 
-  public interface OnSyncCategoryDataListener {
+  interface OnSyncCategoryDataListener {
     void onFinishSyncCategoryData();
     void onSyncError(String errorMessage);
   }

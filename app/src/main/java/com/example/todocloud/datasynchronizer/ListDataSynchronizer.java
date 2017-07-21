@@ -22,22 +22,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ListDataSynchronizer {
+class ListDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
 
   private OnSyncListDataListener onSyncListDataListener;
   private DbLoader dbLoader;
 
-  public ListDataSynchronizer(DbLoader dbLoader) {
+  ListDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
   }
 
-  public void setOnSyncListDataListener(OnSyncListDataListener onSyncListDataListener) {
+  void setOnSyncListDataListener(OnSyncListDataListener onSyncListDataListener) {
     this.onSyncListDataListener = onSyncListDataListener;
   }
 
-  public void syncListData() {
+  void syncListData() {
     getLists();
   }
 
@@ -323,7 +323,7 @@ public class ListDataSynchronizer {
     jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
   }
 
-  public interface OnSyncListDataListener {
+  interface OnSyncListDataListener {
     void onFinishSyncListData();
     void onSyncError(String errorMessage);
   }

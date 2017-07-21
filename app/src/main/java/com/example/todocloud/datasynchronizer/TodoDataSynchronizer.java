@@ -22,22 +22,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TodoDataSynchronizer {
+class TodoDataSynchronizer {
 
   private static final String TAG = TodoDataSynchronizer.class.getSimpleName();
 
   private OnSyncTodoDataListener onSyncTodoDataListener;
   private DbLoader dbLoader;
 
-  public TodoDataSynchronizer(DbLoader dbLoader) {
+  TodoDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
   }
 
-  public void setOnSyncTodoDataListener(OnSyncTodoDataListener onSyncTodoDataListener) {
+  void setOnSyncTodoDataListener(OnSyncTodoDataListener onSyncTodoDataListener) {
     this.onSyncTodoDataListener = onSyncTodoDataListener;
   }
 
-  public void syncTodoData() {
+  void syncTodoData() {
     getTodos();
   }
 
@@ -336,7 +336,7 @@ public class TodoDataSynchronizer {
     jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
   }
 
-  public interface OnSyncTodoDataListener {
+  interface OnSyncTodoDataListener {
     void onFinishSyncTodoData();
     void onSyncError(String errorMessage);
   }
