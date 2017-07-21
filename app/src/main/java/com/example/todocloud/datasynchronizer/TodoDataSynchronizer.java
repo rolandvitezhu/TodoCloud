@@ -28,6 +28,8 @@ class TodoDataSynchronizer {
 
   private OnSyncTodoDataListener onSyncTodoDataListener;
   private DbLoader dbLoader;
+  private int insertTodosRequestCount;
+  private int currentInsertTodosRequest;
 
   TodoDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
@@ -43,7 +45,42 @@ class TodoDataSynchronizer {
 
   private void getTodos() {
     String tag_string_request = "request_get_todos";
+    StringRequest getTodosRequest = prepareGetTodosRequest();
+    AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
+  }
 
+  private void updateTodos() {
+    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
+
+    if (!todosToUpdate.isEmpty()) {
+      AppController appController = AppController.getInstance();
+      String tag_json_object_request = "request_update_todo";
+      for (final Todo todoToUpdate : todosToUpdate) {
+        JsonObjectRequest updateTodoRequest = prepareUpdateTodoRequest(todoToUpdate);
+        appController.addToRequestQueue(updateTodoRequest, tag_json_object_request);
+      }
+    }
+    insertTodos();
+  }
+
+  private void insertTodos() {
+    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
+
+    if (!todosToInsert.isEmpty()) {
+      AppController appController = AppController.getInstance();
+      String tag_json_object_request = "request_insert_todo";
+      insertTodosRequestCount = todosToInsert.size();
+      currentInsertTodosRequest = 1;
+      for (final Todo todoToInsert : todosToInsert) {
+        JsonObjectRequest insertTodoRequest = prepareInsertTodoRequest(todoToInsert);
+        appController.addToRequestQueue(insertTodoRequest, tag_json_object_request);
+      }
+    } else {
+      onSyncTodoDataListener.onFinishSyncTodoData();
+    }
+  }
+
+  private StringRequest prepareGetTodosRequest() {
     String url = prepareGetTodosUrl();
     StringRequest getTodosRequest = new StringRequest(
         Request.Method.GET,
@@ -122,186 +159,159 @@ class TodoDataSynchronizer {
       }
 
     };
-
-    AppController.getInstance().addToRequestQueue(getTodosRequest, tag_string_request);
+    return getTodosRequest;
   }
 
-  private void updateTodos() {
-    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
-
-    if (!todosToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_todo";
-      for (final Todo todoToUpdate : todosToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-          String errorMessage = "Unknown error";
-          onSyncTodoDataListener.onSyncError(errorMessage);
-        }
-
-        JsonObjectRequest updateTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (message == null) message = "Unknown error";
-                    onSyncTodoDataListener.onSyncError(message);
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  String errorMessage = "Unknown error";
-                  onSyncTodoDataListener.onSyncError(errorMessage);
-                }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToUpdate.setRowVersion(response.getInt("row_version"));
-                todoToUpdate.setDirty(false);
-                dbLoader.updateTodo(todoToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update Todo Error: " + errorMessage);
-                if (errorMessage == null) errorMessage = "Unknown error";
-                onSyncTodoDataListener.onSyncError(errorMessage);
-              }
-
-            }
-        ) {
+  private JsonObjectRequest prepareUpdateTodoRequest(final Todo todoToUpdate) {
+    JSONObject updateTodoJsonRequest = prepareUpdateTodoJsonRequest(todoToUpdate);
+    JsonObjectRequest updateTodoRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.PUT,
+        AppConfig.URL_UPDATE_TODO,
+        updateTodoJsonRequest,
+        new Response.Listener<JSONObject>() {
 
           @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Update Todo Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
+
+              if (!error) {
+                makeTodoUpToDate(response);
+              } else {
+                String message = response.getString("message");
+                Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncTodoDataListener.onSyncError(message);
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncTodoDataListener.onSyncError(errorMessage);
+            }
           }
 
-        };
+          private void makeTodoUpToDate(JSONObject response) throws JSONException {
+            todoToUpdate.setRowVersion(response.getInt("row_version"));
+            todoToUpdate.setDirty(false);
+            dbLoader.updateTodo(todoToUpdate);
+          }
 
-        AppController.getInstance().addToRequestQueue(updateTodosRequest, tag_json_object_request);
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Update Todo Error: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncTodoDataListener.onSyncError(errorMessage);
+          }
+
+        }
+    ) {
+
+      @Override
+      public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", dbLoader.getApiKey());
+        return headers;
       }
-    }
-    insertTodos();
+
+    };
+    return updateTodoRequest;
   }
 
-  private void insertTodos() {
-    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
+  private JSONObject prepareUpdateTodoJsonRequest(final Todo todoToUpdate) {
+    JSONObject updateTodoJsonRequest = new JSONObject();
+    try {
+      putTodoData(todoToUpdate, updateTodoJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onSyncTodoDataListener.onSyncError(errorMessage);
+    }
+    return updateTodoJsonRequest;
+  }
 
-    if (!todosToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_todo";
-      int requestsCount = todosToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final Todo todoToInsert : todosToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
+  private JsonObjectRequest prepareInsertTodoRequest(final Todo todoToInsert) {
+    JSONObject insertTodoJsonRequest = prepareInsertTodoJsonRequest(todoToInsert);
+    JsonObjectRequest insertTodoRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_INSERT_TODO,
+        insertTodoJsonRequest,
+        new Response.Listener<JSONObject>() {
 
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putTodoData(todoToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-          String errorMessage = "Unknown error";
-          onSyncTodoDataListener.onSyncError(errorMessage);
-          if (LAST_REQUEST_PROCESSED) {
-            onSyncTodoDataListener.onFinishSyncTodoData();
-          }
-        }
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Insert Todo Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
 
-        JsonObjectRequest insertTodosRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_TODO,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert Todo Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeTodoUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      onSyncTodoDataListener.onFinishSyncTodoData();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (message == null) message = "Unknown error";
-                    onSyncTodoDataListener.onSyncError(message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      onSyncTodoDataListener.onFinishSyncTodoData();
-                    }
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  String errorMessage = "Unknown error";
-                  onSyncTodoDataListener.onSyncError(errorMessage);
-                  if (LAST_REQUEST_PROCESSED) {
-                    onSyncTodoDataListener.onFinishSyncTodoData();
-                  }
+              if (!error) {
+                makeTodoUpToDate(response);
+                if (isLastInsertTodoRequest()) {
+                  onSyncTodoDataListener.onFinishSyncTodoData();
                 }
-              }
-
-              private void makeTodoUpToDate(JSONObject response) throws JSONException {
-                todoToInsert.setRowVersion(response.getInt("row_version"));
-                todoToInsert.setDirty(false);
-                dbLoader.updateTodo(todoToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert Todo Error: " + errorMessage);
-                if (errorMessage == null) errorMessage = "Unknown error";
-                onSyncTodoDataListener.onSyncError(errorMessage);
-                if (LAST_REQUEST_PROCESSED) {
+              } else {
+                String message = response.getString("message");
+                Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncTodoDataListener.onSyncError(message);
+                if (isLastInsertTodoRequest()) {
                   onSyncTodoDataListener.onFinishSyncTodoData();
                 }
               }
 
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncTodoDataListener.onSyncError(errorMessage);
+              if (isLastInsertTodoRequest()) {
+                onSyncTodoDataListener.onFinishSyncTodoData();
+              }
             }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
           }
 
-        };
+          private void makeTodoUpToDate(JSONObject response) throws JSONException {
+            todoToInsert.setRowVersion(response.getInt("row_version"));
+            todoToInsert.setDirty(false);
+            dbLoader.updateTodo(todoToInsert);
+          }
 
-        AppController.getInstance().addToRequestQueue(insertTodosRequest, tag_json_object_request);
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Insert Todo Error: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncTodoDataListener.onSyncError(errorMessage);
+            if (isLastInsertTodoRequest()) {
+              onSyncTodoDataListener.onFinishSyncTodoData();
+            }
+          }
+
+        }
+    ) {
+
+      @Override
+      public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", dbLoader.getApiKey());
+        return headers;
       }
+
+    };
+    return insertTodoRequest;
+  }
+
+  private boolean isLastInsertTodoRequest() {
+    if (currentInsertTodosRequest++ == insertTodosRequestCount) {
+      return true;
     } else {
-      onSyncTodoDataListener.onFinishSyncTodoData();
+      return false;
     }
   }
 
@@ -310,6 +320,21 @@ class TodoDataSynchronizer {
     int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
     return AppConfig.URL_GET_TODOS.substring(0, end)
         + dbLoader.getTodoRowVersion();
+  }
+
+  private JSONObject prepareInsertTodoJsonRequest(final Todo todoToInsert) {
+    JSONObject insertTodoJsonRequest = new JSONObject();
+    try {
+      putTodoData(todoToInsert, insertTodoJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onSyncTodoDataListener.onSyncError(errorMessage);
+      if (isLastInsertTodoRequest()) {
+        onSyncTodoDataListener.onFinishSyncTodoData();
+      }
+    }
+    return insertTodoJsonRequest;
   }
 
   private void putTodoData(Todo todoData, JSONObject jsonRequest) throws JSONException {

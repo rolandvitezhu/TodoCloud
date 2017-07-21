@@ -28,6 +28,8 @@ class ListDataSynchronizer {
 
   private OnSyncListDataListener onSyncListDataListener;
   private DbLoader dbLoader;
+  private int insertListsRequestCount;
+  private int currentInsertListsRequest;
 
   ListDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
@@ -43,7 +45,42 @@ class ListDataSynchronizer {
 
   private void getLists() {
     String tag_string_request = "request_get_lists";
+    StringRequest getListsRequest = prepareGetListsRequest();
+    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
+  }
 
+  private void updateLists() {
+    ArrayList<List> listsToUpdate = dbLoader.getListsToUpdate();
+
+    if (!listsToUpdate.isEmpty()) {
+      AppController appController = AppController.getInstance();
+      String tag_json_object_request = "request_update_list";
+      for (final List listToUpdate : listsToUpdate) {
+        JsonObjectRequest updateListRequest = prepareUpdateListRequest(listToUpdate);
+        appController.addToRequestQueue(updateListRequest, tag_json_object_request);
+      }
+    }
+    insertLists();
+  }
+
+  private void insertLists() {
+    ArrayList<List> listsToInsert = dbLoader.getListsToInsert();
+
+    if (!listsToInsert.isEmpty()) {
+      AppController appController = AppController.getInstance();
+      String tag_json_object_request = "request_insert_list";
+      insertListsRequestCount = listsToInsert.size();
+      currentInsertListsRequest = 1;
+      for (final List listToInsert : listsToInsert) {
+        JsonObjectRequest insertListRequest = prepareInsertListRequest(listToInsert);
+        appController.addToRequestQueue(insertListRequest, tag_json_object_request);
+      }
+    } else {
+      onSyncListDataListener.onFinishSyncListData();
+    }
+  }
+
+  private StringRequest prepareGetListsRequest() {
     String url = prepareGetListsUrl();
     StringRequest getListsRequest = new StringRequest(
         Request.Method.GET,
@@ -122,186 +159,159 @@ class ListDataSynchronizer {
       }
 
     };
-
-    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
+    return getListsRequest;
   }
 
-  private void updateLists() {
-    ArrayList<List> listsToUpdate = dbLoader.getListsToUpdate();
-
-    if (!listsToUpdate.isEmpty()) {
-      String tag_json_object_request = "request_update_list";
-      for (final List listToUpdate : listsToUpdate) {
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putListData(listToUpdate, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-          String errorMessage = "Unknown error";
-          onSyncListDataListener.onSyncError(errorMessage);
-        }
-
-        JsonObjectRequest updateListsRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.PUT,
-            AppConfig.URL_UPDATE_LIST,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Update List Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeListUpToDate(response);
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (message == null) message = "Unknown error";
-                    onSyncListDataListener.onSyncError(message);
-                  }
-
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  String errorMessage = "Unknown error";
-                  onSyncListDataListener.onSyncError(errorMessage);
-                }
-              }
-
-              private void makeListUpToDate(JSONObject response) throws JSONException {
-                listToUpdate.setRowVersion(response.getInt("row_version"));
-                listToUpdate.setDirty(false);
-                dbLoader.updateList(listToUpdate);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Update List Error: " + errorMessage);
-                if (errorMessage == null) errorMessage = "Unknown error";
-                onSyncListDataListener.onSyncError(errorMessage);
-              }
-
-            }
-        ) {
+  private JsonObjectRequest prepareUpdateListRequest(final List listToUpdate) {
+    JSONObject updateListJsonRequest = prepareUpdateListJsonRequest(listToUpdate);
+    JsonObjectRequest updateListRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.PUT,
+        AppConfig.URL_UPDATE_LIST,
+        updateListJsonRequest,
+        new Response.Listener<JSONObject>() {
 
           @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Update List Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
+
+              if (!error) {
+                makeListUpToDate(response);
+              } else {
+                String message = response.getString("message");
+                Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncListDataListener.onSyncError(message);
+              }
+
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncListDataListener.onSyncError(errorMessage);
+            }
           }
 
-        };
+          private void makeListUpToDate(JSONObject response) throws JSONException {
+            listToUpdate.setRowVersion(response.getInt("row_version"));
+            listToUpdate.setDirty(false);
+            dbLoader.updateList(listToUpdate);
+          }
 
-        AppController.getInstance().addToRequestQueue(updateListsRequest, tag_json_object_request);
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Update List Error: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncListDataListener.onSyncError(errorMessage);
+          }
+
+        }
+    ) {
+
+      @Override
+      public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", dbLoader.getApiKey());
+        return headers;
       }
-    }
-    insertLists();
+
+    };
+    return updateListRequest;
   }
 
-  private void insertLists() {
-    ArrayList<List> listsToInsert = dbLoader.getListsToInsert();
+  private JSONObject prepareUpdateListJsonRequest(final List listToUpdate) {
+    JSONObject updateListJsonRequest = new JSONObject();
+    try {
+      putListData(listToUpdate, updateListJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onSyncListDataListener.onSyncError(errorMessage);
+    }
+    return updateListJsonRequest;
+  }
 
-    if (!listsToInsert.isEmpty()) {
-      String tag_json_object_request = "request_insert_list";
-      int requestsCount = listsToInsert.size();
-      int currentRequest = 1;
-      boolean lastRequestProcessed = false;
-      for (final List listToInsert : listsToInsert) {
-        if (currentRequest++ == requestsCount) {
-          lastRequestProcessed = true;
-        }
-        final boolean LAST_REQUEST_PROCESSED = lastRequestProcessed;
+  private JsonObjectRequest prepareInsertListRequest(final List listToInsert) {
+    JSONObject insertListJsonRequest = prepareInsertListJsonRequest(listToInsert);
+    JsonObjectRequest insertListRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_INSERT_LIST,
+        insertListJsonRequest,
+        new Response.Listener<JSONObject>() {
 
-        JSONObject jsonRequest = new JSONObject();
-        try {
-          putListData(listToInsert, jsonRequest);
-        } catch (JSONException e) {
-          e.printStackTrace();
-          String errorMessage = "Unknown error";
-          onSyncListDataListener.onSyncError(errorMessage);
-          if (LAST_REQUEST_PROCESSED) {
-            onSyncListDataListener.onFinishSyncListData();
-          }
-        }
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Insert List Response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-            JsonObjectRequest.Method.POST,
-            AppConfig.URL_INSERT_LIST,
-            jsonRequest,
-            new Response.Listener<JSONObject>() {
-
-              @Override
-              public void onResponse(JSONObject response) {
-                Log.d(TAG, "Insert List Response: " + response);
-                try {
-                  boolean error = response.getBoolean("error");
-
-                  if (!error) {
-                    makeListUpToDate(response);
-                    if (LAST_REQUEST_PROCESSED) {
-                      onSyncListDataListener.onFinishSyncListData();
-                    }
-                  } else {
-                    String message = response.getString("message");
-                    Log.d(TAG, "Error Message: " + message);
-                    if (message == null) message = "Unknown error";
-                    onSyncListDataListener.onSyncError(message);
-                    if (LAST_REQUEST_PROCESSED) {
-                      onSyncListDataListener.onFinishSyncListData();
-                    }
-                  }
-                } catch (JSONException e) {
-                  e.printStackTrace();
-                  String errorMessage = "Unknown error";
-                  onSyncListDataListener.onSyncError(errorMessage);
-                  if (LAST_REQUEST_PROCESSED) {
-                    onSyncListDataListener.onFinishSyncListData();
-                  }
+              if (!error) {
+                makeListUpToDate(response);
+                if (isLastInsertListRequest()) {
+                  onSyncListDataListener.onFinishSyncListData();
                 }
-              }
-
-              private void makeListUpToDate(JSONObject response) throws JSONException {
-                listToInsert.setRowVersion(response.getInt("row_version"));
-                listToInsert.setDirty(false);
-                dbLoader.updateList(listToInsert);
-              }
-
-            },
-            new Response.ErrorListener() {
-
-              @Override
-              public void onErrorResponse(VolleyError error) {
-                String errorMessage = error.getMessage();
-                Log.e(TAG, "Insert List Error: " + errorMessage);
-                if (errorMessage == null) errorMessage = "Unknown error";
-                onSyncListDataListener.onSyncError(errorMessage);
-                if (LAST_REQUEST_PROCESSED) {
+              } else {
+                String message = response.getString("message");
+                Log.d(TAG, "Error Message: " + message);
+                if (message == null) message = "Unknown error";
+                onSyncListDataListener.onSyncError(message);
+                if (isLastInsertListRequest()) {
                   onSyncListDataListener.onFinishSyncListData();
                 }
               }
-
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onSyncListDataListener.onSyncError(errorMessage);
+              if (isLastInsertListRequest()) {
+                onSyncListDataListener.onFinishSyncListData();
+              }
             }
-        ) {
-
-          @Override
-          public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("authorization", dbLoader.getApiKey());
-            return headers;
           }
 
-        };
+          private void makeListUpToDate(JSONObject response) throws JSONException {
+            listToInsert.setRowVersion(response.getInt("row_version"));
+            listToInsert.setDirty(false);
+            dbLoader.updateList(listToInsert);
+          }
 
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_object_request);
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Insert List Error: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onSyncListDataListener.onSyncError(errorMessage);
+            if (isLastInsertListRequest()) {
+              onSyncListDataListener.onFinishSyncListData();
+            }
+          }
+
+        }
+    ) {
+
+      @Override
+      public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", dbLoader.getApiKey());
+        return headers;
       }
+
+    };
+    return insertListRequest;
+  }
+
+  private boolean isLastInsertListRequest() {
+    if (currentInsertListsRequest++ == insertListsRequestCount) {
+      return true;
     } else {
-      onSyncListDataListener.onFinishSyncListData();
+      return false;
     }
   }
 
@@ -310,6 +320,21 @@ class ListDataSynchronizer {
     int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
     return AppConfig.URL_GET_LISTS.substring(0, end)
         + dbLoader.getListRowVersion();
+  }
+
+  private JSONObject prepareInsertListJsonRequest(final List listToInsert) {
+    JSONObject insertListJsonRequest = new JSONObject();
+    try {
+      putListData(listToInsert, insertListJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onSyncListDataListener.onSyncError(errorMessage);
+      if (isLastInsertListRequest()) {
+        onSyncListDataListener.onFinishSyncListData();
+      }
+    }
+    return insertListJsonRequest;
   }
 
   private void putListData(List listData, JSONObject jsonRequest) throws JSONException {
