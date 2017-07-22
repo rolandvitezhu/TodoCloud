@@ -105,14 +105,17 @@ public class RegisterUserFragment extends Fragment
         InputMethodManager inputMethodManager = (InputMethodManager) getActivity().
             getSystemService(Context.INPUT_METHOD_SERVICE);
         if (getActivity().getCurrentFocus() != null)
-          inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().
-              getWindowToken(), 0);
+          inputMethodManager.hideSoftInputFromWindow(
+              getActivity().getCurrentFocus().getWindowToken(),
+              0
+          );
 
         if (validateName() & validateEmail() & validatePassword() & validateConfirmPassword()) {
           dbLoader.reCreateDb();
           long _id = dbLoader.createUser(new User());
           String user_online_id = OnlineIdGenerator.generateOnlineId(
-              DbConstants.User.DATABASE_TABLE, _id);
+              DbConstants.User.DATABASE_TABLE, _id
+          );
           String name = tietName.getText().toString().trim();
           String email = tietEmail.getText().toString().trim();
           String password = tietPassword.getText().toString().trim();
