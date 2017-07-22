@@ -9,27 +9,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
-import com.example.todocloud.data.PredefinedListItem;
+import com.example.todocloud.data.PredefinedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PredefinedListAdapter extends BaseAdapter {
 
-  private final List<PredefinedListItem> predefinedListItems;
+  private final List<PredefinedList> predefinedLists;
 
-  public PredefinedListAdapter(final ArrayList<PredefinedListItem> predefinedListItems) {
-    this.predefinedListItems = predefinedListItems;
+  public PredefinedListAdapter(final ArrayList<PredefinedList> predefinedLists) {
+    this.predefinedLists = predefinedLists;
   }
 
   @Override
   public int getCount() {
-    return predefinedListItems.size();
+    return predefinedLists.size();
   }
 
   @Override
   public Object getItem(int position) {
-    return predefinedListItems.get(position);
+    return predefinedLists.get(position);
   }
 
   @Override
@@ -40,7 +40,7 @@ public class PredefinedListAdapter extends BaseAdapter {
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
 
-    final PredefinedListItem predefinedListItem = predefinedListItems.get(position);
+    final PredefinedList predefinedList = predefinedLists.get(position);
 
     LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(
         Context.LAYOUT_INFLATER_SERVICE);
@@ -49,7 +49,7 @@ public class PredefinedListAdapter extends BaseAdapter {
     TextView textViewTitle = (TextView) itemView.findViewById(R.id.tvTitle);
     ImageView ivPredefinedList = (ImageView) itemView.findViewById(R.id.ivPredefinedList);
 
-    String title = predefinedListItem.getTitle();
+    String title = predefinedList.getTitle();
     switch (title) {
       case "0":
         ivPredefinedList.setImageResource(R.drawable.calendar_1_24);
@@ -74,10 +74,10 @@ public class PredefinedListAdapter extends BaseAdapter {
 
   /**
    * Hozzáadja az adapterhez a megadott elemet.
-   * @param predefinedListItem Az adapterhez adandó elem.
+   * @param predefinedList Az adapterhez adandó elem.
    */
-  public void addItem(PredefinedListItem predefinedListItem) {
-    predefinedListItems.add(predefinedListItem);
+  public void addItem(PredefinedList predefinedList) {
+    predefinedLists.add(predefinedList);
   }
 
 }

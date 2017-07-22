@@ -8,7 +8,7 @@ import com.example.todocloud.adapter.ListAdapter;
 import com.example.todocloud.adapter.PredefinedListAdapter;
 import com.example.todocloud.adapter.TodoAdapter;
 import com.example.todocloud.data.Category;
-import com.example.todocloud.data.PredefinedListItem;
+import com.example.todocloud.data.PredefinedList;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
@@ -82,20 +82,41 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
     }
   }
 
-  /**
-   * Frissíti a PredefinedListAdapter-t.
-   */
   private void updatePredefinedListAdapter() {
     PredefinedListAdapter predefinedListAdapter = (PredefinedListAdapter) adapter;
-    predefinedListAdapter.addItem(new PredefinedListItem("0",
-        DbConstants.Todo.KEY_DUE_DATE + "='" +today()+ "'", 0));
-    predefinedListAdapter.addItem(new PredefinedListItem("1",
-        next7Days(), 0));
-    predefinedListAdapter.addItem(new PredefinedListItem("2", null, 0));
-    predefinedListAdapter.addItem(new PredefinedListItem("3",
-        DbConstants.Todo.KEY_COMPLETED + "=" + 1 + " AND " +
-            DbConstants.Todo.KEY_USER_ONLINE_ID + "='" + dbLoader.getUserOnlineId() + "'" + " AND " +
-            DbConstants.Todo.KEY_DELETED + "=" + 0, 0));
+    predefinedListAdapter.addItem(new PredefinedList(
+            "0",
+            DbConstants.Todo.KEY_DUE_DATE + "='" +today()+ "'",
+            0
+        )
+    );
+    predefinedListAdapter.addItem(new PredefinedList(
+            "1",
+            next7Days(),
+            0
+        )
+    );
+    predefinedListAdapter.addItem(new PredefinedList(
+        "2",
+        null,
+        0)
+    );
+    predefinedListAdapter.addItem(new PredefinedList(
+        "3",
+        DbConstants.Todo.KEY_COMPLETED
+            + "="
+            + 1
+            + " AND "
+            + DbConstants.Todo.KEY_USER_ONLINE_ID
+            + "='"
+            + dbLoader.getUserOnlineId()
+            + "'"
+            + " AND "
+            + DbConstants.Todo.KEY_DELETED
+            + "="
+            + 0,
+        0)
+    );
   }
 
   /**

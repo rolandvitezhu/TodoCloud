@@ -1,12 +1,12 @@
 package com.example.todocloud.data;
 
-public class PredefinedListItem {
+public class PredefinedList {
 
   private String title;
   private String selectFromDB;
   private int numberOfTodos;
 
-  public PredefinedListItem(String title, String selectFromDB, int numberOfTodos) {
+  public PredefinedList(String title, String selectFromDB, int numberOfTodos) {
     this.title = title;
     this.selectFromDB = selectFromDB;
     this.numberOfTodos = numberOfTodos;

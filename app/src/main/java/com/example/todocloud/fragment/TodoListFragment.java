@@ -183,8 +183,8 @@ public class TodoListFragment extends Fragment implements
   }
 
   private void openTodoModifyFragment(int childViewAdapterPosition) {
-    Todo clickedTodo = todoAdapter.getTodo(childViewAdapterPosition);
-    listener.onClickTodo(clickedTodo, this);
+    Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
+    listener.onClickTodo(todo, this);
   }
 
   @Override

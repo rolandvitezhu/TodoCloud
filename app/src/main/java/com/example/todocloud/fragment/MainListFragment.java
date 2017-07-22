@@ -30,7 +30,7 @@ import com.example.todocloud.app.AppController;
 import com.example.todocloud.customcomponent.ExpandableHeightExpandableListView;
 import com.example.todocloud.customcomponent.ExpandableHeightListView;
 import com.example.todocloud.data.Category;
-import com.example.todocloud.data.PredefinedListItem;
+import com.example.todocloud.data.PredefinedList;
 import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
@@ -434,7 +434,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void updatePredefinedListAdapter() {
-    predefinedListAdapter = new PredefinedListAdapter(new ArrayList<PredefinedListItem>());
+    predefinedListAdapter = new PredefinedListAdapter(new ArrayList<PredefinedList>());
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, predefinedListAdapter);
     updateAdapterTask.execute();
   }
@@ -594,9 +594,9 @@ public class MainListFragment extends ListFragment implements
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       if (!AppController.isActionModeEnabled()) {
-        PredefinedListItem predefinedListItem = (PredefinedListItem) parent.getAdapter().getItem(
+        PredefinedList predefinedList = (PredefinedList) parent.getAdapter().getItem(
             position);
-        listener.onOpenTodoListFragment(predefinedListItem);
+        listener.onClickPredefinedList(predefinedList);
       }
     }
 
@@ -609,7 +609,7 @@ public class MainListFragment extends ListFragment implements
       com.example.todocloud.data.List clickedList =
           (com.example.todocloud.data.List) listAdapter.getItem(position);
       if (!AppController.isActionModeEnabled()) {
-        listener.onOpenTodoListFragment(clickedList);
+        listener.onClickList(clickedList);
       } else {
         handleItemSelection(position, clickedList);
       }
@@ -682,7 +682,7 @@ public class MainListFragment extends ListFragment implements
           );
           int position = parent.getFlatListPosition(packedPosition);
           if (!AppController.isActionModeEnabled()) {
-            listener.onOpenTodoListFragment(clickedList);
+            listener.onClickList(clickedList);
           } else {
             handleItemSelection(parent, clickedList, position);
           }
@@ -1079,8 +1079,8 @@ public class MainListFragment extends ListFragment implements
   }
 
   public interface IMainListFragment {
-    void onOpenTodoListFragment(PredefinedListItem predefinedListItem);
-    void onOpenTodoListFragment(com.example.todocloud.data.List listToOpen);
+    void onClickPredefinedList(PredefinedList predefinedList);
+    void onClickList(com.example.todocloud.data.List list);
     void onLogout();
     void onStartActionMode(ActionMode.Callback callback);
     void onSetNavigationHeader();

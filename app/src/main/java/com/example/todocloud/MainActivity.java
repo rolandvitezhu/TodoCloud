@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -19,7 +20,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.example.todocloud.data.List;
-import com.example.todocloud.data.PredefinedListItem;
+import com.example.todocloud.data.PredefinedList;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.data.User;
 import com.example.todocloud.datastorage.DbLoader;
@@ -36,12 +37,15 @@ import com.example.todocloud.service.ReminderService;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MainListFragment.IMainListFragment,
-    LoginUserFragment.ILoginUserFragment, RegisterUserFragment.IRegisterUserFragment,
+public class MainActivity extends AppCompatActivity implements
+    MainListFragment.IMainListFragment,
+    LoginUserFragment.ILoginUserFragment,
+    RegisterUserFragment.IRegisterUserFragment,
     FragmentManager.OnBackStackChangedListener,
     TodoListFragment.ITodoListFragment,
     ModifyTodoFragment.IModifyTodoFragmentActionBar,
-    CreateTodoFragment.ICreateTodoFragmentActionBar, SettingsPreferenceFragment.ISettingsPreferenceFragment,
+    CreateTodoFragment.ICreateTodoFragmentActionBar,
+    SettingsPreferenceFragment.ISettingsPreferenceFragment,
     LogoutUserDialogFragment.ILogoutUserDialogFragment {
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -62,90 +66,76 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
     if (findViewById(R.id.FragmentContainer) != null) {
       if (savedInstanceState != null) {
-        // Első indításnál null az érték.
-        // A vizsgálat célja, hogy csak akkor hozzunk létre fragment-et, ha még nincs.
+        // Prevent Fragment overlapping
         return;
       }
 
       sessionManager = SessionManager.getInstance();
       if (sessionManager.isLoggedIn()) {
-        // Bejelentkezett.
-
         onSetNavigationHeader();
 
         long id = getIntent().getLongExtra("id", -1);
-        if (id == -1) {
-          // Az appot Launcher-rel indítottuk. Megnyitjuk a MainListFragment-et.
-          MainListFragment mainListFragment = new MainListFragment();
-          FragmentManager fragmentManager = getSupportFragmentManager();
-          FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-          fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
-          fragmentTransaction.commit();
-        } else {
-          // Az appot Notification-ön történő kattintással indítottuk.
-
-          FragmentManager fragmentManager = getSupportFragmentManager();
-          FragmentTransaction fragmentTransaction;
-
-          // Megnyitjuk a MainListFragment-et.
-          MainListFragment mainListFragment = new MainListFragment();
-          fragmentTransaction = fragmentManager.beginTransaction();
-          fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
-          fragmentTransaction.commit();
-
-          // Az "Összes" listát nyitjuk meg.
-          Bundle args = new Bundle();
-          args.putString("selectFromDB", null);
+        if (wasMainActivityStartedFromLauncherIcon(id)) {
+          openMainListFragment();
+        } else if (wasMainActivityStartedFromNotification(id)){
+          openMainListFragment();
           TodoListFragment todoListFragment = new TodoListFragment();
-          todoListFragment.setArguments(args);
-          fragmentTransaction = fragmentManager.beginTransaction();
-          fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
-          fragmentTransaction.addToBackStack(null);
-          fragmentTransaction.commit();
-
-          // Megnyitjuk a ModifyTodoFragment-et a megfelelő tennivalóval (a Notification-höz
-          // tartozóval).
-          DbLoader dbLoader = new DbLoader();
-          Todo todo = dbLoader.getTodo(id);
-
-          Bundle arguments = new Bundle();
-          arguments.putParcelable("todo", todo);
-          ModifyTodoFragment modifyTodoFragment = new ModifyTodoFragment();
-          modifyTodoFragment.setTargetFragment(todoListFragment, 0);
-          modifyTodoFragment.setArguments(arguments);
-          fragmentTransaction = fragmentManager.beginTransaction();
-          fragmentTransaction.replace(R.id.FragmentContainer,
-              modifyTodoFragment, "ModifyTodoFragment");
-          fragmentTransaction.addToBackStack(null);
-          fragmentTransaction.commit();
+          openAllPredefinedList(todoListFragment);
+          Todo notificationRelatedTodo = getNotificationRelatedTodo(id);
+          openModifyTodoFragment(notificationRelatedTodo, todoListFragment);
         }
       } else {
-        // Nem jelentkezett be.
-        LoginUserFragment loginUserFragment = new LoginUserFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.FragmentContainer,
-            loginUserFragment).commit();
+        openLoginUserFragment();
       }
 
-      getSupportFragmentManager().addOnBackStackChangedListener(this);
-      shouldDisplayHomeUp();
+      prepareActionBarNavigationHandler();
+      shouldDisplayHomeAsUp();
     }
   }
 
-  /**
-   * Megjeleníti az Action Bar-on vissza navigáló gombot, feltéve hogy szükséges (van hová vissza
-   * navigálni).
-   */
-  private void shouldDisplayHomeUp() {
-    boolean display = getSupportFragmentManager().getBackStackEntryCount()>0;
-    if (getSupportActionBar() != null) {
-      getSupportActionBar().setDisplayHomeAsUpEnabled(display);
-      if (!display && getSupportActionBar().getTitle() != null &&
-          !getSupportActionBar().getTitle().equals(getString(R.string.login))) {
-        // A MainListFragment-en megjelenítjük a NavigationDrawer-t.
-        getSupportActionBar().setTitle(R.string.app_name);
+  private boolean wasMainActivityStartedFromLauncherIcon(long id) {
+    return id == -1;
+  }
+
+  private boolean wasMainActivityStartedFromNotification(long id) {
+    return id != -1;
+  }
+
+  private void openAllPredefinedList(TodoListFragment todoListFragment) {
+    Bundle arguments = new Bundle();
+    arguments.putString("selectFromDB", null);
+    arguments.putString("title", "2");
+    arguments.putBoolean("isPredefinedList", true);
+    todoListFragment.setArguments(arguments);
+    openTodoListFragment(todoListFragment);
+  }
+
+  private Todo getNotificationRelatedTodo(long id) {
+    DbLoader dbLoader = new DbLoader();
+    return dbLoader.getTodo(id);
+  }
+
+  private void prepareActionBarNavigationHandler() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    fragmentManager.addOnBackStackChangedListener(this);
+  }
+
+  private void shouldDisplayHomeAsUp() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    boolean shouldDisplay = fragmentManager.getBackStackEntryCount()>0;
+    ActionBar actionBar = getSupportActionBar();
+    if (actionBar != null) {
+      actionBar.setDisplayHomeAsUpEnabled(shouldDisplay);
+      CharSequence actionBarTitle = actionBar.getTitle();
+      if (isMainListFragment(shouldDisplay, actionBarTitle)) {
+        actionBar.setTitle(R.string.app_name);
         setDrawerEnabled(true);
       }
     }
+  }
+
+  private boolean isMainListFragment(boolean shouldDisplay, CharSequence actionBarTitle) {
+    return !shouldDisplay && actionBarTitle != null && !actionBarTitle.equals(getString(R.string.login));
   }
 
   /**
@@ -272,11 +262,23 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void onOpenTodoListFragment(PredefinedListItem predefinedListItem) {
+  public void onClickPredefinedList(PredefinedList predefinedList) {
     Bundle arguments = new Bundle();
-    arguments.putString("selectFromDB", predefinedListItem.getSelectFromDB());
-    arguments.putString("title", predefinedListItem.getTitle());
+    arguments.putString("selectFromDB", predefinedList.getSelectFromDB());
+    arguments.putString("title", predefinedList.getTitle());
     arguments.putBoolean("isPredefinedList", true);
+    openTodoListFragment(arguments);
+  }
+
+  @Override
+  public void onClickList(List list) {
+    Bundle arguments = new Bundle();
+    arguments.putString("listOnlineId", list.getListOnlineId());
+    arguments.putString("title", list.getTitle());
+    openTodoListFragment(arguments);
+  }
+
+  private void openTodoListFragment(Bundle arguments) {
     TodoListFragment todoListFragment = new TodoListFragment();
     todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
@@ -286,13 +288,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     fragmentTransaction.commit();
   }
 
-  @Override
-  public void onOpenTodoListFragment(List listToOpen) {
-    Bundle arguments = new Bundle();
-    arguments.putString("listOnlineId", listToOpen.getListOnlineId());
-    arguments.putString("title", listToOpen.getTitle());
-    TodoListFragment todoListFragment = new TodoListFragment();
-    todoListFragment.setArguments(arguments);
+  private void openTodoListFragment(TodoListFragment todoListFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
@@ -314,6 +310,9 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     }
 
     sessionManager.setLogin(false);
+
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openLoginUserFragment();
     dbLoader.reCreateDb();
   }
@@ -338,13 +337,14 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
 
   @Override
   public void onFinishRegisterUser() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openLoginUserFragment();
     onSetActionBarTitle(getString(R.string.login));
   }
 
   private void openLoginUserFragment() {
     FragmentManager fragmentManager = getSupportFragmentManager();
-    fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     LoginUserFragment loginUserFragment = new LoginUserFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, loginUserFragment);
@@ -355,20 +355,21 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   public void onFinishLoginUser() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    openMainListFragment(fragmentManager);
+    openMainListFragment();
     onSetActionBarTitle(getString(R.string.app_name));
   }
 
-  private void openMainListFragment(FragmentManager fragmentManager) {
-    MainListFragment mainListFragment = new MainListFragment();
+  private void openMainListFragment() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    MainListFragment mainListFragment = new MainListFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
     fragmentTransaction.commit();
   }
 
   @Override
   public void onBackStackChanged() {
-    shouldDisplayHomeUp();
+    shouldDisplayHomeAsUp();
   }
 
   @Override
@@ -394,42 +395,42 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   }
 
   @Override
-  public void onClickTodo(Todo clickedTodo, TodoListFragment targetFragment) {
-    openTodoModifyFragment(clickedTodo, targetFragment);
+  public void onClickTodo(Todo todo, TodoListFragment targetFragment) {
+    openModifyTodoFragment(todo, targetFragment);
   }
 
-  private void openTodoModifyFragment(Todo clickedTodo, TodoListFragment targetFragment) {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
+  private void openModifyTodoFragment(Todo todo, TodoListFragment targetFragment) {
+    Bundle arguments = new Bundle();
+    arguments.putParcelable("todo", todo);
     ModifyTodoFragment modifyTodoFragment = new ModifyTodoFragment();
     modifyTodoFragment.setTargetFragment(targetFragment, 0);
-
-    Bundle arguments = new Bundle();
-    arguments.putParcelable("todo", clickedTodo);
     modifyTodoFragment.setArguments(arguments);
-
-    fragmentTransaction.replace(R.id.FragmentContainer, modifyTodoFragment,
-        "ModifyTodoFragment");
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    fragmentTransaction.replace(
+        R.id.FragmentContainer,
+        modifyTodoFragment,
+        "ModifyTodoFragment"
+    );
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
 
   @Override
   public void onOpenCreateTodoFragment(TodoListFragment targetFragment) {
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     CreateTodoFragment createTodoFragment = new CreateTodoFragment();
     createTodoFragment.setTargetFragment(targetFragment, 0);
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(R.id.FragmentContainer, createTodoFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
 
   public void openSettingsPreferenceFragment() {
+    SettingsPreferenceFragment settingsPreferenceFragment = new SettingsPreferenceFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    SettingsPreferenceFragment settingsPreferenceFragment = new SettingsPreferenceFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, settingsPreferenceFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
