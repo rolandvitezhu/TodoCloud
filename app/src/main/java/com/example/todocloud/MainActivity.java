@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
 
-    setUpNavigationView(navigationView, toolbar);
+    prepareNavigationView(navigationView, toolbar);
 
     if (findViewById(R.id.FragmentContainer) != null) {
       if (savedInstanceState != null) {
@@ -176,42 +176,45 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
     }
   }
 
-  /**
-   * Beállítája a NavigationView-t.
-   * @param navigationView A beállítandó NavigationView.
-   * @param toolbar Az Activity Toolbar-ja.
-   */
-  private void setUpNavigationView(NavigationView navigationView, Toolbar toolbar) {
-
+  private void prepareNavigationView(NavigationView navigationView, Toolbar toolbar) {
     navigationView.setNavigationItemSelectedListener(
         new NavigationView.OnNavigationItemSelectedListener() {
 
-      @Override
-      public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+          @Override
+          public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            int itemId = menuItem.getItemId();
 
-        switch (menuItem.getItemId()) {
-          case R.id.itemSettings:
-            // Beállítások.
-            onOpenSettings();
-            break;
-          case R.id.itemLogout:
-            // Kijelentkezés.
-            LogoutFragment logoutFragment = new LogoutFragment();
-            logoutFragment.show(getSupportFragmentManager(), "LogoutFragment");
-            break;
+            switch (itemId) {
+              case R.id.itemSettings:
+                openSettingsDialogFragment();
+                break;
+              case R.id.itemLogout:
+                openLogoutDialogFragment();
+                break;
+            }
+
+            drawerLayout.closeDrawers();
+
+            return true;
+          }
+
         }
+    );
 
-        drawerLayout.closeDrawers();
-
-        return true;
-      }
-
-    });
-
-    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
-        R.string.open_drawer, R.string.close_drawer);
+    actionBarDrawerToggle = new ActionBarDrawerToggle(
+        this,
+        drawerLayout,
+        toolbar,
+        R.string.open_drawer,
+        R.string.close_drawer
+    );
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
+  }
+
+  private void openLogoutDialogFragment() {
+    LogoutFragment logoutFragment = new LogoutFragment();
+    logoutFragment.show(getSupportFragmentManager(), "LogoutFragment");
   }
 
   /**
@@ -418,23 +421,16 @@ public class MainActivity extends AppCompatActivity implements MainListFragment.
   public void onOpenTodoCreateFragment(TodoListFragment targetFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
     TodoCreateFragment todoCreateFragment = new TodoCreateFragment();
     todoCreateFragment.setTargetFragment(targetFragment, 0);
-
     fragmentTransaction.replace(R.id.FragmentContainer, todoCreateFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
 
-  /**
-   * Megnyitja a beállítások PreferenceFragment-et.
-   */
-  @Override
-  public void onOpenSettings() {
+  public void openSettingsDialogFragment() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
     SettingsFragment settingsFragment = new SettingsFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, settingsFragment);
     fragmentTransaction.addToBackStack(null);

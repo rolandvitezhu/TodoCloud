@@ -1092,7 +1092,6 @@ public class MainListFragment extends ListFragment implements
     void onOpenTodoListFragment(com.example.todocloud.data.List listToOpen);
     void onLogout();
     void onStartActionMode(ActionMode.Callback callback);
-    void onOpenSettings();
     void onSetNavigationHeader();
   }
 
