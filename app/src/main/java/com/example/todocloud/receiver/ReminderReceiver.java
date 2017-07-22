@@ -48,7 +48,7 @@ public class ReminderReceiver extends BroadcastReceiver {
 
   /**
    * Beállítja a NotificationCompat.Builder hanggal, rezgéssel és fényjelzéssel kapcsolatos tulaj-
-   * donságait a SettingsFragment-en beállítottak alapján, a SharedPreferences-ből.
+   * donságait a SettingsPreferenceFragment-en beállítottak alapján, a SharedPreferences-ből.
    * @param context Az ReminderReceiver osztály Context-je.
    * @return NotificationCompat.Builder objektum a SharedPreferences szerinti megfelelő beállítá-
    * sokkal.

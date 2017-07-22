@@ -30,8 +30,8 @@ import com.example.todocloud.receiver.ReminderSetter;
 import java.util.ArrayList;
 
 public class TodoListFragment extends Fragment implements
-    TodoCreateFragment.ITodoCreateFragment,
-    TodoModifyFragment.ITodoModifyFragment,
+    CreateTodoFragment.ICreateTodoFragment,
+    ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
   private DbLoader dbLoader;
@@ -241,7 +241,7 @@ public class TodoListFragment extends Fragment implements
 
       switch (actionItemId) {
         case R.id.itemDelete:
-          confirmDeletion();
+          openConfirmDeleteTodosDialog();
           break;
       }
 
@@ -267,17 +267,17 @@ public class TodoListFragment extends Fragment implements
     AppController.setActionMode(actionMode);
   }
 
-  private void confirmDeletion() {
+  private void openConfirmDeleteTodosDialog() {
     ArrayList<Todo> selectedTodos = todoAdapter.getSelectedTodos();
-    openConfirmDeleteDialogFragment(selectedTodos);
-  }
-
-  private void openConfirmDeleteDialogFragment(ArrayList<Todo> todosToDelete) {
-    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
-    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     Bundle arguments = new Bundle();
     arguments.putString("type", "todo");
-    arguments.putParcelableArrayList("items", todosToDelete);
+    arguments.putParcelableArrayList("items", selectedTodos);
+    openConfirmDeleteDialogFragment(arguments);
+  }
+
+  private void openConfirmDeleteDialogFragment(Bundle arguments) {
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
     confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
@@ -287,7 +287,7 @@ public class TodoListFragment extends Fragment implements
     @Override
     public void onClick(View v) {
       if (isActionMode()) actionMode.finish();
-      listener.onOpenTodoCreateFragment(TodoListFragment.this);
+      listener.onOpenCreateTodoFragment(TodoListFragment.this);
     }
 
   };
@@ -311,7 +311,7 @@ public class TodoListFragment extends Fragment implements
 
     switch (optionsItemId) {
       case R.id.createTodo:
-        listener.onOpenTodoCreateFragment(this);
+        listener.onOpenCreateTodoFragment(this);
         break;
     }
 
@@ -428,7 +428,7 @@ public class TodoListFragment extends Fragment implements
     void onSetActionBarTitle(String actionBarTitle);
     void onStartActionMode(ActionMode.Callback callback);
     void onClickTodo(Todo clickedTodo, TodoListFragment targetFragment);
-    void onOpenTodoCreateFragment(TodoListFragment targetFragment);
+    void onOpenCreateTodoFragment(TodoListFragment targetFragment);
   }
 
 }

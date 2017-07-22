@@ -19,16 +19,16 @@ import android.widget.TextView;
 import com.example.todocloud.R;
 import com.example.todocloud.data.List;
 
-public class ListCreateFragment extends AppCompatDialogFragment {
+public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment {
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private IListCreateFragment listener;
+  private ICreateListInCategoryDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IListCreateFragment) getTargetFragment();
+    listener = (ICreateListInCategoryDialogFragment) getTargetFragment();
   }
 
   @Override
@@ -39,10 +39,9 @@ public class ListCreateFragment extends AppCompatDialogFragment {
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.create_list, container);
-    getDialog().setTitle(R.string.itemCreateList);
+    getDialog().setTitle(R.string.itemCreateListUnderCategory);
 
     // A footer gombok a szoftveres billentyűzet használata alatt is láthatók.
     // A szoftveres billentyűzet nem jelenik meg alapértelmezetten.
@@ -100,7 +99,7 @@ public class ListCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.onCreateList(list);
+          listener.onCreateListInCategory(list, getArguments().getString("categoryOnlineId"));
           dismiss();
         }
       }
@@ -130,8 +129,8 @@ public class ListCreateFragment extends AppCompatDialogFragment {
     }
   }
 
-  public interface IListCreateFragment {
-    void onCreateList(List list);
+  public interface ICreateListInCategoryDialogFragment {
+    void onCreateListInCategory(List list, String categoryOnlineId);
   }
 
 }

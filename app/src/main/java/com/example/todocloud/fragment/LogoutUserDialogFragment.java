@@ -11,17 +11,17 @@ import android.widget.Button;
 
 import com.example.todocloud.R;
 
-public class LogoutFragment extends AppCompatDialogFragment {
+public class LogoutUserDialogFragment extends AppCompatDialogFragment {
 
-  public ILogoutFragment listener;
+  public ILogoutUserDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
     if (getTargetFragment() != null)
-      listener = (ILogoutFragment) getTargetFragment();
+      listener = (ILogoutUserDialogFragment) getTargetFragment();
     else
-      listener = (ILogoutFragment) context;
+      listener = (ILogoutUserDialogFragment) context;
   }
 
   @Override
@@ -35,7 +35,7 @@ public class LogoutFragment extends AppCompatDialogFragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.logout, container);
+    View view = inflater.inflate(R.layout.logout_user, container);
     getDialog().setTitle(R.string.itemLogout);
 
     Button btnOK = (Button) view.findViewById(R.id.btnOK);
@@ -61,7 +61,7 @@ public class LogoutFragment extends AppCompatDialogFragment {
     return view;
   }
 
-  public interface ILogoutFragment {
+  public interface ILogoutUserDialogFragment {
     void onLogout();
   }
 

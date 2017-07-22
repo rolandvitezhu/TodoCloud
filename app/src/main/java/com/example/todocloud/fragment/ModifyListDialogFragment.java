@@ -19,16 +19,16 @@ import android.widget.TextView;
 import com.example.todocloud.R;
 import com.example.todocloud.data.List;
 
-public class ListModifyFragment extends AppCompatDialogFragment {
+public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private IListModifyFragment listener;
+  private IModifyListDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IListModifyFragment) getTargetFragment();
+    listener = (IModifyListDialogFragment) getTargetFragment();
   }
 
   @Override
@@ -126,7 +126,7 @@ public class ListModifyFragment extends AppCompatDialogFragment {
     }
   }
 
-  public interface IListModifyFragment {
+  public interface IModifyListDialogFragment {
     void onModifyList(List list, boolean isInCategory);
   }
 

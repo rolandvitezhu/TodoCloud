@@ -27,7 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class TodoCreateFragment extends Fragment implements IDatePickerDialogFragment,
+public class CreateTodoFragment extends Fragment implements
+    IDatePickerDialogFragment,
     ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
     ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
 
@@ -44,14 +45,14 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
       "yyyy.MM.dd HH:mm", Locale.getDefault());
 	private TextInputEditText tietDescription;
 
-	private ITodoCreateFragment listener;
-  private ITodoCreateFragmentActionBar actionBarListener;
+	private ICreateTodoFragment listener;
+  private ICreateTodoFragmentActionBar actionBarListener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ITodoCreateFragment) getTargetFragment();
-    actionBarListener = (ITodoCreateFragmentActionBar) context;
+    listener = (ICreateTodoFragment) getTargetFragment();
+    actionBarListener = (ICreateTodoFragmentActionBar) context;
   }
 
   @Override
@@ -95,7 +96,7 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
 			
 			@Override
 			public void onClick(View v) {
-				showDatePickerDialog();
+				openDatePickerDialogFragment();
 			}
 
 		});
@@ -171,33 +172,29 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
       tilTitle.setErrorEnabled(false);
   }
 
-  /**
-   * DatePickerDialogFragment-et jelenít meg.
-   */
-	private void showDatePickerDialog() {
-	  DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
-	  datePickerDialogFragment.setTargetFragment(this, 0);
-	  Bundle bundle = new Bundle();
-	  bundle.putSerializable("date", date);
-	  datePickerDialogFragment.setArguments(bundle);
+  private void openDatePickerDialogFragment() {
+	  Bundle arguments = new Bundle();
+    arguments.putSerializable("date", date);
+    DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
+    datePickerDialogFragment.setTargetFragment(this, 0);
+    datePickerDialogFragment.setArguments(arguments);
 	  datePickerDialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
   }
 
-  /**
-   * A ReminderDatePickerDialogFragment-et jeleníti meg.
-   */
   private OnClickListener onRDTClick = new OnClickListener() {
 
     @Override
     public void onClick(View v) {
+      Bundle arguments = new Bundle();
+      arguments.putSerializable("reminderDate", reminderDate);
       ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
           new ReminderDatePickerDialogFragment();
-      reminderDatePickerDialogFragment.setTargetFragment(TodoCreateFragment.this, 0);
-      Bundle bundle = new Bundle();
-      bundle.putSerializable("reminderDate", reminderDate);
-      reminderDatePickerDialogFragment.setArguments(bundle);
+      reminderDatePickerDialogFragment.setTargetFragment(CreateTodoFragment.this, 0);
+      reminderDatePickerDialogFragment.setArguments(arguments);
       reminderDatePickerDialogFragment.show(
-          getFragmentManager(), "ReminderDatePickerDialogFragment");
+          getFragmentManager(),
+          "ReminderDatePickerDialogFragment"
+      );
     }
 
   };
@@ -218,13 +215,13 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
    */
   @Override
   public void onSelectReminderDate(Date date) {
-    ReminderTimePickerDialogFragment timePickerDialogFragment =
+    Bundle arguments = new Bundle();
+    arguments.putSerializable("reminderDate", date);
+    ReminderTimePickerDialogFragment reminderTimePickerDialogFragment =
         new ReminderTimePickerDialogFragment();
-    timePickerDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putSerializable("reminderDate", date);
-    timePickerDialogFragment.setArguments(bundle);
-    timePickerDialogFragment.show(getFragmentManager(), "ReminderTimePickerDialogFragment");
+    reminderTimePickerDialogFragment.setTargetFragment(this, 0);
+    reminderTimePickerDialogFragment.setArguments(arguments);
+    reminderTimePickerDialogFragment.show(getFragmentManager(), "ReminderTimePickerDialogFragment");
   }
 
   /**
@@ -246,11 +243,11 @@ public class TodoCreateFragment extends Fragment implements IDatePickerDialogFra
     tvReminderDateTime.setText(reminderDateFormat.format(date));
   }
 
-  public interface ITodoCreateFragment {
+  public interface ICreateTodoFragment {
 		void onCreateTodo(Todo todoToCreate);
 	}
 
-  public interface ITodoCreateFragmentActionBar {
+  public interface ICreateTodoFragmentActionBar {
     void onSetActionBarTitle(String title);
     void onBackPressed();
   }

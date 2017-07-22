@@ -19,16 +19,16 @@ import android.widget.TextView;
 import com.example.todocloud.R;
 import com.example.todocloud.data.List;
 
-public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
+public class CreateListDialogFragment extends AppCompatDialogFragment {
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private IListInCategoryCreateFragment listener;
+  private ICreateListDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IListInCategoryCreateFragment) getTargetFragment();
+    listener = (ICreateListDialogFragment) getTargetFragment();
   }
 
   @Override
@@ -39,9 +39,10 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.create_list, container);
-    getDialog().setTitle(R.string.itemCreateListUnderCategory);
+    getDialog().setTitle(R.string.itemCreateList);
 
     // A footer gombok a szoftveres billentyűzet használata alatt is láthatók.
     // A szoftveres billentyűzet nem jelenik meg alapértelmezetten.
@@ -99,7 +100,7 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
           list.setDeleted(false);
           list.setDirty(true);
 
-          listener.onCreateListInCategory(list, getArguments().getString("categoryOnlineId"));
+          listener.onCreateList(list);
           dismiss();
         }
       }
@@ -129,8 +130,8 @@ public class ListInCategoryCreateFragment extends AppCompatDialogFragment {
     }
   }
 
-  public interface IListInCategoryCreateFragment {
-    void onCreateListInCategory(List list, String categoryOnlineId);
+  public interface ICreateListDialogFragment {
+    void onCreateList(List list);
   }
 
 }

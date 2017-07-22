@@ -6,14 +6,14 @@ import android.support.v7.preference.PreferenceFragmentCompat;
 
 import com.example.todocloud.R;
 
-public class SettingsFragment extends PreferenceFragmentCompat {
+public class SettingsPreferenceFragment extends PreferenceFragmentCompat {
 
-  private ISettingsFragment listener;
+  private ISettingsPreferenceFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ISettingsFragment) context;
+    listener = (ISettingsPreferenceFragment) context;
   }
 
   @Override
@@ -27,7 +27,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     listener.onSetActionBarTitle(getString(R.string.itemSettings));
   }
 
-  public interface ISettingsFragment {
+  public interface ISettingsPreferenceFragment {
     void onSetActionBarTitle(String title);
   }
 

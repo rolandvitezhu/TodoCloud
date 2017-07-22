@@ -21,7 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class TodoModifyFragment extends Fragment implements IDatePickerDialogFragment,
+public class ModifyTodoFragment extends Fragment implements
+    IDatePickerDialogFragment,
     ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
     ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
 
@@ -37,8 +38,8 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
       "yyyy.MM.dd HH:mm", Locale.getDefault());
   private TextInputEditText tietDescription;
 
-  private ITodoModifyFragment listener;
-  private ITodoModifyFragmentActionBar actionBarListener;
+  private IModifyTodoFragment listener;
+  private IModifyTodoFragmentActionBar actionBarListener;
 
   private boolean shouldNavigateBack;
 
@@ -49,8 +50,8 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ITodoModifyFragment) getTargetFragment();
-    actionBarListener = (ITodoModifyFragmentActionBar) context;
+    listener = (IModifyTodoFragment) getTargetFragment();
+    actionBarListener = (IModifyTodoFragmentActionBar) context;
   }
 
 	@Override
@@ -100,7 +101,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
 
       @Override
       public void onClick(View v) {
-        showDatePickerDialog();
+        openDatePickerDialogFragment();
       }
 
     });
@@ -164,15 +165,12 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
     }
   }
 
-  /**
-   * DatePickerDialogFragment-et nyit meg.
-   */
-	private void showDatePickerDialog() {
-	  DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
-	  datePickerDialogFragment.setTargetFragment(this, 0);
-	  Bundle bundle = new Bundle();
-	  bundle.putSerializable("date", date);
-	  datePickerDialogFragment.setArguments(bundle);
+  private void openDatePickerDialogFragment() {
+    Bundle arguments = new Bundle();
+    arguments.putSerializable("date", date);
+    DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
+    datePickerDialogFragment.setTargetFragment(this, 0);
+	  datePickerDialogFragment.setArguments(arguments);
 	  datePickerDialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
   }
 
@@ -185,7 +183,7 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
     public void onClick(View v) {
       ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
           new ReminderDatePickerDialogFragment();
-      reminderDatePickerDialogFragment.setTargetFragment(TodoModifyFragment.this, 0);
+      reminderDatePickerDialogFragment.setTargetFragment(ModifyTodoFragment.this, 0);
       Bundle bundle = new Bundle();
       bundle.putSerializable("reminderDate", reminderDate);
       reminderDatePickerDialogFragment.setArguments(bundle);
@@ -211,14 +209,16 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
    */
   @Override
   public void onSelectReminderDate(Date date) {
+    Bundle arguments = new Bundle();
+    arguments.putSerializable("reminderDate", date);
     ReminderTimePickerDialogFragment reminderTimePickerDialogFragment =
         new ReminderTimePickerDialogFragment();
     reminderTimePickerDialogFragment.setTargetFragment(this, 0);
-    Bundle bundle = new Bundle();
-    bundle.putSerializable("reminderDate", date);
-    reminderTimePickerDialogFragment.setArguments(bundle);
+    reminderTimePickerDialogFragment.setArguments(arguments);
     reminderTimePickerDialogFragment.show(
-        getFragmentManager(), "ReminderTimePickerDialogFragment");
+        getFragmentManager(),
+        "ReminderTimePickerDialogFragment"
+    );
   }
 
   /**
@@ -240,11 +240,11 @@ public class TodoModifyFragment extends Fragment implements IDatePickerDialogFra
     tvReminderDateTime.setText(reminderDateFormat.format(date));
   }
 
-  public interface ITodoModifyFragment {
+  public interface IModifyTodoFragment {
 		void onModifyTodo(Todo todoToModify);
 	}
 
-  public interface ITodoModifyFragmentActionBar {
+  public interface IModifyTodoFragmentActionBar {
     void onSetActionBarTitle(String title);
     void onBackPressed();
   }

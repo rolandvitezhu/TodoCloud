@@ -18,15 +18,15 @@ import com.example.todocloud.datastorage.DbLoader;
 
 import java.util.ArrayList;
 
-public class ListMoveFragment extends AppCompatDialogFragment {
+public class MoveListDialogFragment extends AppCompatDialogFragment {
 
   private Spinner spnrCategory;
-  private IListMoveFragment listener;
+  private IMoveListDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IListMoveFragment) getTargetFragment();
+    listener = (IMoveListDialogFragment) getTargetFragment();
   }
 
   @Override
@@ -84,7 +84,7 @@ public class ListMoveFragment extends AppCompatDialogFragment {
     return view;
   }
 
-  public interface IListMoveFragment {
+  public interface IMoveListDialogFragment {
     void onMoveList(List list, String categoryOnlineId, boolean listIsNotInCategory);
   }
 

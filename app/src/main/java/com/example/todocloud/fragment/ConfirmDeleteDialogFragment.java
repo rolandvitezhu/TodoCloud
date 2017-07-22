@@ -39,7 +39,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.delete, container);
+    View view = inflater.inflate(R.layout.confirm_delete, container);
 
     TextView tvTitle = (TextView) view.findViewById(R.id.tvTitle);
     Button btnOK = (Button) view.findViewById(R.id.btnOK);
