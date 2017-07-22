@@ -415,8 +415,6 @@ public class TodoListFragment extends Fragment implements
 
   @Override
   public void onSoftDelete(ArrayList items, String type) {
-    // Todo: Refactor the whole delete confirmation and deletion process. Rename the "items"
-    // variable here and in the arguments also to "itemsToDelete".
     ArrayList<Todo> todosToSoftDelete = items;
     for (Todo todoToSoftDelete:todosToSoftDelete) {
       dbLoader.softDeleteTodo(todoToSoftDelete);
