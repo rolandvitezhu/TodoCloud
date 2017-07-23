@@ -39,43 +39,37 @@ public class PredefinedListAdapter extends BaseAdapter {
 
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
-
-    final PredefinedList predefinedList = predefinedLists.get(position);
-
-    LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(
-        Context.LAYOUT_INFLATER_SERVICE);
-    View itemView = inflater.inflate(R.layout.predefined_list_item, null);
-
-    TextView textViewTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+    PredefinedList predefinedList = predefinedLists.get(position);
+    LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
+        Context.LAYOUT_INFLATER_SERVICE
+    );
+    View itemView = layoutInflater.inflate(R.layout.predefined_list_item, null);
+    TextView tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
     ImageView ivPredefinedList = (ImageView) itemView.findViewById(R.id.ivPredefinedList);
 
     String title = predefinedList.getTitle();
     switch (title) {
       case "0":
         ivPredefinedList.setImageResource(R.drawable.calendar_1_24);
-        textViewTitle.setText(R.string.itemMainListToday);
+        tvTitle.setText(R.string.itemMainListToday);
         break;
       case "1":
         ivPredefinedList.setImageResource(R.drawable.week_view_24);
-        textViewTitle.setText(R.string.itemMainListNext7Days);
+        tvTitle.setText(R.string.itemMainListNext7Days);
         break;
       case "2":
         ivPredefinedList.setImageResource(R.drawable.infinity_24);
-        textViewTitle.setText(R.string.itemMainListAll);
+        tvTitle.setText(R.string.itemMainListAll);
         break;
       case "3":
         ivPredefinedList.setImageResource(R.drawable.today_24);
-        textViewTitle.setText(R.string.itemMainListCompleted);
+        tvTitle.setText(R.string.itemMainListCompleted);
         break;
     }
 
     return itemView;
   }
 
-  /**
-   * Hozzáadja az adapterhez a megadott elemet.
-   * @param predefinedList Az adapterhez adandó elem.
-   */
   public void addItem(PredefinedList predefinedList) {
     predefinedLists.add(predefinedList);
   }
