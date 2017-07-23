@@ -19,8 +19,10 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   private final List<Category> categories;
   private final HashMap<Category, List<com.example.todocloud.data.List>> hmCategories;
 
-  public CategoryAdapter(final List<Category> categories,
-                         final HashMap<Category, List<com.example.todocloud.data.List>> hmCategories) {
+  public CategoryAdapter(
+      final List<Category> categories,
+      final HashMap<Category, List<com.example.todocloud.data.List>> hmCategories
+  ) {
     this.categories = categories;
     this.hmCategories = hmCategories;
   }
@@ -32,7 +34,9 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
 
   @Override
   public int getChildrenCount(int groupPosition) {
-    return hmCategories.get(categories.get(groupPosition)).size();
+    Category category = categories.get(groupPosition);
+    List<com.example.todocloud.data.List> lists = hmCategories.get(category);
+    return lists.size();
   }
 
   @Override
@@ -42,22 +46,23 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
 
   @Override
   public Object getChild(int groupPosition, int childPosition) {
-    return hmCategories.get(categories.get(groupPosition)).get(childPosition);
+    Category category = categories.get(groupPosition);
+    List<com.example.todocloud.data.List> lists = hmCategories.get(category);
+    return lists.get(childPosition);
   }
 
   @Override
   public long getGroupId(int groupPosition) {
-    return 0;
+    Category category = categories.get(groupPosition);
+    return category.get_id();
   }
 
   @Override
   public long getChildId(int groupPosition, int childPosition) {
-    return ((com.example.todocloud.data.List) getChild(groupPosition, childPosition)).get_id();
-  }
-
-  public String getChildListOnlineId(int groupPosition, int childPosition) {
-    return ((com.example.todocloud.data.List) getChild(groupPosition, childPosition)).
-        getListOnlineId();
+    Category category = categories.get(groupPosition);
+    List<com.example.todocloud.data.List> lists = hmCategories.get(category);
+    com.example.todocloud.data.List list = lists.get(childPosition);
+    return list.get_id();
   }
 
   @Override
@@ -66,46 +71,68 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   }
 
   @Override
-  public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                           ViewGroup parent) {
-
+  public View getGroupView(
+      int groupPosition,
+      boolean isExpanded,
+      View convertView,
+      ViewGroup parent
+  ) {
     Category category = (Category) getGroup(groupPosition);
-
-    LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(
-        Context.LAYOUT_INFLATER_SERVICE);
-    convertView = inflater.inflate(R.layout.category_item, null);
-
+    LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
+        Context.LAYOUT_INFLATER_SERVICE
+    );
+    convertView = layoutInflater.inflate(R.layout.category_item, null);
     TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
     tvTitle.setText(category.getTitle());
-
-    // A kategóriaindikátor beállítása:
-    // Ha a Category elemszáma 0, akkor ne legyen kategóriaindikátor.
-    if (getChildrenCount(groupPosition) == 0) {
-
-    }
-    // Ha le van nyitva a Category, akkor lefelé mutat a nyíl, egyébként pedig balra.
-    else if (isExpanded) {
-      ImageView groupIndicator = (ImageView) convertView.findViewById(R.id.imageViewGroupIndicator);
-    groupIndicator.setImageResource(R.drawable.previous_18);
-    } else {
-      ImageView groupIndicator = (ImageView) convertView.findViewById(R.id.imageViewGroupIndicator);
-      groupIndicator.setImageResource(R.drawable.expand_arrow_18);
-    }
+    handleCategoryIndicator(groupPosition, isExpanded, convertView);
 
     return convertView;
   }
 
+  private void handleCategoryIndicator(int groupPosition, boolean isExpanded, View convertView) {
+    if (shouldNotShowGroupIndicator(groupPosition)) {
+
+    } else if (isExpanded) {
+      showExpandedGroupIndicator(convertView);
+    } else {
+      showCollapsedGroupIndicator(convertView);
+    }
+  }
+
+  private void showCollapsedGroupIndicator(View convertView) {
+    ImageView groupIndicator = (ImageView) convertView.findViewById(
+        R.id.imageViewGroupIndicator
+    );
+    groupIndicator.setImageResource(R.drawable.previous_18);
+  }
+
+  private void showExpandedGroupIndicator(View convertView) {
+    ImageView groupIndicator = (ImageView) convertView.findViewById(
+        R.id.imageViewGroupIndicator
+    );
+    groupIndicator.setImageResource(R.drawable.expand_arrow_18);
+  }
+
+  private boolean shouldNotShowGroupIndicator(int groupPosition) {
+    return getChildrenCount(groupPosition) == 0;
+  }
+
   @Override
-  public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
-                           View convertView, ViewGroup parent) {
-
-    final com.example.todocloud.data.List list =
-        (com.example.todocloud.data.List) getChild(groupPosition, childPosition);
-
-    LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(
-        Context.LAYOUT_INFLATER_SERVICE);
-    convertView = inflater.inflate(R.layout.list_in_category_item, null);
-
+  public View getChildView(
+      int groupPosition,
+      int childPosition,
+      boolean isLastChild,
+      View convertView,
+      ViewGroup parent
+  ) {
+    com.example.todocloud.data.List list = (com.example.todocloud.data.List) getChild(
+        groupPosition,
+        childPosition
+    );
+    LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
+        Context.LAYOUT_INFLATER_SERVICE
+    );
+    convertView = layoutInflater.inflate(R.layout.list_in_category_item, null);
     TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
     tvTitle.setText(list.getTitle());
 
@@ -117,22 +144,6 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     return true;
   }
 
-  /**
-   * Törli az adapterből a megadott Category-t (a hozzá tartozó listával együtt).
-   * @param category A törlendő Category.
-   */
-  public void deleteCategory(Category category) {
-    if (categories.contains(category) && hmCategories.containsKey(category)) {
-      categories.remove(category);
-      hmCategories.remove(category);
-    }
-  }
-
-  /**
-   * Frissíti az adapter tartalmát a megadott adatokkal.
-   * @param categories A megadott Category-k.
-   * @param hmCategories A megadott Category-khez tartozó HashMap.
-   */
   public void update(final List<Category> categories,
                      final HashMap<Category, List<com.example.todocloud.data.List>> hmCategories) {
     this.categories.clear();
