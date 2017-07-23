@@ -1,7 +1,6 @@
 package com.example.todocloud;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -34,7 +33,7 @@ import com.example.todocloud.fragment.RegisterUserFragment;
 import com.example.todocloud.fragment.SettingsPreferenceFragment;
 import com.example.todocloud.fragment.TodoListFragment;
 import com.example.todocloud.helper.SessionManager;
-import com.example.todocloud.service.ReminderService;
+import com.example.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 
@@ -307,23 +306,21 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onLogout() {
-
-    // Emlékeztetők törlése.
-    DbLoader dbLoader = new DbLoader();
-    ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
-    for (Todo todo:todos) {
-      Intent service = new Intent(getApplicationContext(), ReminderService.class);
-      service.putExtra("todo", todo);
-      service.setAction(ReminderService.CANCEL);
-      getApplicationContext().startService(service);
-    }
-
+    cancelReminders();
     sessionManager.setLogin(false);
-
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openLoginUserFragment();
+    DbLoader dbLoader = new DbLoader();
     dbLoader.reCreateDb();
+  }
+
+  private void cancelReminders() {
+    DbLoader dbLoader = new DbLoader();
+    ArrayList<Todo> todosWithReminder = dbLoader.getTodosWithReminder();
+    for (Todo todoWithReminder:todosWithReminder) {
+      ReminderSetter.cancelReminderService(todoWithReminder);
+    }
   }
 
   @Override
@@ -332,9 +329,9 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openRegisterUserFragment() {
+    RegisterUserFragment registerUserFragment = new RegisterUserFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    RegisterUserFragment registerUserFragment = new RegisterUserFragment();
     fragmentTransaction.replace(
         R.id.FragmentContainer,
         registerUserFragment,
@@ -353,9 +350,9 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openLoginUserFragment() {
+    LoginUserFragment loginUserFragment = new LoginUserFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    LoginUserFragment loginUserFragment = new LoginUserFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, loginUserFragment);
     fragmentTransaction.commit();
   }
@@ -394,10 +391,6 @@ public class MainActivity extends AppCompatActivity implements
     setDrawerEnabled(title.equals("Todo Cloud"));
   }
 
-  /**
-   * Elindítja az ActionMode-ot.
-   * @param callback Az ActionMode indításához megadott Callback.
-   */
   @Override
   public void onStartActionMode(ActionMode.Callback callback) {
     startSupportActionMode(callback);
