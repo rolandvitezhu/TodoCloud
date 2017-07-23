@@ -29,10 +29,7 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
     listener = (IDatePickerDialogFragment) getTargetFragment();
   }
 
-  /**
-   * Létrehoz egy dátumválasztó dialógust az átadott dátum alapján.
-   */
-	@NonNull
+  @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
 		date = (Date) getArguments().get("date");

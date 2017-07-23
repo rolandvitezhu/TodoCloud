@@ -248,22 +248,26 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onBackPressed() {
-    ModifyTodoFragment modifyTodoFragment =
-        (ModifyTodoFragment) getSupportFragmentManager().
-            findFragmentByTag("ModifyTodoFragment");
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    ModifyTodoFragment modifyTodoFragment = (ModifyTodoFragment) fragmentManager.findFragmentByTag(
+        "ModifyTodoFragment"
+    );
     if (modifyTodoFragment != null && modifyTodoFragment.isShouldNavigateBack()) {
       super.onBackPressed();
-    } else if (modifyTodoFragment != null)
-      modifyTodoFragment.updateTodo();
-    else if (getSupportFragmentManager().findFragmentByTag("RegisterUserFragment") != null) {
-      // A RegisterUserFragment-ről visszanavigálva a LoginUserFragment-re.
-      super.onBackPressed();
-      onSetActionBarTitle(getString(R.string.login));
+    } else if (modifyTodoFragment != null) {
+      modifyTodoFragment.handleModifyTodo();
+    } else if (fragmentManager.findFragmentByTag("RegisterUserFragment") != null) {
+      navigateBackToLoginUserFragment();
     } else if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
       drawerLayout.closeDrawers();
     } else {
       super.onBackPressed();
     }
+  }
+
+  private void navigateBackToLoginUserFragment() {
+    super.onBackPressed();
+    onSetActionBarTitle(getString(R.string.login));
   }
 
   @Override

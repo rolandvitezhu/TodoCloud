@@ -37,11 +37,11 @@ public class CreateTodoFragment extends Fragment implements
 	private SwitchCompat switchPriority;
 	private TextView tvDueDate;
   private TextView tvReminderDateTime;
-  private Date date = new Date();
+  private Date dueDate = new Date();
   private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
       "yyyy.MM.dd.", Locale.getDefault());
-  private Date reminderDate = new Date();
-  private SimpleDateFormat reminderDateFormat = new SimpleDateFormat(
+  private Date reminderDateTime = new Date();
+  private SimpleDateFormat reminderDateTimeFormat = new SimpleDateFormat(
       "yyyy.MM.dd HH:mm", Locale.getDefault());
 	private TextInputEditText tietDescription;
 
@@ -91,7 +91,7 @@ public class CreateTodoFragment extends Fragment implements
       }
 
     });
-    tvDueDate.setText(simpleDateFormat.format(date));
+    tvDueDate.setText(simpleDateFormat.format(dueDate));
     tvDueDate.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -135,12 +135,12 @@ public class CreateTodoFragment extends Fragment implements
       Todo todo = new Todo();
       todo.setTitle(tietTitle.getText().toString().trim());
       todo.setPriority(switchPriority.isChecked());
-      todo.setDueDate(simpleDateFormat.format(date));
+      todo.setDueDate(simpleDateFormat.format(dueDate));
       // Ha nincs beállítva értesítés, akkor "-1"-et tárolunk.
       if (tvReminderDateTime.getText().equals(getString(R.string.txtNoReminders))) {
         todo.setReminderDateTime("-1");
       } else {
-        todo.setReminderDateTime(reminderDateFormat.format(reminderDate));
+        todo.setReminderDateTime(reminderDateTimeFormat.format(reminderDateTime));
       }
 
       if (!tietDescription.getText().toString().trim().equals("")) {
@@ -174,7 +174,7 @@ public class CreateTodoFragment extends Fragment implements
 
   private void openDatePickerDialogFragment() {
 	  Bundle arguments = new Bundle();
-    arguments.putSerializable("date", date);
+    arguments.putSerializable("date", dueDate);
     DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
     datePickerDialogFragment.setTargetFragment(this, 0);
     datePickerDialogFragment.setArguments(arguments);
@@ -186,7 +186,7 @@ public class CreateTodoFragment extends Fragment implements
     @Override
     public void onClick(View v) {
       Bundle arguments = new Bundle();
-      arguments.putSerializable("reminderDate", reminderDate);
+      arguments.putSerializable("reminderDate", reminderDateTime);
       ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
           new ReminderDatePickerDialogFragment();
       reminderDatePickerDialogFragment.setTargetFragment(CreateTodoFragment.this, 0);
@@ -205,7 +205,7 @@ public class CreateTodoFragment extends Fragment implements
    */
 	@Override
   public void onSelectDate(Date date) {
-    this.date = date;
+    this.dueDate = date;
 	  tvDueDate.setText(simpleDateFormat.format(date));
   }
 
@@ -229,7 +229,7 @@ public class CreateTodoFragment extends Fragment implements
    */
   @Override
   public void onDeleteReminder() {
-    reminderDate = new Date();
+    reminderDateTime = new Date();
     tvReminderDateTime.setText(getString(R.string.txtNoReminders));
   }
 
@@ -239,8 +239,8 @@ public class CreateTodoFragment extends Fragment implements
    */
   @Override
   public void onSelectReminderDateTime(Date date) {
-    reminderDate = date;
-    tvReminderDateTime.setText(reminderDateFormat.format(date));
+    reminderDateTime = date;
+    tvReminderDateTime.setText(reminderDateTimeFormat.format(date));
   }
 
   public interface ICreateTodoFragment {
