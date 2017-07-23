@@ -3,6 +3,7 @@ package com.example.todocloud;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
@@ -224,21 +225,25 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == android.R.id.home) {
-
-      // Elrejti a virtális billentyűzetet (CreateTodoFragment Title mezőjén állva, majd
-      // a vissza navigációs gombot megnyomva a virtuális billentyűzet nem tűnt el 5.1.1 API 22-n
-      // tesztelve; API 23-as emulátoron nem jött elő ez a probléma).
-      InputMethodManager inputMethodManager = (InputMethodManager)
-          getSystemService(Context.INPUT_METHOD_SERVICE);
-      if (getCurrentFocus() != null)
-        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-
+    int itemId = item.getItemId();
+    if (itemId == android.R.id.home) {
+      hideSoftInput();
       onBackPressed();
 
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  private void hideSoftInput() {
+    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(
+        Context.INPUT_METHOD_SERVICE
+    );
+    View currentlyFocusedView = getCurrentFocus();
+    if (currentlyFocusedView != null) {
+      IBinder windowToken = currentlyFocusedView.getWindowToken();
+      inputMethodManager.hideSoftInputFromWindow(windowToken, 0);
+    }
   }
 
   @Override
