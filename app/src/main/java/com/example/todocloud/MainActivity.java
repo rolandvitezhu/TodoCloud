@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements
 
       sessionManager = SessionManager.getInstance();
       if (sessionManager.isLoggedIn()) {
-        onSetNavigationHeader();
 
         long id = getIntent().getLongExtra("id", -1);
         if (wasMainActivityStartedFromLauncherIcon(id)) {
@@ -138,32 +137,36 @@ public class MainActivity extends AppCompatActivity implements
     return !shouldDisplay && actionBarTitle != null && !actionBarTitle.equals(getString(R.string.login));
   }
 
-  /**
-   * A megadott logikai értéktől függően engedélyezi vagy letiltja a NavigationDrawer-t.
-   * @param enabled A megadott logikai érték.
-   */
   private void setDrawerEnabled(boolean enabled) {
-    // ActionBarDrawerToggle eltüntetése, ha nem "Todo Cloud" az AppBar title-je.
     if (!enabled) {
-      // ActionBarDrawerToggle elrejtése.
-      drawerLayout.setDrawerLockMode(
-          DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-      actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
-      actionBarDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
-
-        @Override
-        public void onClick(View view) {
-          onBackPressed();
-        }
-
-      });
-      actionBarDrawerToggle.syncState();
+      disableDrawer();
+      enableActionBarBackNavigation();
     } else {
-      // ActionBarDrawerToggle megjelenítése.
-      drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-      actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
-      actionBarDrawerToggle.syncState();
+      enableDrawer();
     }
+  }
+
+  private void enableActionBarBackNavigation() {
+    actionBarDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View view) {
+        onBackPressed();
+      }
+
+    });
+  }
+
+  private void enableDrawer() {
+    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+    actionBarDrawerToggle.syncState();
+  }
+
+  private void disableDrawer() {
+    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
+    actionBarDrawerToggle.syncState();
   }
 
   private void prepareNavigationView(NavigationView navigationView, Toolbar toolbar) {
@@ -207,11 +210,8 @@ public class MainActivity extends AppCompatActivity implements
     logoutUserDialogFragment.show(getSupportFragmentManager(), "LogoutUserDialogFragment");
   }
 
-  /**
-   * Beállítja a NavigationView HeaderView-ját.
-   */
   @Override
-  public void onSetNavigationHeader() {
+  public void onPrepareNavigationHeader() {
     NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
     View navigationHeader = navigationView.getHeaderView(0);
     TextView tvName = (TextView) navigationHeader.findViewById(R.id.tvName);
@@ -360,9 +360,9 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openMainListFragment() {
+    MainListFragment mainListFragment = new MainListFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    MainListFragment mainListFragment = new MainListFragment();
     fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
     fragmentTransaction.commit();
   }

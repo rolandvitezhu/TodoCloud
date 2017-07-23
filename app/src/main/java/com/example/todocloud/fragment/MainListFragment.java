@@ -84,7 +84,7 @@ public class MainListFragment extends ListFragment implements
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     dbLoader = new DbLoader();
-    listener.onSetNavigationHeader();
+    listener.onPrepareNavigationHeader();
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
@@ -1083,7 +1083,7 @@ public class MainListFragment extends ListFragment implements
     void onClickList(com.example.todocloud.data.List list);
     void onLogout();
     void onStartActionMode(ActionMode.Callback callback);
-    void onSetNavigationHeader();
+    void onPrepareNavigationHeader();
   }
 
 }
