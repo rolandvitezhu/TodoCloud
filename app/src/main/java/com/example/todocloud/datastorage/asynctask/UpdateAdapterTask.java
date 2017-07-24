@@ -37,7 +37,6 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
 
   @Override
   protected Void doInBackground(Bundle... params) {
-    // Az adapter típusának megfelelő műveleteket hajtjuk végre.
     if (adapter instanceof TodoAdapter) {
       updateTodoAdapter(params);
     } else if (adapter instanceof PredefinedListAdapter) {
@@ -53,7 +52,6 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
   @Override
   protected void onPostExecute(Void aVoid) {
     super.onPostExecute(aVoid);
-    // Az adapter típusának megfelelő műveleteket hajtjuk végre.
     if (adapter instanceof TodoAdapter) {
       ((TodoAdapter) adapter).updateDataSet(todos);
       ((TodoAdapter) adapter).notifyDataSetChanged();
@@ -68,40 +66,35 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
     }
   }
 
-  /**
-   * Frissíti a TodoAdapter-t.
-   * @param params Paramétertől függően adott List Todo-it kérjük le, vagy az összes todo-t.
-   */
   private void updateTodoAdapter(Bundle... params) {
-    // Ha nem kapott listOnlineId-t, akkor az előre definiált lista elemein történt a kattintás, a
-    // szerint kell feltölteni az ArrayList-et Todo-kkal.
-    if (params[0].get("listOnlineId") == null) {
+    if (isPredefinedList(params[0])) {
       todos = dbLoader.getTodos((String) params[0].get("selectFromDB"));
     } else {
       todos = dbLoader.getTodosByListOnlineId(params[0].getString("listOnlineId"));
     }
   }
 
+  private boolean isPredefinedList(Bundle param) {
+    return param.get("listOnlineId") == null;
+  }
+
   private void updatePredefinedListAdapter() {
     PredefinedListAdapter predefinedListAdapter = (PredefinedListAdapter) adapter;
-    predefinedListAdapter.addItem(new PredefinedList(
-            "0",
-            DbConstants.Todo.KEY_DUE_DATE + "='" +today()+ "'",
-            0
-        )
+    PredefinedList predefinedListToday = new PredefinedList(
+        "0",
+        DbConstants.Todo.KEY_DUE_DATE + "='" + today() + "'",
+        0
     );
-    predefinedListAdapter.addItem(new PredefinedList(
-            "1",
-            next7Days(),
-            0
-        )
+    PredefinedList predefinedListNext7Days = new PredefinedList(
+        "1",
+        prepareNext7DaysWhere(),
+        0
     );
-    predefinedListAdapter.addItem(new PredefinedList(
+    PredefinedList predefinedListAll = new PredefinedList(
         "2",
         null,
-        0)
-    );
-    predefinedListAdapter.addItem(new PredefinedList(
+        0);
+    PredefinedList predefinedListCompleted = new PredefinedList(
         "3",
         DbConstants.Todo.KEY_COMPLETED
             + "="
@@ -115,68 +108,92 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
             + DbConstants.Todo.KEY_DELETED
             + "="
             + 0,
-        0)
-    );
+        0);
+    predefinedListAdapter.addItem(predefinedListToday);
+    predefinedListAdapter.addItem(predefinedListNext7Days);
+    predefinedListAdapter.addItem(predefinedListAll);
+    predefinedListAdapter.addItem(predefinedListCompleted);
   }
 
-  /**
-   * Frissíti a CategoryAdapter-t.
-   */
   private void updateCategoryAdapter() {
     categories = dbLoader.getCategories();
     hmCategories = new HashMap<>();
-    List<com.example.todocloud.data.List> listData = new ArrayList<>();
     for (Category category : categories) {
-      listData = null;
-      listData = dbLoader.getListsByCategoryOnlineId(category.getCategoryOnlineId());
-      // Ha az adott kategóriához tartozik lista, akkor a listData-ba tesszük, egyébként üres
-      // listData-t hozunk létre.
-      if (listData == null) {
-        listData = new ArrayList<com.example.todocloud.data.List>();
-      }
+      String categoryOnlineId = category.getCategoryOnlineId();
+      List<com.example.todocloud.data.List> listData = dbLoader.getListsByCategoryOnlineId(
+          categoryOnlineId
+      );
       hmCategories.put(category, listData);
     }
   }
 
-  /**
-   * Frissíti a ListAdapter-t.
-   */
   private void updateListAdapter() {
     lists = dbLoader.getListsNotInCategory();
   }
 
-  /**
-   * Visszaadja a mai dátumot az adatbázisban tárolt formátumban.
-   * @return A mai dátum String-ként.
-   */
   private String today() {
+    String pattern = "yyyy.MM.dd.";
+    Locale defaultLocale = Locale.getDefault();
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-        "yyyy.MM.dd.", Locale.getDefault());
-    return simpleDateFormat.format(new Date());
+        pattern,
+        defaultLocale
+    );
+    Date today = new Date();
+    return simpleDateFormat.format(today);
   }
 
-  /**
-   * Összeállítja a "Következő 7 nap" lista "where" feltételét.
-   * @return A "Következő 7 nap" lista "where" feltétele.
-   */
-  private String next7Days() {
+  private String prepareNext7DaysWhere() {
+    String pattern = "yyyy.MM.dd.";
+    Locale defaultLocale = Locale.getDefault();
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-        "yyyy.MM.dd.", Locale.getDefault());
-    Date date = new Date();
+        pattern,
+        defaultLocale
+    );
+    Date today = new Date();
     Calendar calendar = Calendar.getInstance();
-    calendar.setTime(date);
-    StringBuilder sb = new StringBuilder();
-    sb.append("(" + DbConstants.Todo.KEY_DUE_DATE + "='" +
-        simpleDateFormat.format(date) + "' OR ");
+    calendar.setTime(today);
+
+    StringBuilder whereStringBuilder = new StringBuilder();
+    String todayString = simpleDateFormat.format(today);
+    appendToday(whereStringBuilder, todayString);
     for (int i = 0; i < 6; i++) {
-      calendar.roll(Calendar.DAY_OF_MONTH, true);
-      date.setTime(calendar.getTimeInMillis());
-      sb.append(DbConstants.Todo.KEY_DUE_DATE + "='" + simpleDateFormat.format(date) + "' OR ");
+      String nextDayString = prepareNextDayStringWhere(simpleDateFormat, calendar);
+      appendNextDay(whereStringBuilder, nextDayString);
     }
-    sb.delete(sb.length()-4, sb.length());
-    sb.append(')');
-    String where = sb.toString();
+    prepareWhereStringBuilderPostfix(whereStringBuilder);
+    String where = whereStringBuilder.toString();
     return where;
+  }
+
+  private void appendToday(StringBuilder whereStringBuilder, String todayString) {
+    whereStringBuilder.append(
+        "("
+            + DbConstants.Todo.KEY_DUE_DATE
+            + "='"
+            + todayString
+            + "' OR "
+    );
+  }
+
+  private String prepareNextDayStringWhere(SimpleDateFormat simpleDateFormat, Calendar calendar) {
+    calendar.roll(Calendar.DAY_OF_MONTH, true);
+    Date nextDay = new Date();
+    nextDay.setTime(calendar.getTimeInMillis());
+    return simpleDateFormat.format(nextDay);
+  }
+
+  private void appendNextDay(StringBuilder whereStringBuilder, String nextDayString) {
+    whereStringBuilder.append(
+        DbConstants.Todo.KEY_DUE_DATE
+            + "='"
+            + nextDayString
+            + "' OR "
+    );
+  }
+
+  private void prepareWhereStringBuilderPostfix(StringBuilder whereStringBuilder) {
+    whereStringBuilder.delete(whereStringBuilder.length()-4, whereStringBuilder.length());
+    whereStringBuilder.append(')');
   }
 
 }
