@@ -25,9 +25,10 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private IModifyListDialogFragment listener;
   private Button btnOK;
   private Button btnCancel;
+
+  private IModifyListDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
