@@ -118,8 +118,14 @@ public class RegisterUserFragment extends Fragment
 
       @Override
       public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER))
-            || (actionId == EditorInfo.IME_ACTION_DONE)) {
+        boolean pressDone = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean pressEnter = false;
+        if (event != null) {
+          int keyCode = event.getKeyCode();
+          pressEnter = keyCode == KeyEvent.KEYCODE_ENTER;
+        }
+
+        if (pressEnter || pressDone) {
           btnRegister.performClick();
           return true;
         }
