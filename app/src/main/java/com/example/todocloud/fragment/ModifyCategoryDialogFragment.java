@@ -1,5 +1,6 @@
 package com.example.todocloud.fragment;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
@@ -11,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -24,6 +26,8 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
   private IModifyCategoryDialogFragment listener;
+  private Button btnOK;
+  private Button btnCancel;
 
   @Override
   public void onAttach(Context context) {
@@ -34,29 +38,46 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    // Beállítja az erőforrásban definiált stílust.
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.create_category, container);
-    getDialog().setTitle(R.string.itemModifyCategory);
-
-    // A footer gombok a szoftveres billentyűzet használata alatt is láthatók.
-    // A szoftveres billentyűzet nem jelenik meg alapértelmezetten.
-    if (getDialog().getWindow() != null)
-      getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE |
-        WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+  public View onCreateView(
+      LayoutInflater inflater,
+      ViewGroup container,
+      Bundle savedInstanceState
+  ) {
+    View view = inflater.inflate(R.layout.create_category, container);
+    Dialog dialog = getDialog();
+    dialog.setTitle(R.string.itemModifyCategory);
+    setSoftInputMode();
 
     final Category category = (Category) getArguments().get("category");
 
     tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
     tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    final Button btnOK = (Button) view.findViewById(R.id.btnOK);
-    Button btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    btnOK = (Button) view.findViewById(R.id.btnOK);
+    btnCancel = (Button) view.findViewById(R.id.btnCancel);
 
     tietTitle.setText(category.getTitle());
+    applyTextChangedEvents();
+    applyEditorEvents(btnOK);
+    applyClickEvents(category, btnOK, btnCancel);
+
+    return view;
+  }
+
+  private void setSoftInputMode() {
+    Dialog dialog = getDialog();
+    Window window = dialog.getWindow();
+    if (window != null) {
+      int hiddenSoftInputAtOpenDialog = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+      int softInputNotCoverFooterButtons = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
+      window.setSoftInputMode(softInputNotCoverFooterButtons | hiddenSoftInputAtOpenDialog);
+    }
+  }
+
+  private void applyTextChangedEvents() {
     tietTitle.addTextChangedListener(new TextWatcher() {
 
       @Override
@@ -75,12 +96,21 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
       }
 
     });
+  }
+
+  private void applyEditorEvents(final Button btnOK) {
     tietTitle.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
       @Override
       public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER))
-            || (actionId == EditorInfo.IME_ACTION_DONE)) {
+        boolean pressDone = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean pressEnter = false;
+        if (event != null) {
+          int keyCode = event.getKeyCode();
+          pressEnter = keyCode == KeyEvent.KEYCODE_ENTER;
+        }
+
+        if (pressEnter || pressDone) {
           btnOK.performClick();
           return true;
         }
@@ -88,14 +118,17 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
       }
 
     });
+  }
+
+  private void applyClickEvents(final Category category, Button btnOK, Button btnCancel) {
     btnOK.setOnClickListener(new View.OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        String title = tietTitle.getText().toString().trim();
+        String givenTitle = tietTitle.getText().toString().trim();
 
         if (validateTitle()) {
-          category.setTitle(title);
+          category.setTitle(givenTitle);
           listener.onModifyCategory(category);
           dismiss();
         }
@@ -103,20 +136,18 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
 
     });
     btnCancel.setOnClickListener(new View.OnClickListener() {
+
       @Override
       public void onClick(View v) {
         dismiss();
       }
+
     });
-    return view;
   }
 
-  /**
-   * Validálja a Title mezőt.
-   * @return Kitöltött mező esetén true, egyébként false.
-   */
   private boolean validateTitle() {
-    if (tietTitle.getText().toString().trim().isEmpty()) {
+    String givenTitle = tietTitle.getText().toString().trim();
+    if (givenTitle.isEmpty()) {
       tilTitle.setError(getString(R.string.enter_title));
       return false;
     } else {
