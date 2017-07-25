@@ -383,16 +383,16 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void onModifyTodo(Todo todoToModify) {
-    dbLoader.updateTodo(todoToModify);
+  public void onModifyTodo(Todo todo) {
+    dbLoader.updateTodo(todo);
     updateTodoAdapterTest();
 
-    if (isSetReminder(todoToModify)) {
-      if (shouldCreateReminderService(todoToModify)) {
-        ReminderSetter.createReminderService(todoToModify);
+    if (isSetReminder(todo)) {
+      if (shouldCreateReminderService(todo)) {
+        ReminderSetter.createReminderService(todo);
       }
     } else {
-      ReminderSetter.cancelReminderService(todoToModify);
+      ReminderSetter.cancelReminderService(todo);
     }
   }
 
