@@ -3,12 +3,14 @@ package com.example.todocloud.fragment;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -38,6 +40,8 @@ public class LoginUserFragment extends Fragment
   private DbLoader dbLoader;
   private ILoginUserFragment listener;
   private UserDataSynchronizer userDataSynchronizer;
+  private Button btnLogin;
+  private Button btnLinkToRegister;
 
   @Override
   public void onAttach(Context context) {
@@ -70,11 +74,67 @@ public class LoginUserFragment extends Fragment
     tilPassword = (TextInputLayout) view.findViewById(R.id.tilPassword);
     tietEmail = (TextInputEditText) view.findViewById(R.id.tietEmail);
     tietPassword = (TextInputEditText) view.findViewById(R.id.tietPassword);
-    final Button btnLogin = (Button) view.findViewById(R.id.btnLogin);
-    Button btnLinkToRegister = (Button) view.findViewById(R.id.btnLinkToRegister);
+    btnLogin = (Button) view.findViewById(R.id.btnLogin);
+    btnLinkToRegister = (Button) view.findViewById(R.id.btnLinkToRegister);
 
-    tietEmail.addTextChangedListener(new MyTextWatcher(tietEmail));
-    tietPassword.addTextChangedListener(new MyTextWatcher(tietPassword));
+    applyTextChangedEvents();
+    applyEditorActionEvents();
+    applyClickEvents();
+    preventButtonTextCapitalization();
+
+    return view;
+  }
+
+  private void applyClickEvents() {
+    btnLogin.setOnClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        hideSoftInput();
+        handleLoginUser();
+      }
+
+    });
+    btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        listener.onClickLinkToRegisterUser();
+      }
+
+    });
+  }
+
+  private void hideSoftInput() {
+    FragmentActivity activity = getActivity();
+    InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(
+        Context.INPUT_METHOD_SERVICE
+    );
+    View currentlyFocusedView = activity.getCurrentFocus();
+    if (currentlyFocusedView != null) {
+      IBinder windowToken = currentlyFocusedView.getWindowToken();
+      inputMethodManager.hideSoftInputFromWindow(
+          windowToken,
+          0
+      );
+    }
+  }
+
+  private void handleLoginUser() {
+    boolean areFieldsValid = validateEmail() & validatePassword();
+    if (areFieldsValid) {
+      dbLoader.reCreateDb();
+      String email = tietEmail.getText().toString().trim();
+      String password = tietPassword.getText().toString().trim();
+      userDataSynchronizer.loginUser(email, password);
+    }
+  }
+
+  private void preventButtonTextCapitalization() {
+    btnLinkToRegister.setTransformationMethod(null);
+  }
+
+  private void applyEditorActionEvents() {
     tietPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
       @Override
@@ -88,66 +148,40 @@ public class LoginUserFragment extends Fragment
       }
 
     });
-    btnLogin.setOnClickListener(new View.OnClickListener() {
+  }
 
-      @Override
-      public void onClick(View v) {
-
-        InputMethodManager inputMethodManager = (InputMethodManager) getActivity().
-            getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (getActivity().getCurrentFocus() != null)
-          inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().
-              getWindowToken(), 0);
-
-        if (validateEmail() & validatePassword()) {
-          dbLoader.reCreateDb();
-          String email = tietEmail.getText().toString().trim();
-          String password = tietPassword.getText().toString().trim();
-          userDataSynchronizer.loginUser(email, password);
-        }
-      }
-
-    });
-
-    // A Button szövege nem lesz csupa nagybetűs.
-    btnLinkToRegister.setTransformationMethod(null);
-
-    btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        // A RegisterUserFragment-et jelenítjük meg.
-        listener.onClickLinkToRegisterUser();
-      }
-
-    });
-
-    return view;
+  private void applyTextChangedEvents() {
+    tietEmail.addTextChangedListener(new MyTextWatcher(tietEmail));
+    tietPassword.addTextChangedListener(new MyTextWatcher(tietPassword));
   }
 
   @Override
   public void onResume() {
     super.onResume();
     if (getActivity() != null)
-      // Ha előtérbe kerül a Fragment, akkor a kijelző mindig portré módban lesz.
-      getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     listener.onSetActionBarTitle(getString(R.string.login));
+    applyOrientationPortrait();
+  }
+
+  private void applyOrientationPortrait() {
+    if (getActivity() != null)
+      getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
   }
 
   @Override
   public void onPause() {
     super.onPause();
+    applyOrientationFullSensor();
+  }
+
+  private void applyOrientationFullSensor() {
     if (getActivity() != null)
-      // Ha háttérbe kerül a Fragment, akkor a kijelző elforgathatóvá válik.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
   }
 
-  /**
-   * Validálja az Email mezőt.
-   * @return Kitöltött mező esetén true, egyébként false.
-   */
   private boolean validateEmail() {
-    if (tietEmail.getText().toString().trim().isEmpty()) {
+    String givenEmail = tietEmail.getText().toString().trim();
+    if (givenEmail.isEmpty()) {
       tilEmail.setError(getString(R.string.enter_email));
       return false;
     } else {
@@ -156,12 +190,9 @@ public class LoginUserFragment extends Fragment
     }
   }
 
-  /**
-   * Validálja a Password mezőt.
-   * @return Kitöltött mező esetén true, egyébként false.
-   */
   private boolean validatePassword() {
-    if (tietPassword.getText().toString().trim().isEmpty()) {
+    String givenPassword = tietPassword.getText().toString().trim();
+    if (givenPassword.isEmpty()) {
       tilPassword.setError(getString(R.string.enter_password));
       return false;
     } else {
