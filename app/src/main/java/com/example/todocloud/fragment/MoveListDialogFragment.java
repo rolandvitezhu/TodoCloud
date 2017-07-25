@@ -1,11 +1,13 @@
 package com.example.todocloud.fragment;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -21,7 +23,11 @@ import java.util.ArrayList;
 public class MoveListDialogFragment extends AppCompatDialogFragment {
 
   private Spinner spnrCategory;
+  private Button btnOK;
+  private Button btnCancel;
+
   private IMoveListDialogFragment listener;
+  private ArrayList<Category> categoriesFor;
 
   @Override
   public void onAttach(Context context) {
@@ -32,60 +38,88 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    // Beállítja az erőforrásban definiált stílust.
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(
+      LayoutInflater inflater,
+      ViewGroup container,
+      Bundle savedInstanceState
+  ) {
     View view = inflater.inflate(R.layout.move_list, container);
-    getDialog().setTitle(R.string.itemMoveList);
-
-    // A footer gombok a szoftveres billentyűzet használata alatt is láthatók.
-    // A szoftveres billentyűzet nem jelenik meg alapértelmezetten.
-    getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE |
-        WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+    Dialog dialog = getDialog();
+    dialog.setTitle(R.string.itemMoveList);
+    setSoftInputMode();
 
     spnrCategory = (Spinner) view.findViewById(R.id.listCategory);
-    final DbLoader dbLoader = new DbLoader();
-    ArrayList<Category> categories = new ArrayList<Category>();
-    categories.add(new Category(getString(R.string.itemListWithoutCategory)));
-    categories.addAll(dbLoader.getCategories());
-    spnrCategory.setAdapter(new ArrayAdapter<>(getActivity(),
-        android.R.layout.simple_spinner_item, categories));
-    spnrCategory.setSelection(categories.indexOf(getArguments().get("category")));
-    Button btnOK = (Button) view.findViewById(R.id.btnOKMoveList);
+    btnOK = (Button) view.findViewById(R.id.btnOKMoveList);
+    btnCancel = (Button) view.findViewById(R.id.btnCancelMoveList);
+
+    prepareSpinner();
+    applyClickEvents();
+
+    return view;
+  }
+
+  private void prepareSpinner() {
+    DbLoader dbLoader = new DbLoader();
+    Category categoryForListWithoutCategory = new Category(
+        getString(R.string.itemListWithoutCategory)
+    );
+    Category categoryOriginallyRelatedToList = (Category) getArguments().get("category");
+    ArrayList<Category> realCategoriesFromDatabase = dbLoader.getCategories();
+
+    ArrayList<Category> categoriesForSpinner = new ArrayList<>();
+    categoriesForSpinner.add(categoryForListWithoutCategory);
+    categoriesForSpinner.addAll(realCategoriesFromDatabase);
+
+    spnrCategory.setAdapter(new ArrayAdapter<>(
+        getActivity(),
+        android.R.layout.simple_spinner_item,
+        categoriesForSpinner
+    ));
+    int categoryOriginallyRelatedToListPosition = categoriesForSpinner.indexOf(categoryOriginallyRelatedToList);
+    spnrCategory.setSelection(categoryOriginallyRelatedToListPosition);
+  }
+
+  private void setSoftInputMode() {
+    Dialog dialog = getDialog();
+    Window window = dialog.getWindow();
+    if (window != null) {
+      int hiddenSoftInputAtOpenDialog = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+      int softInputNotCoverFooterButtons = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
+      window.setSoftInputMode(softInputNotCoverFooterButtons | hiddenSoftInputAtOpenDialog);
+    }
+  }
+
+  private void applyClickEvents() {
     btnOK.setOnClickListener(new View.OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        boolean listIsNotInCategory = false;
-        // Ha a kapott category categoryOnlineId-ja null, akkor kategória nélküli listáról van szó.
-        // Ez esetben pedig a ListInCategory táblában nincs hozzá tartozó bejegyzés, létre kell azt
-        // hozni. Tehát listát helyezünk kategóriába.
-        if (((Category) getArguments().get("category")).getCategoryOnlineId() == null) {
-          listIsNotInCategory = true;
-        }
+        Category category = (Category) getArguments().get("category");
+        boolean isListNotInCategoryBeforeMove = category.getCategoryOnlineId() == null;
         List list = getArguments().getParcelable("list");
-        String categoryOnlineId = ((Category) spnrCategory.getSelectedItem()).
-            getCategoryOnlineId();
-        listener.onMoveList(list, categoryOnlineId, listIsNotInCategory);
+        Category selectedCategory = (Category) spnrCategory.getSelectedItem();
+        String categoryOnlineId = selectedCategory.getCategoryOnlineId();
+        listener.onMoveList(list, categoryOnlineId, isListNotInCategoryBeforeMove);
         dismiss();
       }
 
     });
-    Button btnCancel = (Button) view.findViewById(R.id.btnCancelMoveList);
     btnCancel.setOnClickListener(new View.OnClickListener() {
+
       @Override
       public void onClick(View v) {
         dismiss();
       }
+
     });
-    return view;
   }
 
   public interface IMoveListDialogFragment {
-    void onMoveList(List list, String categoryOnlineId, boolean listIsNotInCategory);
+    void onMoveList(List list, String categoryOnlineId, boolean isListNotInCategoryBeforeMove);
   }
 
 }
