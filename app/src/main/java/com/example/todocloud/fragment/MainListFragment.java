@@ -913,9 +913,10 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onMoveList(com.example.todocloud.data.List list, String categoryOnlineId,
-                         boolean listIsNotInCategory) {
-    switch (listIsNotInCategory ? "listIsNotInCategory" : "listIsInCategory") {
-      case "listIsNotInCategory":
+                         boolean isListNotInCategoryBeforeMove) {
+    switch (isListNotInCategoryBeforeMove ?
+        "isListNotInCategoryBeforeMove" : "isListInCategoryBeforeMove") {
+      case "isListNotInCategoryBeforeMove":
         if (moveListOutsideCategory(categoryOnlineId)) {
           actionMode.finish();
         } else {
@@ -923,7 +924,7 @@ public class MainListFragment extends ListFragment implements
           actionMode.finish();
         }
         break;
-      case "listIsInCategory":
+      case "isListInCategoryBeforeMove":
       if (moveListOutsideCategory(categoryOnlineId)) {
           moveListOutsideCategory(list);
           actionMode.finish();
