@@ -3,12 +3,14 @@ package com.example.todocloud.fragment;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Patterns;
@@ -42,6 +44,7 @@ public class RegisterUserFragment extends Fragment
   private DbLoader dbLoader;
   private IRegisterUserFragment listener;
   private UserDataSynchronizer userDataSynchronizer;
+  private Button btnRegister;
 
   @Override
   public void onAttach(Context context) {
@@ -65,9 +68,13 @@ public class RegisterUserFragment extends Fragment
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
+  public View onCreateView(
+      LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState
+  ) {
     View view = inflater.inflate(R.layout.register_user, container, false);
+
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
     formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
     tilName = (TextInputLayout) view.findViewById(R.id.tilName);
@@ -78,12 +85,35 @@ public class RegisterUserFragment extends Fragment
     tietEmail = (TextInputEditText) view.findViewById(R.id.tietEmail);
     tietPassword = (TextInputEditText) view.findViewById(R.id.tietPassword);
     tietConfirmPassword = (TextInputEditText) view.findViewById(R.id.tietConfirmPassword);
-    final Button btnRegister = (Button) view.findViewById(R.id.btnRegister);
+    btnRegister = (Button) view.findViewById(R.id.btnRegister);
 
+    applyTextChangedEvents();
+    applyEditorActionEvents();
+    applyClickEvents();
+
+    return view;
+  }
+
+  private void applyClickEvents() {
+    btnRegister.setOnClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        hideSoftInput();
+        handleRegisterUser();
+      }
+
+    });
+  }
+
+  private void applyTextChangedEvents() {
     tietName.addTextChangedListener(new MyTextWatcher(tietName));
     tietEmail.addTextChangedListener(new MyTextWatcher(tietEmail));
     tietPassword.addTextChangedListener(new MyTextWatcher(tietPassword));
     tietConfirmPassword.addTextChangedListener(new MyTextWatcher(tietConfirmPassword));
+  }
+
+  private void applyEditorActionEvents() {
     tietConfirmPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
       @Override
@@ -97,60 +127,69 @@ public class RegisterUserFragment extends Fragment
       }
 
     });
-    btnRegister.setOnClickListener(new View.OnClickListener() {
+  }
 
-      @Override
-      public void onClick(View v) {
+  private void hideSoftInput() {
+    FragmentActivity activity = getActivity();
+    InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(
+        Context.INPUT_METHOD_SERVICE
+    );
+    View currentlyFocusedView = activity.getCurrentFocus();
+    if (currentlyFocusedView != null) {
+      IBinder windowToken = currentlyFocusedView.getWindowToken();
+      inputMethodManager.hideSoftInputFromWindow(
+          windowToken,
+          0
+      );
+    }
+  }
 
-        InputMethodManager inputMethodManager = (InputMethodManager) getActivity().
-            getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (getActivity().getCurrentFocus() != null)
-          inputMethodManager.hideSoftInputFromWindow(
-              getActivity().getCurrentFocus().getWindowToken(),
-              0
-          );
-
-        if (validateName() & validateEmail() & validatePassword() & validateConfirmPassword()) {
-          dbLoader.reCreateDb();
-          long _id = dbLoader.createUser(new User());
-          String user_online_id = OnlineIdGenerator.generateOnlineId(
-              DbConstants.User.DATABASE_TABLE, _id
-          );
-          String name = tietName.getText().toString().trim();
-          String email = tietEmail.getText().toString().trim();
-          String password = tietPassword.getText().toString().trim();
-          userDataSynchronizer.registerUser(user_online_id, name, email, password, _id);
-        }
-      }
-
-    });
-
-    return view;
+  private void handleRegisterUser() {
+    boolean areFieldsValid = validateName()
+        & validateEmail()
+        & validatePassword()
+        & validateConfirmPassword();
+    if (areFieldsValid) {
+      dbLoader.reCreateDb();
+      User user = new User();
+      long _id = dbLoader.createUser(user);
+      String user_online_id = OnlineIdGenerator.generateOnlineId(
+          DbConstants.User.DATABASE_TABLE,
+          _id
+      );
+      String name = tietName.getText().toString().trim();
+      String email = tietEmail.getText().toString().trim();
+      String password = tietPassword.getText().toString().trim();
+      userDataSynchronizer.registerUser(user_online_id, name, email, password, _id);
+    }
   }
 
   @Override
   public void onResume() {
     super.onResume();
     listener.onSetActionBarTitle(getString(R.string.register));
+    applyOrientationPortrait();
+  }
+
+  private void applyOrientationPortrait() {
     if (getActivity() != null)
-      // Ha előtérbe kerül a Fragment, akkor a kijelző mindig portré módban lesz.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
   }
 
   @Override
   public void onPause() {
     super.onPause();
+    applyOrientationFullSensor();
+  }
+
+  private void applyOrientationFullSensor() {
     if (getActivity() != null)
-      // Ha háttérbe kerül a Fragment, akkor a kijelző elforgathatóvá válik.
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
   }
 
-  /**
-   * Validálja a Name mezőt.
-   * @return Kitöltött mező esetén true, egyébként false.
-   */
   private boolean validateName() {
-    if (tietName.getText().toString().trim().isEmpty()) {
+    String givenName = tietName.getText().toString().trim();
+    if (givenName.isEmpty()) {
       tilName.setError(getString(R.string.enter_name));
       return false;
     } else {
@@ -159,13 +198,10 @@ public class RegisterUserFragment extends Fragment
     }
   }
 
-  /**
-   * Validálja az Email mezőt.
-   * @return Érvényes email cím megadása esetén true, egyébként false.
-   */
   private boolean validateEmail() {
-    String email = tietEmail.getText().toString().trim();
-    if (email.isEmpty() || !isValidEmail(email)) {
+    String givenEmail = tietEmail.getText().toString().trim();
+    boolean isGivenEmailValid = !givenEmail.isEmpty() && isValidEmail(givenEmail);
+    if (!isGivenEmailValid) {
       tilEmail.setError(getString(R.string.enter_valid_email));
       return false;
     } else {
@@ -174,13 +210,10 @@ public class RegisterUserFragment extends Fragment
     }
   }
 
-  /**
-   * Validálja a Password mezőt.
-   * @return Megfelelő jelszó megadása esetén true, egyébként false.
-   */
   private boolean validatePassword() {
-    String password = tietPassword.getText().toString().trim();
-    if (password.isEmpty() || !isValidPassword(password)) {
+    String givenPassword = tietPassword.getText().toString().trim();
+    boolean isGivenPasswordValid = !givenPassword.isEmpty() && isValidPassword(givenPassword);
+    if (!isGivenPasswordValid) {
       tilPassword.setError(getString(R.string.enter_proper_password));
       return false;
     } else {
@@ -189,14 +222,12 @@ public class RegisterUserFragment extends Fragment
     }
   }
 
-  /**
-   * Validálja a ConfirmPassword mezőt.
-   * @return Kitöltött mező és egyező jelszavak megadása esetén true, egyébként false.
-   */
   private boolean validateConfirmPassword() {
-    String password = tietPassword.getText().toString().trim();
-    String confirmPassword = tietConfirmPassword.getText().toString().trim();
-    if (confirmPassword.isEmpty() || !password.equals(confirmPassword)) {
+    String givenPassword = tietPassword.getText().toString().trim();
+    String givenConfirmPassword = tietConfirmPassword.getText().toString().trim();
+    boolean isGivenConfirmPasswordValid = !givenConfirmPassword.isEmpty()
+        && givenPassword.equals(givenConfirmPassword);
+    if (!isGivenConfirmPasswordValid) {
       tilConfirmPassword.setError(getString(R.string.passwords_does_not_match));
       return false;
     } else {
@@ -205,24 +236,17 @@ public class RegisterUserFragment extends Fragment
     }
   }
 
-  /**
-   * Megvizsgálja, hogy a megadott email cím megfelelő formátumú-e.
-   * @param email A vizsgálandó email cím.
-   * @return Megfelelő formátumó email cím esetén true, egyébként false.
-   */
   private boolean isValidEmail(String email) {
     return !email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches();
   }
 
   /**
-   * Megvizsgálja, hogy a megadott jelszó megfelelő erősségű-e.
-   * A jelszónak tartalmaznia kell kisbetűt, nagybetűt, számot, nem tartalmazhat fehér szóközt,
-   * hossza pedig minimum 8 karakter.
-   * @param password A vizsgálandó jelszó.
-   * @return Megfelelő erősségű jelszó esetén true, egyébként false.
+   * Valid password should contain at least a lowercase letter, an uppercase letter, a number,
+   * it should not contain whitespace character and it should be at least 8 characters long.
    */
   private boolean isValidPassword(String password) {
-    return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$");
+    String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$";
+    return password.matches(passwordRegex);
   }
 
   @Override
