@@ -2,10 +2,13 @@ package com.example.todocloud.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -39,10 +42,14 @@ public class CreateTodoFragment extends Fragment implements
   private TextView tvReminderDateTime;
   private Date dueDate = new Date();
   private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-      "yyyy.MM.dd.", Locale.getDefault());
+      "yyyy.MM.dd.",
+      Locale.getDefault()
+  );
   private Date reminderDateTime = new Date();
   private SimpleDateFormat reminderDateTimeFormat = new SimpleDateFormat(
-      "yyyy.MM.dd HH:mm", Locale.getDefault());
+      "yyyy.MM.dd HH:mm",
+      Locale.getDefault()
+  );
 	private TextInputEditText tietDescription;
 
 	private ICreateTodoFragment listener;
@@ -62,8 +69,11 @@ public class CreateTodoFragment extends Fragment implements
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-      Bundle savedInstanceState) {
+  public View onCreateView(
+      LayoutInflater inflater,
+      ViewGroup container,
+      Bundle savedInstanceState
+  ) {
 		View view = inflater.inflate(R.layout.create_todo, container, false);
 
     tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
@@ -101,7 +111,7 @@ public class CreateTodoFragment extends Fragment implements
 
 		});
     tvReminderDateTime.setText(R.string.txtNoReminders);
-    tvReminderDateTime.setOnClickListener(onRDTClick);
+    tvReminderDateTime.setOnClickListener(onReminderDateTimeClick);
 
 	  return view;
   }
@@ -115,7 +125,8 @@ public class CreateTodoFragment extends Fragment implements
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
-    if (!tietTitle.getText().toString().trim().isEmpty()) {
+    String givenTitle = tietTitle.getText().toString().trim();
+    if (!givenTitle.isEmpty()) {
       menu.clear();
       inflater.inflate(R.menu.todo_create, menu);
     }
@@ -123,53 +134,58 @@ public class CreateTodoFragment extends Fragment implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.itemCreateTodo) {
-      // Szoftveres billentyűzet elrejtése.
-      InputMethodManager inputMethodManager = (InputMethodManager) getActivity().
-          getSystemService(Context.INPUT_METHOD_SERVICE);
-      if (getActivity().getCurrentFocus() != null)
-        inputMethodManager.hideSoftInputFromWindow(
-            getActivity().getCurrentFocus().getWindowToken(), 0);
-
-      // Létrehozandó tennivaló összeállítása a megadott adatok alapján.
-      Todo todo = new Todo();
-      todo.setTitle(tietTitle.getText().toString().trim());
-      todo.setPriority(switchPriority.isChecked());
-      todo.setDueDate(simpleDateFormat.format(dueDate));
-      // Ha nincs beállítva értesítés, akkor "-1"-et tárolunk.
-      if (tvReminderDateTime.getText().equals(getString(R.string.txtNoReminders))) {
-        todo.setReminderDateTime("-1");
-      } else {
-        todo.setReminderDateTime(reminderDateTimeFormat.format(reminderDateTime));
-      }
-
-      if (!tietDescription.getText().toString().trim().equals("")) {
-        todo.setDescription(tietDescription.getText().toString());
-      } else {
-        todo.setDescription(null);
-      }
-
-      todo.setCompleted(false);
-      todo.setRowVersion(0);
-      todo.setDeleted(false);
-      todo.setDirty(true);
-
-      // Tennivaló létrehozása.
-      listener.onCreateTodo(todo);
+    int itemId = item.getItemId();
+    if (itemId == R.id.itemCreateTodo) {
+      hideSoftInput();
+      Todo todoToCreate = prepareTodoToCreate();
+      listener.onCreateTodo(todoToCreate);
       actionBarListener.onBackPressed();
     }
     return super.onOptionsItemSelected(item);
   }
 
-  /**
-   * Validálja a Title mezőt.
-   */
+  @NonNull
+  private Todo prepareTodoToCreate() {
+    Todo todo = new Todo();
+    todo.setTitle(tietTitle.getText().toString().trim());
+    todo.setPriority(switchPriority.isChecked());
+    todo.setDueDate(simpleDateFormat.format(dueDate));
+    if (tvReminderDateTime.getText().equals(getString(R.string.txtNoReminders))) {
+      todo.setReminderDateTime("-1");
+    } else {
+      String reminderDateTime = reminderDateTimeFormat.format(this.reminderDateTime);
+      todo.setReminderDateTime(reminderDateTime);
+    }
+    String giveDescription = tietDescription.getText().toString().trim();
+    if (!giveDescription.equals("")) {
+      todo.setDescription(tietDescription.getText().toString());
+    } else {
+      todo.setDescription(null);
+    }
+    todo.setCompleted(false);
+    todo.setRowVersion(0);
+    todo.setDeleted(false);
+    todo.setDirty(true);
+    return todo;
+  }
+
+  private void hideSoftInput() {
+    FragmentActivity activity = getActivity();
+    InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(
+        Context.INPUT_METHOD_SERVICE
+    );
+    View currentlyFocusedView = activity.getCurrentFocus();
+    if (currentlyFocusedView != null) {
+      IBinder windowToken = currentlyFocusedView.getWindowToken();
+      inputMethodManager.hideSoftInputFromWindow(windowToken, 0);
+    }
+  }
+
   private void validateTitle() {
     getActivity().invalidateOptionsMenu();
-    if (tietTitle.getText().toString().trim().isEmpty())
-      tilTitle.setError(getString(R.string.enter_title));
-    else
-      tilTitle.setErrorEnabled(false);
+    String givenTitle = tietTitle.getText().toString().trim();
+    if (givenTitle.isEmpty()) tilTitle.setError(getString(R.string.enter_title));
+    else tilTitle.setErrorEnabled(false);
   }
 
   private void openDatePickerDialogFragment() {
@@ -181,70 +197,68 @@ public class CreateTodoFragment extends Fragment implements
 	  datePickerDialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
   }
 
-  private OnClickListener onRDTClick = new OnClickListener() {
+  private OnClickListener onReminderDateTimeClick = new OnClickListener() {
 
     @Override
     public void onClick(View v) {
-      Bundle arguments = new Bundle();
-      arguments.putSerializable("reminderDate", reminderDateTime);
-      ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
-          new ReminderDatePickerDialogFragment();
-      reminderDatePickerDialogFragment.setTargetFragment(CreateTodoFragment.this, 0);
-      reminderDatePickerDialogFragment.setArguments(arguments);
-      reminderDatePickerDialogFragment.show(
-          getFragmentManager(),
-          "ReminderDatePickerDialogFragment"
-      );
+      openReminderDatePickerDialogFragment();
     }
 
   };
 
-  /**
-   * Beállítja a View-n a megadott Date-et.
-   * @param date A megadott Date.
-   */
-	@Override
-  public void onSelectDate(Date date) {
-    this.dueDate = date;
-	  tvDueDate.setText(simpleDateFormat.format(date));
+  private void openReminderDatePickerDialogFragment() {
+    Bundle arguments = new Bundle();
+    arguments.putSerializable("reminderDate", reminderDateTime);
+    ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
+        new ReminderDatePickerDialogFragment();
+    reminderDatePickerDialogFragment.setTargetFragment(CreateTodoFragment.this, 0);
+    reminderDatePickerDialogFragment.setArguments(arguments);
+    reminderDatePickerDialogFragment.show(
+        getFragmentManager(),
+        "ReminderDatePickerDialogFragment"
+    );
   }
 
-  /**
-   * A ReminderTimePickerDialogFragment-et jeleníti meg és átadja neki a megadott Date-et.
-   * @param date A megadott Date.
-   */
+  @Override
+  public void onSelectDate(Date date) {
+    dueDate = date;
+    String selectedDate = simpleDateFormat.format(date);
+    tvDueDate.setText(selectedDate);
+  }
+
   @Override
   public void onSelectReminderDate(Date date) {
+    openReminderTimePickerDialogFragment(date);
+  }
+
+  private void openReminderTimePickerDialogFragment(Date date) {
     Bundle arguments = new Bundle();
     arguments.putSerializable("reminderDate", date);
     ReminderTimePickerDialogFragment reminderTimePickerDialogFragment =
         new ReminderTimePickerDialogFragment();
     reminderTimePickerDialogFragment.setTargetFragment(this, 0);
     reminderTimePickerDialogFragment.setArguments(arguments);
-    reminderTimePickerDialogFragment.show(getFragmentManager(), "ReminderTimePickerDialogFragment");
+    reminderTimePickerDialogFragment.show(
+        getFragmentManager(),
+        "ReminderTimePickerDialogFragment"
+    );
   }
 
-  /**
-   * Törli az emlékeztetőt.
-   */
   @Override
   public void onDeleteReminder() {
     reminderDateTime = new Date();
     tvReminderDateTime.setText(getString(R.string.txtNoReminders));
   }
 
-  /**
-   * Beállítja az emlékeztetőt a megadott Date alapján.
-   * @param date A megadott Date.
-   */
   @Override
   public void onSelectReminderDateTime(Date date) {
     reminderDateTime = date;
-    tvReminderDateTime.setText(reminderDateTimeFormat.format(date));
+    String reminderDateTime = reminderDateTimeFormat.format(date);
+    tvReminderDateTime.setText(reminderDateTime);
   }
 
   public interface ICreateTodoFragment {
-		void onCreateTodo(Todo todoToCreate);
+		void onCreateTodo(Todo todo);
 	}
 
   public interface ICreateTodoFragmentActionBar {

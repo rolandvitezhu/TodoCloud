@@ -319,12 +319,12 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void onCreateTodo(Todo todoToCreate) {
-    createTodoInLocalDatabase(todoToCreate);
+  public void onCreateTodo(Todo todo) {
+    createTodoInLocalDatabase(todo);
     updateTodoAdapterTest();
 
-    if (isSetReminder(todoToCreate) && isNotCompleted(todoToCreate)) {
-      ReminderSetter.createReminderService(todoToCreate);
+    if (isSetReminder(todo) && isNotCompleted(todo)) {
+      ReminderSetter.createReminderService(todo);
     }
   }
 
