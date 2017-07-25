@@ -319,7 +319,7 @@ class TodoDataSynchronizer {
   private String prepareGetTodosUrl() {
     int end = AppConfig.URL_GET_TODOS.lastIndexOf(":");
     return AppConfig.URL_GET_TODOS.substring(0, end)
-        + dbLoader.getTodoRowVersion();
+        + dbLoader.getLastTodoRowVersion();
   }
 
   private JSONObject prepareInsertTodoJsonRequest(final Todo todoToInsert) {

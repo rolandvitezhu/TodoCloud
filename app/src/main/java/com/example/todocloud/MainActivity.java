@@ -218,8 +218,10 @@ public class MainActivity extends AppCompatActivity implements
     TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.tvEmail);
     DbLoader dbLoader = new DbLoader();
     User user = dbLoader.getUser();
-    tvName.setText(user.getName());
-    tvEmail.setText(user.getEmail());
+    if (user != null) {
+      tvName.setText(user.getName());
+      tvEmail.setText(user.getEmail());
+    }
   }
 
   @Override

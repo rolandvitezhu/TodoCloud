@@ -977,17 +977,17 @@ public class MainListFragment extends ListFragment implements
   public void onSoftDelete(String onlineId, String type) {
     switch (type) {
       case "list":
-        dbLoader.deleteListAndTodos(onlineId);
+        dbLoader.softDeleteListAndTodos(onlineId);
         updateListAdapter();
         actionMode.finish();
         break;
       case "listInCategory":
-        dbLoader.deleteListAndTodos(onlineId);
+        dbLoader.softDeleteListAndTodos(onlineId);
         updateCategoryAdapter();
         actionMode.finish();
         break;
       case "category":
-        dbLoader.deleteCategoryAndListsAndTodos(onlineId);
+        dbLoader.softDeleteCategoryAndListsAndTodos(onlineId);
         updateCategoryAdapter();
         actionMode.finish();
         break;
@@ -1000,7 +1000,7 @@ public class MainListFragment extends ListFragment implements
       case "list":
         ArrayList<com.example.todocloud.data.List> lists = items;
         for (com.example.todocloud.data.List list:lists) {
-          dbLoader.deleteListAndTodos(list.getListOnlineId());
+          dbLoader.softDeleteListAndTodos(list.getListOnlineId());
         }
         updateListAdapter();
         actionMode.finish();
@@ -1008,7 +1008,7 @@ public class MainListFragment extends ListFragment implements
       case "listInCategory":
         ArrayList<com.example.todocloud.data.List> listsInCategory = items;
         for (com.example.todocloud.data.List list:listsInCategory) {
-          dbLoader.deleteListAndTodos(list.getListOnlineId());
+          dbLoader.softDeleteListAndTodos(list.getListOnlineId());
         }
         updateCategoryAdapter();
         actionMode.finish();
@@ -1016,7 +1016,7 @@ public class MainListFragment extends ListFragment implements
       case "category":
         ArrayList<Category> categories = items;
         for (Category category:categories) {
-          dbLoader.deleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
+          dbLoader.softDeleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
         }
         updateCategoryAdapter();
         actionMode.finish();

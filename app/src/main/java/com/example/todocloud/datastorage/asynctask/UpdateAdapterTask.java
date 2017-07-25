@@ -10,16 +10,11 @@ import com.example.todocloud.adapter.TodoAdapter;
 import com.example.todocloud.data.Category;
 import com.example.todocloud.data.PredefinedList;
 import com.example.todocloud.data.Todo;
-import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
 
@@ -68,9 +63,11 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
 
   private void updateTodoAdapter(Bundle... params) {
     if (isPredefinedList(params[0])) {
-      todos = dbLoader.getTodos((String) params[0].get("selectFromDB"));
+      String selectFromDB = params[0].getString("selectFromDB");
+      todos = dbLoader.getPredefinedListTodos(selectFromDB);
     } else {
-      todos = dbLoader.getTodosByListOnlineId(params[0].getString("listOnlineId"));
+      String listOnlineId = params[0].getString("listOnlineId");
+      todos = dbLoader.getTodosByListOnlineId(listOnlineId);
     }
   }
 
@@ -79,36 +76,29 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
   }
 
   private void updatePredefinedListAdapter() {
-    PredefinedListAdapter predefinedListAdapter = (PredefinedListAdapter) adapter;
+    String todayPredefinedListWhere = dbLoader.prepareTodayPredefinedListWhere();
+    String next7DaysPredefinedListWhere = dbLoader.prepareNext7DaysPredefinedListWhere();
+    String allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere();
+    String completedPredefinedListWhere = dbLoader.prepareCompletedPredefinedListWhere();
     PredefinedList predefinedListToday = new PredefinedList(
         "0",
-        DbConstants.Todo.KEY_DUE_DATE + "='" + today() + "'",
+        todayPredefinedListWhere,
         0
     );
     PredefinedList predefinedListNext7Days = new PredefinedList(
         "1",
-        prepareNext7DaysWhere(),
+        next7DaysPredefinedListWhere,
         0
     );
     PredefinedList predefinedListAll = new PredefinedList(
         "2",
-        null,
+        allPredefinedListWhere,
         0);
     PredefinedList predefinedListCompleted = new PredefinedList(
         "3",
-        DbConstants.Todo.KEY_COMPLETED
-            + "="
-            + 1
-            + " AND "
-            + DbConstants.Todo.KEY_USER_ONLINE_ID
-            + "='"
-            + dbLoader.getUserOnlineId()
-            + "'"
-            + " AND "
-            + DbConstants.Todo.KEY_DELETED
-            + "="
-            + 0,
+        completedPredefinedListWhere,
         0);
+    PredefinedListAdapter predefinedListAdapter = (PredefinedListAdapter) adapter;
     predefinedListAdapter.addItem(predefinedListToday);
     predefinedListAdapter.addItem(predefinedListNext7Days);
     predefinedListAdapter.addItem(predefinedListAll);
@@ -129,71 +119,6 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
 
   private void updateListAdapter() {
     lists = dbLoader.getListsNotInCategory();
-  }
-
-  private String today() {
-    String pattern = "yyyy.MM.dd.";
-    Locale defaultLocale = Locale.getDefault();
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-        pattern,
-        defaultLocale
-    );
-    Date today = new Date();
-    return simpleDateFormat.format(today);
-  }
-
-  private String prepareNext7DaysWhere() {
-    String pattern = "yyyy.MM.dd.";
-    Locale defaultLocale = Locale.getDefault();
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-        pattern,
-        defaultLocale
-    );
-    Date today = new Date();
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(today);
-
-    StringBuilder whereStringBuilder = new StringBuilder();
-    String todayString = simpleDateFormat.format(today);
-    appendToday(whereStringBuilder, todayString);
-    for (int i = 0; i < 6; i++) {
-      String nextDayString = prepareNextDayStringWhere(simpleDateFormat, calendar);
-      appendNextDay(whereStringBuilder, nextDayString);
-    }
-    prepareWhereStringBuilderPostfix(whereStringBuilder);
-    String where = whereStringBuilder.toString();
-    return where;
-  }
-
-  private void appendToday(StringBuilder whereStringBuilder, String todayString) {
-    whereStringBuilder.append(
-        "("
-            + DbConstants.Todo.KEY_DUE_DATE
-            + "='"
-            + todayString
-            + "' OR "
-    );
-  }
-
-  private String prepareNextDayStringWhere(SimpleDateFormat simpleDateFormat, Calendar calendar) {
-    calendar.roll(Calendar.DAY_OF_MONTH, true);
-    Date nextDay = new Date();
-    nextDay.setTime(calendar.getTimeInMillis());
-    return simpleDateFormat.format(nextDay);
-  }
-
-  private void appendNextDay(StringBuilder whereStringBuilder, String nextDayString) {
-    whereStringBuilder.append(
-        DbConstants.Todo.KEY_DUE_DATE
-            + "='"
-            + nextDayString
-            + "' OR "
-    );
-  }
-
-  private void prepareWhereStringBuilderPostfix(StringBuilder whereStringBuilder) {
-    whereStringBuilder.delete(whereStringBuilder.length()-4, whereStringBuilder.length());
-    whereStringBuilder.append(')');
   }
 
 }

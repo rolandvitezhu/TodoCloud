@@ -1,5 +1,6 @@
 package com.example.todocloud.data;
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -42,6 +43,16 @@ public class Category implements Parcelable {
     rowVersion = in.readInt();
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
+  }
+
+  public Category(Cursor cursor) {
+    _id = cursor.getLong(0);
+    categoryOnlineId = cursor.getString(1);
+    userOnlineId = cursor.getString(2);
+    title = cursor.getString(3);
+    rowVersion = cursor.getInt(4);
+    deleted = cursor.getInt(5) != 0;
+    dirty = cursor.getInt(6) != 0;
   }
 
   public Category(JSONObject jsonCategory) throws JSONException {

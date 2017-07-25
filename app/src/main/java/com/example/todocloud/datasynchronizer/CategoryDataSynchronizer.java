@@ -321,7 +321,7 @@ class CategoryDataSynchronizer {
   private String prepareGetCategoriesUrl() {
     int end = AppConfig.URL_GET_CATEGORIES.lastIndexOf(":");
     return AppConfig.URL_GET_CATEGORIES.substring(0, end) +
-        dbLoader.getCategoryRowVersion();
+        dbLoader.getLastCategoryRowVersion();
   }
 
   private JSONObject prepareInsertCategoryJsonRequest(final Category categoryToInsert) {

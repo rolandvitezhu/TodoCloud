@@ -1,5 +1,6 @@
 package com.example.todocloud.data;
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -31,6 +32,14 @@ public class User implements Parcelable {
     name = in.readString();
     email = in.readString();
     apiKey = in.readString();
+  }
+
+  public User(Cursor cursor) {
+    _id = cursor.getLong(0);
+    userOnlineId = cursor.getString(1);
+    name = cursor.getString(2);
+    email = cursor.getString(3);
+    apiKey = cursor.getString(4);
   }
 
   public User(JSONObject jsonUser) throws JSONException {

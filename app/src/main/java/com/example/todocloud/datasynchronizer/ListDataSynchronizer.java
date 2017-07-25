@@ -319,7 +319,7 @@ class ListDataSynchronizer {
   private String prepareGetListsUrl() {
     int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
     return AppConfig.URL_GET_LISTS.substring(0, end)
-        + dbLoader.getListRowVersion();
+        + dbLoader.getLastListRowVersion();
   }
 
   private JSONObject prepareInsertListJsonRequest(final List listToInsert) {
