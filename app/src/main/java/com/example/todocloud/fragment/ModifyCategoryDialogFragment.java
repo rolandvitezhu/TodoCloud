@@ -25,9 +25,10 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private IModifyCategoryDialogFragment listener;
   private Button btnOK;
   private Button btnCancel;
+
+  private IModifyCategoryDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {

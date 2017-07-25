@@ -26,9 +26,10 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
 
   private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
-  private ICreateListInCategoryDialogFragment listener;
   private Button btnOK;
   private Button btnCancel;
+
+  private ICreateListInCategoryDialogFragment listener;
 
   @Override
   public void onAttach(Context context) {
