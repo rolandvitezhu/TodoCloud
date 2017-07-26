@@ -30,9 +30,6 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
     listener = (IReminderDatePickerDialogFragment) getTargetFragment();
   }
 
-  /**
-   * Létrehoz egy dátumválasztó dialógust az átadott dátum alapján.
-   */
   @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -42,17 +39,30 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
     month = calendar.get(Calendar.MONTH);
     day = calendar.get(Calendar.DAY_OF_MONTH);
     DatePickerDialog datePickerDialog = new DatePickerDialog(
-        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day);
-    datePickerDialog.setButton(DialogInterface.BUTTON_POSITIVE,
-        getString(R.string.btnTime), datePickerDialog);
-    datePickerDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
-        getString(R.string.btnDeleteReminder), new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        listener.onDeleteReminder();
-      }
-    });
+        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day
+    );
+    prepareDatePickerDialogButtons(datePickerDialog);
     return datePickerDialog;
+  }
+
+  private void prepareDatePickerDialogButtons(DatePickerDialog datePickerDialog) {
+    datePickerDialog.setButton(
+        DialogInterface.BUTTON_POSITIVE,
+        getString(R.string.btnTime),
+        datePickerDialog
+    );
+    datePickerDialog.setButton(
+        DialogInterface.BUTTON_NEGATIVE,
+        getString(R.string.btnDeleteReminder),
+        new DialogInterface.OnClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            listener.onDeleteReminder();
+          }
+
+        }
+    );
   }
 
   @Override
