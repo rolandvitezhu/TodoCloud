@@ -38,7 +38,8 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
     month = calendar.get(Calendar.MONTH);
     day = calendar.get(Calendar.DAY_OF_MONTH);
 	  return new DatePickerDialog(
-        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day);
+        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day
+    );
   }
 
   @Override
