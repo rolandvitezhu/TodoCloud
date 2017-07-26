@@ -26,9 +26,6 @@ public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment im
     listener = (IReminderTimePickerDialogFragment) getTargetFragment();
   }
 
-  /**
-   * Létrehoz egy időpontválasztó dialógust az átadott dátum alapján.
-   */
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     date = (Date) getArguments().get("reminderDate");
@@ -36,12 +33,10 @@ public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment im
     hour = calendar.get(Calendar.HOUR_OF_DAY);
     minute = calendar.get(Calendar.MINUTE);
     return new TimePickerDialog(
-        getActivity(), R.style.MyPickerDialogTheme, this, hour, minute, true);
+        getActivity(), R.style.MyPickerDialogTheme, this, hour, minute, true
+    );
   }
 
-  /**
-   * Átadja a kiválasztott időt.
-   */
   @Override
   public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
