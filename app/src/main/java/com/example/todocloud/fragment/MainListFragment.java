@@ -1033,6 +1033,7 @@ public class MainListFragment extends ListFragment implements
   @Override
   public void onFinishSyncListData() {
     updateListAdapter();
+    updateCategoryAdapter();
   }
 
   @Override
