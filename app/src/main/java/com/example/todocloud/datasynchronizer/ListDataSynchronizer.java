@@ -28,8 +28,12 @@ class ListDataSynchronizer {
 
   private OnSyncListDataListener onSyncListDataListener;
   private DbLoader dbLoader;
-  private int insertListsRequestCount;
-  private int currentInsertListsRequest;
+  private boolean isUpdateListRequestsFinished;
+  private int updateListRequestCount;
+  private int currentUpdateListRequest;
+  private boolean isInsertListRequestsFinished;
+  private int insertListRequestCount;
+  private int currentInsertListRequest;
 
   ListDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
@@ -40,7 +44,13 @@ class ListDataSynchronizer {
   }
 
   void syncListData() {
+    initListRequestsStates();
     getLists();
+  }
+
+  private void initListRequestsStates() {
+    isUpdateListRequestsFinished = false;
+    isInsertListRequestsFinished = false;
   }
 
   private void getLists() {
@@ -55,9 +65,16 @@ class ListDataSynchronizer {
     if (!listsToUpdate.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_update_list";
+      updateListRequestCount = listsToUpdate.size();
+      currentUpdateListRequest = 1;
       for (final List listToUpdate : listsToUpdate) {
         JsonObjectRequest updateListRequest = prepareUpdateListRequest(listToUpdate);
         appController.addToRequestQueue(updateListRequest, tag_json_object_request);
+      }
+    } else {
+      isUpdateListRequestsFinished = true;
+      if (isAllListRequestsFinished()) {
+        onSyncListDataListener.onFinishSyncListData();
       }
     }
     insertLists();
@@ -69,14 +86,17 @@ class ListDataSynchronizer {
     if (!listsToInsert.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_insert_list";
-      insertListsRequestCount = listsToInsert.size();
-      currentInsertListsRequest = 1;
+      insertListRequestCount = listsToInsert.size();
+      currentInsertListRequest = 1;
       for (final List listToInsert : listsToInsert) {
         JsonObjectRequest insertListRequest = prepareInsertListRequest(listToInsert);
         appController.addToRequestQueue(insertListRequest, tag_json_object_request);
       }
     } else {
-      onSyncListDataListener.onFinishSyncListData();
+      isInsertListRequestsFinished = true;
+      if (isAllListRequestsFinished()) {
+        onSyncListDataListener.onFinishSyncListData();
+      }
     }
   }
 
@@ -178,17 +198,35 @@ class ListDataSynchronizer {
 
               if (!error) {
                 makeListUpToDate(response);
+                if (isLastUpdateListRequest()) {
+                  isUpdateListRequestsFinished = true;
+                  if (isAllListRequestsFinished()) {
+                    onSyncListDataListener.onFinishSyncListData();
+                  }
+                }
               } else {
                 String message = response.getString("message");
                 Log.d(TAG, "Error Message: " + message);
                 if (message == null) message = "Unknown error";
                 onSyncListDataListener.onSyncError(message);
+                if (isLastUpdateListRequest()) {
+                  isUpdateListRequestsFinished = true;
+                  if (isAllListRequestsFinished()) {
+                    onSyncListDataListener.onFinishSyncListData();
+                  }
+                }
               }
 
             } catch (JSONException e) {
               e.printStackTrace();
               String errorMessage = "Unknown error";
               onSyncListDataListener.onSyncError(errorMessage);
+              if (isLastUpdateListRequest()) {
+                isUpdateListRequestsFinished = true;
+                if (isAllListRequestsFinished()) {
+                  onSyncListDataListener.onFinishSyncListData();
+                }
+              }
             }
           }
 
@@ -207,6 +245,12 @@ class ListDataSynchronizer {
             Log.e(TAG, "Update List Error: " + errorMessage);
             if (errorMessage == null) errorMessage = "Unknown error";
             onSyncListDataListener.onSyncError(errorMessage);
+            if (isLastUpdateListRequest()) {
+              isUpdateListRequestsFinished = true;
+              if (isAllListRequestsFinished()) {
+                onSyncListDataListener.onFinishSyncListData();
+              }
+            }
           }
 
         }
@@ -231,6 +275,12 @@ class ListDataSynchronizer {
       e.printStackTrace();
       String errorMessage = "Unknown error";
       onSyncListDataListener.onSyncError(errorMessage);
+      if (isLastUpdateListRequest()) {
+        isUpdateListRequestsFinished = true;
+        if (isAllListRequestsFinished()) {
+          onSyncListDataListener.onFinishSyncListData();
+        }
+      }
     }
     return updateListJsonRequest;
   }
@@ -252,7 +302,10 @@ class ListDataSynchronizer {
               if (!error) {
                 makeListUpToDate(response);
                 if (isLastInsertListRequest()) {
-                  onSyncListDataListener.onFinishSyncListData();
+                  isInsertListRequestsFinished = true;
+                  if (isAllListRequestsFinished()) {
+                    onSyncListDataListener.onFinishSyncListData();
+                  }
                 }
               } else {
                 String message = response.getString("message");
@@ -260,7 +313,10 @@ class ListDataSynchronizer {
                 if (message == null) message = "Unknown error";
                 onSyncListDataListener.onSyncError(message);
                 if (isLastInsertListRequest()) {
-                  onSyncListDataListener.onFinishSyncListData();
+                  isInsertListRequestsFinished = true;
+                  if (isAllListRequestsFinished()) {
+                    onSyncListDataListener.onFinishSyncListData();
+                  }
                 }
               }
             } catch (JSONException e) {
@@ -268,7 +324,10 @@ class ListDataSynchronizer {
               String errorMessage = "Unknown error";
               onSyncListDataListener.onSyncError(errorMessage);
               if (isLastInsertListRequest()) {
-                onSyncListDataListener.onFinishSyncListData();
+                isInsertListRequestsFinished = true;
+                if (isAllListRequestsFinished()) {
+                  onSyncListDataListener.onFinishSyncListData();
+                }
               }
             }
           }
@@ -289,7 +348,10 @@ class ListDataSynchronizer {
             if (errorMessage == null) errorMessage = "Unknown error";
             onSyncListDataListener.onSyncError(errorMessage);
             if (isLastInsertListRequest()) {
-              onSyncListDataListener.onFinishSyncListData();
+              isInsertListRequestsFinished = true;
+              if (isAllListRequestsFinished()) {
+                onSyncListDataListener.onFinishSyncListData();
+              }
             }
           }
 
@@ -308,7 +370,15 @@ class ListDataSynchronizer {
   }
 
   private boolean isLastInsertListRequest() {
-    if (currentInsertListsRequest++ == insertListsRequestCount) {
+    if (currentInsertListRequest++ == insertListRequestCount) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean isLastUpdateListRequest() {
+    if (currentUpdateListRequest++ == updateListRequestCount) {
       return true;
     } else {
       return false;
@@ -331,7 +401,10 @@ class ListDataSynchronizer {
       String errorMessage = "Unknown error";
       onSyncListDataListener.onSyncError(errorMessage);
       if (isLastInsertListRequest()) {
-        onSyncListDataListener.onFinishSyncListData();
+        isInsertListRequestsFinished = true;
+        if (isAllListRequestsFinished()) {
+          onSyncListDataListener.onFinishSyncListData();
+        }
       }
     }
     return insertListJsonRequest;
@@ -346,6 +419,10 @@ class ListDataSynchronizer {
     }
     jsonRequest.put("title", listData.getTitle().trim());
     jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
+  }
+
+  private boolean isAllListRequestsFinished() {
+    return isUpdateListRequestsFinished && isInsertListRequestsFinished;
   }
 
   interface OnSyncListDataListener {

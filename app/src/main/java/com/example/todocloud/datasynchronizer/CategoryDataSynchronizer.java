@@ -28,8 +28,12 @@ class CategoryDataSynchronizer {
 
   private OnSyncCategoryDataListener onSyncCategoryDataListener;
   private DbLoader dbLoader;
-  private int insertCategoriesRequestCount;
-  private int currentInsertCategoriesRequest;
+  private boolean isUpdateCategoryRequestsFinished;
+  private int updateCategoryRequestCount;
+  private int currentUpdateCategoryRequest;
+  private boolean isInsertCategoryRequestsFinished;
+  private int insertCategoryRequestCount;
+  private int currentInsertCategoryRequest;
 
   CategoryDataSynchronizer(DbLoader dbLoader) {
     this.dbLoader = dbLoader;
@@ -42,7 +46,13 @@ class CategoryDataSynchronizer {
   }
 
   void syncCategoryData() {
+    initCategoryRequestsStates();
     getCategories();
+  }
+
+  private void initCategoryRequestsStates() {
+    isUpdateCategoryRequestsFinished = false;
+    isInsertCategoryRequestsFinished = false;
   }
 
   private void getCategories() {
@@ -57,9 +67,16 @@ class CategoryDataSynchronizer {
     if (!categoriesToUpdate.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_update_category";
+      updateCategoryRequestCount = categoriesToUpdate.size();
+      currentUpdateCategoryRequest = 1;
       for (final Category categoryToUpdate : categoriesToUpdate) {
         JsonObjectRequest updateCategoryRequest = prepareUpdateCategoryRequest(categoryToUpdate);
         appController.addToRequestQueue(updateCategoryRequest, tag_json_object_request);
+      }
+    } else {
+      isUpdateCategoryRequestsFinished = true;
+      if (isAllCategoryRequestsFinished()) {
+        onSyncCategoryDataListener.onFinishSyncCategoryData();
       }
     }
     insertCategories();
@@ -71,14 +88,17 @@ class CategoryDataSynchronizer {
     if (!categoriesToInsert.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_insert_category";
-      insertCategoriesRequestCount = categoriesToInsert.size();
-      currentInsertCategoriesRequest = 1;
+      insertCategoryRequestCount = categoriesToInsert.size();
+      currentInsertCategoryRequest = 1;
       for (final Category categoryToInsert : categoriesToInsert) {
         JsonObjectRequest insertCategoryRequest = prepareInsertCategoryRequest(categoryToInsert);
         appController.addToRequestQueue(insertCategoryRequest, tag_json_object_request);
       }
     } else {
-      onSyncCategoryDataListener.onFinishSyncCategoryData();
+      isInsertCategoryRequestsFinished = true;
+      if (isAllCategoryRequestsFinished()) {
+        onSyncCategoryDataListener.onFinishSyncCategoryData();
+      }
     }
   }
 
@@ -180,17 +200,35 @@ class CategoryDataSynchronizer {
 
               if (!error) {
                 makeCategoryUpToDate(response);
+                if (isLastUpdateCategoryRequest()) {
+                  isUpdateCategoryRequestsFinished = true;
+                  if (isAllCategoryRequestsFinished()) {
+                    onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  }
+                }
               } else {
                 String message = response.getString("message");
                 Log.d(TAG, "Error Message: " + message);
                 if (message == null) message = "Unknown error";
                 onSyncCategoryDataListener.onSyncError(message);
+                if (isLastUpdateCategoryRequest()) {
+                  isUpdateCategoryRequestsFinished = true;
+                  if (isAllCategoryRequestsFinished()) {
+                    onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  }
+                }
               }
 
             } catch (JSONException e) {
               e.printStackTrace();
               String errorMessage = "Unknown error";
               onSyncCategoryDataListener.onSyncError(errorMessage);
+              if (isLastUpdateCategoryRequest()) {
+                isUpdateCategoryRequestsFinished = true;
+                if (isAllCategoryRequestsFinished()) {
+                  onSyncCategoryDataListener.onFinishSyncCategoryData();
+                }
+              }
             }
           }
 
@@ -209,6 +247,12 @@ class CategoryDataSynchronizer {
             Log.e(TAG, "Update Category Error: " + errorMessage);
             if (errorMessage == null) errorMessage = "Unknown error";
             onSyncCategoryDataListener.onSyncError(errorMessage);
+            if (isLastUpdateCategoryRequest()) {
+              isUpdateCategoryRequestsFinished = true;
+              if (isAllCategoryRequestsFinished()) {
+                onSyncCategoryDataListener.onFinishSyncCategoryData();
+              }
+            }
           }
 
         }
@@ -233,6 +277,12 @@ class CategoryDataSynchronizer {
       e.printStackTrace();
       String errorMessage = "Unknown error";
       onSyncCategoryDataListener.onSyncError(errorMessage);
+      if (isLastUpdateCategoryRequest()) {
+        isUpdateCategoryRequestsFinished = true;
+        if (isAllCategoryRequestsFinished()) {
+          onSyncCategoryDataListener.onFinishSyncCategoryData();
+        }
+      }
     }
     return updateCategoryJsonRequest;
   }
@@ -254,7 +304,10 @@ class CategoryDataSynchronizer {
               if (!error) {
                 makeCategoryUpToDate(response);
                 if (isLastInsertCategoryRequest()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  isInsertCategoryRequestsFinished = true;
+                  if (isAllCategoryRequestsFinished()) {
+                    onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  }
                 }
               } else {
                 String message = response.getString("message");
@@ -262,7 +315,10 @@ class CategoryDataSynchronizer {
                 if (message == null) message = "Unknown error";
                 onSyncCategoryDataListener.onSyncError(message);
                 if (isLastInsertCategoryRequest()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  isInsertCategoryRequestsFinished = true;
+                  if (isAllCategoryRequestsFinished()) {
+                    onSyncCategoryDataListener.onFinishSyncCategoryData();
+                  }
                 }
               }
             } catch (JSONException e) {
@@ -270,7 +326,10 @@ class CategoryDataSynchronizer {
               String errorMessage = "Unknown error";
               onSyncCategoryDataListener.onSyncError(errorMessage);
               if (isLastInsertCategoryRequest()) {
-                onSyncCategoryDataListener.onFinishSyncCategoryData();
+                isInsertCategoryRequestsFinished = true;
+                if (isAllCategoryRequestsFinished()) {
+                  onSyncCategoryDataListener.onFinishSyncCategoryData();
+                }
               }
             }
           }
@@ -291,7 +350,10 @@ class CategoryDataSynchronizer {
             if (errorMessage == null) errorMessage = "Unknown error";
             onSyncCategoryDataListener.onSyncError(errorMessage);
             if (isLastInsertCategoryRequest()) {
-              onSyncCategoryDataListener.onFinishSyncCategoryData();
+              isInsertCategoryRequestsFinished = true;
+              if (isAllCategoryRequestsFinished()) {
+                onSyncCategoryDataListener.onFinishSyncCategoryData();
+              }
             }
           }
 
@@ -310,7 +372,15 @@ class CategoryDataSynchronizer {
   }
 
   private boolean isLastInsertCategoryRequest() {
-    if (currentInsertCategoriesRequest++ == insertCategoriesRequestCount) {
+    if (currentInsertCategoryRequest++ == insertCategoryRequestCount) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean isLastUpdateCategoryRequest() {
+    if (currentUpdateCategoryRequest++ == updateCategoryRequestCount) {
       return true;
     } else {
       return false;
@@ -333,7 +403,10 @@ class CategoryDataSynchronizer {
       String errorMessage = "Unknown error";
       onSyncCategoryDataListener.onSyncError(errorMessage);
       if (isLastInsertCategoryRequest()) {
-        onSyncCategoryDataListener.onFinishSyncCategoryData();
+        isInsertCategoryRequestsFinished = true;
+        if (isAllCategoryRequestsFinished()) {
+          onSyncCategoryDataListener.onFinishSyncCategoryData();
+        }
       }
     }
     return insertCategoryJsonRequest;
@@ -346,6 +419,10 @@ class CategoryDataSynchronizer {
     jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
     jsonRequest.put("title", categoryData.getTitle().trim());
     jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
+  }
+
+  private boolean isAllCategoryRequestsFinished() {
+    return isUpdateCategoryRequestsFinished && isInsertCategoryRequestsFinished;
   }
 
   interface OnSyncCategoryDataListener {
