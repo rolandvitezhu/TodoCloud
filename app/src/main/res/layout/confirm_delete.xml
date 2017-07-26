@@ -6,7 +6,7 @@
               android:gravity="center_horizontal">
 
     <TextView
-        android:id="@+id/tvTitle"
+        android:id="@+id/tvActionText"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         android:layout_width="match_parent"

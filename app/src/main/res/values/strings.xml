@@ -37,9 +37,9 @@
     <string name="delete_todo">Tennivaló törlése</string>
     <string name="delete_list">Lista törlése</string>
     <string name="delete_category">Kategória törlése</string>
-    <string name="title_delete_todo">"Biztos törli a következő tennivalót: "</string>
-    <string name="title_delete_list">"Biztos törli a következő listát: "</string>
-    <string name="title_delete_category">"Biztos törli a következő kategóriát: "</string>
+    <string name="action_text_delete_todo">"Biztos törli a következő tennivalót: "</string>
+    <string name="action_text_delete_list">"Biztos törli a következő listát: "</string>
+    <string name="action_text_delete_category">"Biztos törli a következő kategóriát: "</string>
     <string name="hint_confirm_password">Jelszó megerősítése</string>
     <string name="passwords_does_not_match">A jelszavak nem egyeznek.</string>
     <string name="itemLogout">Kijelentkezés</string>
@@ -47,11 +47,11 @@
     <string name="selected">kijelölve</string>
     <string name="itemDelete">Törlés</string>
     <string name="delete_todos">Tennivalók törlése</string>
-    <string name="title_delete_todos">Biztos törli a kijelölt tennivalókat?</string>
+    <string name="action_text_delete_todos">Biztos törli a kijelölt tennivalókat?</string>
     <string name="delete_lists">Listák törlése</string>
-    <string name="title_delete_lists">Biztos törli a kijelölt listákat?</string>
+    <string name="action_text_delete_lists">Biztos törli a kijelölt listákat?</string>
     <string name="delete_categories">Kategóriák törlése</string>
-    <string name="title_delete_categories">Biztos törli a kijelölt kategóriákat?</string>
+    <string name="action_text_delete_categories">Biztos törli a kijelölt kategóriákat?</string>
     <string name="itemNewList">Új lista</string>
     <string name="itemModify">Módosítás</string>
     <string name="itemMove">Áthelyezés</string>

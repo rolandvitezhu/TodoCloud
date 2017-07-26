@@ -479,16 +479,16 @@ public class MainListFragment extends ListFragment implements
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
     Bundle arguments = new Bundle();
-    arguments.putString("type", "listInCategory");
-    arguments.putString("title", title);
+    arguments.putString("itemType", "listInCategory");
+    arguments.putString("itemTitle", title);
     arguments.putString("onlineId", onlineId);
     openConfirmDeleteDialogFragment(arguments);
   }
 
   private void openConfirmDeleteListsInCategoryDialog() {
     Bundle arguments = new Bundle();
-    arguments.putString("type", "listInCategory");
-    arguments.putParcelableArrayList("items", selectedListsInCategory);
+    arguments.putString("itemType", "listInCategory");
+    arguments.putParcelableArrayList("itemsToDelete", selectedListsInCategory);
     openConfirmDeleteDialogFragment(arguments);
   }
 
@@ -522,16 +522,16 @@ public class MainListFragment extends ListFragment implements
     String onlineId = category.getCategoryOnlineId();
     String title = category.getTitle();
     Bundle arguments = new Bundle();
-    arguments.putString("type", "category");
-    arguments.putString("title", title);
+    arguments.putString("itemType", "category");
+    arguments.putString("itemTitle", title);
     arguments.putString("onlineId", onlineId);
     openConfirmDeleteDialogFragment(arguments);
   }
 
   private void openConfirmDeleteCategoriesDialog() {
     Bundle arguments = new Bundle();
-    arguments.putString("type", "category");
-    arguments.putParcelableArrayList("items", selectedCategories);
+    arguments.putString("itemType", "category");
+    arguments.putParcelableArrayList("itemsToDelete", selectedCategories);
     openConfirmDeleteDialogFragment(arguments);
   }
 
@@ -547,16 +547,16 @@ public class MainListFragment extends ListFragment implements
     String onlineId = list.getListOnlineId();
     String title = list.getTitle();
     Bundle arguments = new Bundle();
-    arguments.putString("type", "list");
-    arguments.putString("title", title);
+    arguments.putString("itemType", "list");
+    arguments.putString("itemTitle", title);
     arguments.putString("onlineId", onlineId);
     openConfirmDeleteDialogFragment(arguments);
   }
 
   private void openConfirmDeleteListsDialog() {
     Bundle arguments = new Bundle();
-    arguments.putString("type", "list");
-    arguments.putParcelableArrayList("items", selectedLists);
+    arguments.putString("itemType", "list");
+    arguments.putParcelableArrayList("itemsToDelete", selectedLists);
     openConfirmDeleteDialogFragment(arguments);
   }
 
@@ -975,8 +975,8 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onSoftDelete(String onlineId, String type) {
-    switch (type) {
+  public void onSoftDelete(String onlineId, String itemType) {
+    switch (itemType) {
       case "list":
         dbLoader.softDeleteListAndTodos(onlineId);
         updateListAdapter();
@@ -996,10 +996,10 @@ public class MainListFragment extends ListFragment implements
   }
 
   @Override
-  public void onSoftDelete(ArrayList items, String type) {
-    switch (type) {
+  public void onSoftDelete(ArrayList itemsToDelete, String itemType) {
+    switch (itemType) {
       case "list":
-        ArrayList<com.example.todocloud.data.List> lists = items;
+        ArrayList<com.example.todocloud.data.List> lists = itemsToDelete;
         for (com.example.todocloud.data.List list:lists) {
           dbLoader.softDeleteListAndTodos(list.getListOnlineId());
         }
@@ -1007,7 +1007,7 @@ public class MainListFragment extends ListFragment implements
         actionMode.finish();
         break;
       case "listInCategory":
-        ArrayList<com.example.todocloud.data.List> listsInCategory = items;
+        ArrayList<com.example.todocloud.data.List> listsInCategory = itemsToDelete;
         for (com.example.todocloud.data.List list:listsInCategory) {
           dbLoader.softDeleteListAndTodos(list.getListOnlineId());
         }
@@ -1015,7 +1015,7 @@ public class MainListFragment extends ListFragment implements
         actionMode.finish();
         break;
       case "category":
-        ArrayList<Category> categories = items;
+        ArrayList<Category> categories = itemsToDelete;
         for (Category category:categories) {
           dbLoader.softDeleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
         }

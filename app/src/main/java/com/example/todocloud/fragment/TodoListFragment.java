@@ -270,8 +270,8 @@ public class TodoListFragment extends Fragment implements
   private void openConfirmDeleteTodosDialog() {
     ArrayList<Todo> selectedTodos = todoAdapter.getSelectedTodos();
     Bundle arguments = new Bundle();
-    arguments.putString("type", "todo");
-    arguments.putParcelableArrayList("items", selectedTodos);
+    arguments.putString("itemType", "todo");
+    arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
     openConfirmDeleteDialogFragment(arguments);
   }
 
@@ -405,7 +405,7 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void onSoftDelete(String onlineId, String type) {
+  public void onSoftDelete(String onlineId, String itemType) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
     updateTodoAdapterTest();
@@ -414,8 +414,8 @@ public class TodoListFragment extends Fragment implements
   }
 
   @Override
-  public void onSoftDelete(ArrayList items, String type) {
-    ArrayList<Todo> todosToSoftDelete = items;
+  public void onSoftDelete(ArrayList itemsToDelete, String itemType) {
+    ArrayList<Todo> todosToSoftDelete = itemsToDelete;
     for (Todo todoToSoftDelete:todosToSoftDelete) {
       dbLoader.softDeleteTodo(todoToSoftDelete);
       ReminderSetter.cancelReminderService(todoToSoftDelete);

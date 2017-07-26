@@ -1,7 +1,9 @@
 package com.example.todocloud.fragment;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatDialogFragment;
 import android.view.LayoutInflater;
@@ -17,9 +19,14 @@ import java.util.ArrayList;
 
 public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
-  private String type;
-  private boolean many;
-  private ArrayList items;
+  private String itemType;
+  private ArrayList itemsToDelete;
+  private boolean isManyItems = false;
+
+  private TextView tvActionText;
+  private Button btnOK;
+
+  private Button btnCancel;
   private IConfirmDeleteDialogFragment listener;
 
   @Override
@@ -31,84 +38,153 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    // Beállítja az erőforrásban definiált stílust.
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    prepareItemVariables();
+  }
+
+  private void prepareItemVariables() {
+    Bundle arguments = getArguments();
+    itemType = arguments.getString("itemType");
+    itemsToDelete = arguments.getParcelableArrayList("itemsToDelete");
+    prepareIsManyItems();
+  }
+
+  private void prepareIsManyItems() {
+    if (itemsToDelete != null && itemsToDelete.size() > 1) {
+      isManyItems = true;
+    }
   }
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
+  public View onCreateView(
+      LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState
+  ) {
     View view = inflater.inflate(R.layout.confirm_delete, container);
 
-    TextView tvTitle = (TextView) view.findViewById(R.id.tvTitle);
-    Button btnOK = (Button) view.findViewById(R.id.btnOK);
-    Button btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    tvActionText = (TextView) view.findViewById(R.id.tvActionText);
+    btnOK = (Button) view.findViewById(R.id.btnOK);
+    btnCancel = (Button) view.findViewById(R.id.btnCancel);
 
-    // A many flag, és a DialogFragment szövegezésének beállítása az elkért argumentumok alapján.
-    type = getArguments().getString("type");
-    items = getArguments().getParcelableArrayList("items");
-    if (items != null) many = true;
-    String title;
-    String itemTitle = getArguments().getString("title");
-    switch (type) {
+    prepareDialogTexts();
+    applyClickEvents();
+
+    return view;
+  }
+
+  private void prepareDialogTexts() {
+    String itemTitle = getArguments().getString("itemTitle");
+    switch (itemType) {
       case "todo":
-        if (isMany()) {
-          getDialog().setTitle(R.string.delete_todos);
-          tvTitle.setText(getString(R.string.title_delete_todos));
+        if (isManyItems) {
+          prepareConfirmDeleteTodosDialogTexts();
         } else {
-          getDialog().setTitle(R.string.delete_todo);
-          title = getString(R.string.title_delete_todo);
-          ArrayList<Todo> todos = items;
-          itemTitle = todos.get(0).getTitle();
-          title = title + "\"" + itemTitle + "\"?";
-          tvTitle.setText(title);
+          prepareConfirmDeleteTodoDialogTexts();
         }
         break;
       case "list":
-        if (many) {
-          getDialog().setTitle(R.string.delete_lists);
-          tvTitle.setText(R.string.title_delete_lists);
+        if (isManyItems) {
+          prepareConfirmDeleteListsDialogTexts();
         } else {
-          getDialog().setTitle(R.string.delete_list);
-          title = getString(R.string.title_delete_list);
-          title = title + "\"" + itemTitle + "\"?";
-          tvTitle.setText(title);
+          prepareConfirmDeleteListDialogTexts(itemTitle);
         }
         break;
       case "listInCategory":
-        if (many) {
-          getDialog().setTitle(R.string.delete_lists);
-          tvTitle.setText(R.string.title_delete_lists);
+        if (isManyItems) {
+          prepareConfirmDeleteListsDialogTexts();
         } else {
-          getDialog().setTitle(R.string.delete_list);
-          title = getString(R.string.title_delete_list);
-          title = title + "\"" + itemTitle + "\"?";
-          tvTitle.setText(title);
+          prepareConfirmDeleteListDialogTexts(itemTitle);
         }
         break;
       case "category":
-        if (many) {
-          getDialog().setTitle(R.string.delete_categories);
-          tvTitle.setText(R.string.title_delete_categories);
+        if (isManyItems) {
+          prepareConfirmDeleteCategoriesDialogTexts();
         } else {
-          getDialog().setTitle(R.string.delete_category);
-          title = getString(R.string.title_delete_category);
-          title = title + "\"" + itemTitle + "\"?";
-          tvTitle.setText(title);
+          prepareConfirmDeleteCategoryDialogTexts(itemTitle);
         }
         break;
     }
+  }
 
+  private void prepareConfirmDeleteCategoryDialogTexts(String itemTitle) {
+    String dialogTitle = getString(R.string.delete_category);
+    String actionTextPrefix = getString(R.string.action_text_delete_category);
+    String actionText = prepareActionText(actionTextPrefix, itemTitle);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private void prepareConfirmDeleteCategoriesDialogTexts() {
+    String dialogTitle = getString(R.string.delete_categories);
+    String actionText = getString(R.string.action_text_delete_categories);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private void prepareConfirmDeleteListDialogTexts(String itemTitle) {
+    String dialogTitle = getString(R.string.delete_list);
+    String actionTextPrefix = getString(R.string.action_text_delete_list);
+    String actionText = prepareActionText(actionTextPrefix, itemTitle);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private void prepareConfirmDeleteListsDialogTexts() {
+    String dialogTitle = getString(R.string.delete_lists);
+    String actionText = getString(R.string.action_text_delete_lists);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private void prepareConfirmDeleteTodoDialogTexts() {
+    String dialogTitle = getString(R.string.delete_todo);
+    String itemTitle = prepareTodoItemTitle();
+    String actionTextPrefix = getString(R.string.action_text_delete_todo);
+    String actionText = prepareActionText(actionTextPrefix, itemTitle);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private void prepareConfirmDeleteTodosDialogTexts() {
+    String dialogTitle = getString(R.string.delete_todos);
+    String actionText = getString(R.string.action_text_delete_todos);
+    setDialogTitle(dialogTitle);
+    setActionText(actionText);
+  }
+
+  private String prepareTodoItemTitle() {
+    ArrayList<Todo> todos = itemsToDelete;
+    return todos.get(0).getTitle();
+  }
+
+  @NonNull
+  private String prepareActionText(String actionTextPrefix, String itemTitle) {
+    return actionTextPrefix + "\"" + itemTitle + "\"?";
+  }
+
+  private void setDialogTitle(String dialogTitle) {
+    Dialog dialog = getDialog();
+    dialog.setTitle(dialogTitle);
+  }
+
+  private void setActionText(String actionText) {
+    tvActionText.setText(actionText);
+  }
+
+  private void applyClickEvents() {
     btnOK.setOnClickListener(new View.OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        if (!many) {
+        if (itemType.equals("todo")) {
+          listener.onSoftDelete(itemsToDelete, itemType);
+        } else if (!isManyItems) {
           String onlineId = getArguments().getString("onlineId");
-          listener.onSoftDelete(onlineId, type);
+          listener.onSoftDelete(onlineId, itemType);
         } else {
-          listener.onSoftDelete(items, type);
+          listener.onSoftDelete(itemsToDelete, itemType);
         }
         dismiss();
       }
@@ -122,16 +198,11 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
       }
 
     });
-    return view;
-  }
-
-  private boolean isMany() {
-    return items.size() > 1;
   }
 
   public interface IConfirmDeleteDialogFragment {
-    void onSoftDelete(String onlineId, String type);
-    void onSoftDelete(ArrayList items, String type);
+    void onSoftDelete(String onlineId, String itemType);
+    void onSoftDelete(ArrayList itemsToDelete, String itemType);
   }
 
 }

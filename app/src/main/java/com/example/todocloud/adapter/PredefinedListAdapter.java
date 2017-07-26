@@ -44,7 +44,7 @@ public class PredefinedListAdapter extends BaseAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     View itemView = layoutInflater.inflate(R.layout.predefined_list_item, null);
-    TextView tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+    TextView tvTitle = (TextView) itemView.findViewById(R.id.tvActionText);
     ImageView ivPredefinedList = (ImageView) itemView.findViewById(R.id.ivPredefinedList);
 
     String title = predefinedList.getTitle();
