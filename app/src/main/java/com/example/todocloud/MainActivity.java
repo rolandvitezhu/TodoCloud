@@ -101,8 +101,10 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openAllPredefinedList(TodoListFragment todoListFragment) {
+    DbLoader dbLoader = new DbLoader();
+    String allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere();
     Bundle arguments = new Bundle();
-    arguments.putString("selectFromDB", null);
+    arguments.putString("selectFromDB", allPredefinedListWhere);
     arguments.putString("title", "2");
     arguments.putBoolean("isPredefinedList", true);
     todoListFragment.setArguments(arguments);
