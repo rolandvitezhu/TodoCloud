@@ -8,7 +8,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.User;
-import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.helper.InstallationIdHelper;
 import com.example.todocloud.helper.OnlineIdGenerator;
@@ -113,10 +112,7 @@ public class UserDataSynchronizer {
            */
           private void handleError() {
             InstallationIdHelper.getNewInstallationId();
-            String new_user_online_id = OnlineIdGenerator.generateOnlineId(
-                DbConstants.User.DATABASE_TABLE,
-                _id
-            );
+            String new_user_online_id = OnlineIdGenerator.generateUserOnlineId(_id);
             registerUser(new_user_online_id, name, email, password, _id);
           }
 

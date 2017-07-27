@@ -26,7 +26,6 @@ import android.widget.TextView;
 import com.example.todocloud.R;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.User;
-import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
@@ -159,10 +158,7 @@ public class RegisterUserFragment extends Fragment
       dbLoader.reCreateDb();
       User user = new User();
       long _id = dbLoader.createUser(user);
-      String user_online_id = OnlineIdGenerator.generateOnlineId(
-          DbConstants.User.DATABASE_TABLE,
-          _id
-      );
+      String user_online_id = OnlineIdGenerator.generateUserOnlineId(_id);
       String name = tietName.getText().toString().trim();
       String email = tietEmail.getText().toString().trim();
       String password = tietPassword.getText().toString().trim();
