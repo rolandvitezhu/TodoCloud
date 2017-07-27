@@ -85,7 +85,7 @@ public class TodoListFragment extends Fragment implements
     recyclerView.addOnItemTouchListener(new RecyclerViewOnItemTouchListener(
         getContext().getApplicationContext(),
         recyclerView,
-        new RecyclerViewOnItemTouchListener.ClickListener() {
+        new RecyclerViewOnItemTouchListener.OnClickListener() {
 
           @Override
           public void onClick(View childView, int childViewAdapterPosition) {

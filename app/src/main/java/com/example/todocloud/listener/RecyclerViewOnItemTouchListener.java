@@ -15,15 +15,15 @@ import com.example.todocloud.app.AppController;
 
 public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouchListener {
 
-  private ClickListener clickListener;
+  private OnClickListener onClickListener;
   private GestureDetector gestureDetector;
 
   public RecyclerViewOnItemTouchListener(
       Context context,
       final RecyclerView recyclerView,
-      final ClickListener clickListener
+      final OnClickListener onClickListener
   ) {
-    this.clickListener = clickListener;
+    this.onClickListener = onClickListener;
     gestureDetector = new GestureDetector(
         context,
         new GestureDetector.SimpleOnGestureListener() {
@@ -37,8 +37,8 @@ public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouch
           public void onLongPress(MotionEvent e) {
             View childView = recyclerView.findChildViewUnder(e.getX(), e.getY());
             int childViewAdapterPosition = recyclerView.getChildAdapterPosition(childView);
-            if (childView != null && clickListener != null) {
-              clickListener.onLongClick(childView, childViewAdapterPosition);
+            if (childView != null && onClickListener != null) {
+              onClickListener.onLongClick(childView, childViewAdapterPosition);
             }
           }
 
@@ -50,14 +50,14 @@ public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouch
   public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
     View childView = rv.findChildViewUnder(e.getX(), e.getY());
     int childViewAdapterPosition = rv.getChildAdapterPosition(childView);
-    if (childView != null && clickListener != null && gestureDetector.onTouchEvent(e)) {
+    if (childView != null && onClickListener != null && gestureDetector.onTouchEvent(e)) {
       View nonViewGroupView = findNonViewGroupViewUnder(
           childView,
           (int) e.getRawX(),
           (int) e.getRawY()
       );
       if (!touchCheckBoxCompleted(nonViewGroupView) || AppController.isActionMode())
-        clickListener.onClick(childView, childViewAdapterPosition);
+        onClickListener.onClick(childView, childViewAdapterPosition);
     }
     return false;
   }
@@ -117,7 +117,7 @@ public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouch
 
   }
 
-  public interface ClickListener {
+  public interface OnClickListener {
     void onClick(View childView, int childViewAdapterPosition);
     void onLongClick(View childView, int childViewAdapterPosition);
   }
