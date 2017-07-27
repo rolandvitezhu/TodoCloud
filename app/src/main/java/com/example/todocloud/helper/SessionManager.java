@@ -11,7 +11,7 @@ public class SessionManager {
 
   private SharedPreferences sharedPreferences;
   private SharedPreferences.Editor editor;
-  private static final String PREF_NAME = "Login";
+  private static final String PREFERENCE_NAME = "Login";
   private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
 
   public static synchronized SessionManager getInstance() {
@@ -21,7 +21,10 @@ public class SessionManager {
 
   private SessionManager() {
     Context applicationContext = AppController.getAppContext();
-    sharedPreferences = applicationContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+    sharedPreferences = applicationContext.getSharedPreferences(
+        PREFERENCE_NAME,
+        Context.MODE_PRIVATE
+    );
     editor = sharedPreferences.edit();
   }
 
