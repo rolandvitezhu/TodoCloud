@@ -15,69 +15,63 @@ import com.example.todocloud.R;
 
 public class ReminderReceiver extends BroadcastReceiver {
 
-  /**
-   * Notification-t küld a tennivaló reminderDateTime-ja szerinti időpontban.
-   */
   @Override
   public void onReceive(Context context, Intent intent) {
     long id = intent.getLongExtra("id", 0);
-    String msg = intent.getStringExtra("msg");
-    Intent launchIntent = new Intent(context, MainActivity.class);
+    String notificationText = intent.getStringExtra("notificationText");
+    Intent activityIntent = new Intent(context, MainActivity.class);
+    activityIntent.putExtra("id", id);
+    // Prevent back navigation to the previous Activity by closing it
+    activityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-    launchIntent.putExtra("id", id);
-
-    // Bezárja az előző Activity-t, így a navigálás rendben lesz (hátrafelé navigálva nem je-
-    // lennek majd meg nem kívánatos Fragment-ek az előző Activity-ből).
-    launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-    PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) id, launchIntent,
-        PendingIntent.FLAG_ONE_SHOT);
-    NotificationCompat.Builder builder = setDefaultsFromSharedPreferences(context);
-    Notification notification = builder.setSmallIcon(R.drawable.ic_launcher)
-        .setTicker(msg)
+    PendingIntent pendingIntent = PendingIntent.getActivity(
+        context,
+        (int) id,
+        activityIntent,
+        PendingIntent.FLAG_ONE_SHOT
+    );
+    NotificationCompat.Builder notificationBuilder = setDefaultNotificationOptions(context);
+    Notification notification = notificationBuilder
+        .setSmallIcon(R.drawable.ic_launcher)
+        .setTicker(notificationText)
         .setWhen(System.currentTimeMillis())
         .setContentIntent(pendingIntent)
         .setContentTitle(context.getString(R.string.titleReminder))
-        .setContentText(msg)
-        .setAutoCancel(true).build();
+        .setContentText(notificationText)
+        .setAutoCancel(true)
+        .build();
 
     NotificationManager notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.notify((int) id, notification);
   }
 
-  /**
-   * Beállítja a NotificationCompat.Builder hanggal, rezgéssel és fényjelzéssel kapcsolatos tulaj-
-   * donságait a SettingsPreferenceFragment-en beállítottak alapján, a SharedPreferences-ből.
-   * @param context Az ReminderReceiver osztály Context-je.
-   * @return NotificationCompat.Builder objektum a SharedPreferences szerinti megfelelő beállítá-
-   * sokkal.
-   */
-  private NotificationCompat.Builder setDefaultsFromSharedPreferences(Context context) {
+  private NotificationCompat.Builder setDefaultNotificationOptions(Context context) {
     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     boolean sound = sharedPreferences.getBoolean("reminder_sound_preference", true);
     boolean vibrate = sharedPreferences.getBoolean("vibration_preference", true);
     boolean lights = sharedPreferences.getBoolean("led_light_preference", true);
+    NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context);
 
     if (sound && vibrate && lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_ALL);
+      return notificationBuilder.setDefaults(Notification.DEFAULT_ALL);
     } else if (!sound && vibrate && lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_VIBRATE |
+      return notificationBuilder.setDefaults(Notification.DEFAULT_VIBRATE |
           Notification.DEFAULT_LIGHTS);
     } else if (sound && !vibrate && lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_SOUND |
+      return notificationBuilder.setDefaults(Notification.DEFAULT_SOUND |
           Notification.DEFAULT_LIGHTS);
     } else if (sound && vibrate && !lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_SOUND |
+      return notificationBuilder.setDefaults(Notification.DEFAULT_SOUND |
           Notification.DEFAULT_VIBRATE);
     } else if (!sound && !vibrate && lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_LIGHTS);
+      return notificationBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
     } else if (!sound && vibrate && !lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_VIBRATE);
+      return notificationBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
     } else if (sound && !vibrate && !lights) {
-      return new NotificationCompat.Builder(context).setDefaults(Notification.DEFAULT_SOUND);
+      return notificationBuilder.setDefaults(Notification.DEFAULT_SOUND);
     } else /*if (!sound && !vibrate && !lights)*/ {
-      return new NotificationCompat.Builder(context);
+      return notificationBuilder;
     }
   }
 
