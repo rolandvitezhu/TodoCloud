@@ -6,9 +6,9 @@ import android.util.AttributeSet;
 import android.widget.ListView;
 
 /**
- * Ha a gyerek komponens egy ListView, akkor ezt az egyedi komponenst használva megelőzhetők a
- * görgetési gondok. Több View komponens esetén, ahol pl. már ScrollView-t használunk, a
- * ScrollView segítségével oldható meg ugyan ez a probléma.
+ * Provide proper scrolling function, if the child view of SwipeRefreshLayout is a ListView. In
+ * case, if we use more view components in a ScrollView, this class won't help, we can fix
+ * scrolling behavior with the ScrollView itself.
  */
 public class ScrollableSwipeRefreshLayout extends SwipeRefreshLayout {
 
@@ -23,7 +23,8 @@ public class ScrollableSwipeRefreshLayout extends SwipeRefreshLayout {
   @Override
   public boolean canChildScrollUp() {
     ListView listView = (ListView) this.findViewById(android.R.id.list);
-    return listView.getChildCount() > 0 && listView.getChildAt(0).getTop() != 0;
+    boolean isListViewScrolledToTop = listView.getChildAt(0).getTop() != 0;
+    return listView.getChildCount() > 0 && isListViewScrolledToTop;
   }
 
 }
