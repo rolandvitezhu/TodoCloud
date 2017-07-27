@@ -22,14 +22,14 @@ public class ReminderService extends IntentService {
   public static final String CREATE = "CREATE";
   public static final String CANCEL = "CANCEL";
 
-  private IntentFilter matcher;
+  private IntentFilter intentFilter;
   private DbLoader dbLoader;
 
   public ReminderService() {
     super(TAG);
-    matcher = new IntentFilter();
-    matcher.addAction(CREATE);
-    matcher.addAction(CANCEL);
+    intentFilter = new IntentFilter();
+    intentFilter.addAction(CREATE);
+    intentFilter.addAction(CANCEL);
   }
 
   @Override
@@ -43,38 +43,37 @@ public class ReminderService extends IntentService {
     String action = intent.getAction();
     Todo todo = intent.getParcelableExtra("todo");
 
-    if (matcher.matchAction(action)) {
+    if (intentFilter.matchAction(action)) {
       execute(action, todo);
     }
   }
 
   private void execute(String action, Todo todo) {
-    if (isSingleReminder(todo)) {
+    boolean isSingleReminder = todo != null;
+    if (isSingleReminder) {
       handleReminder(todo, action);
     } else {
       handleReminders(action);
     }
   }
 
-  private boolean isSingleReminder(Todo todo) {
-    return todo != null;
-  }
-
   private void handleReminder(Todo todo, String action) {
-    Intent reminderIntent = prepareReminderIntent(todo);
+    Intent receiverIntent = prepareReceiverIntent(todo);
+    int id = (int) todo.get_id();
     PendingIntent pendingIntent = PendingIntent.getBroadcast(
         this,
-        (int) todo.get_id(),
-        reminderIntent,
+        id,
+        receiverIntent,
         PendingIntent.FLAG_ONE_SHOT
     );
     AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+    long reminderDateTime = todo.getReminderDateTimeInLong();
 
-    if (isNotPastReminderDateTime(todo)) {
+    if (isNotPastReminderDateTime(reminderDateTime)) {
       if (CREATE.equals(action)) {
         alarmManager.set(
             AlarmManager.RTC_WAKEUP,
-            todo.getReminderDateTimeInLong(),
+            reminderDateTime,
             pendingIntent
         );
       } else {
@@ -85,34 +84,25 @@ public class ReminderService extends IntentService {
     }
   }
 
-  @NonNull
-  private Intent prepareReminderIntent(Todo todo) {
-    Intent reminderIntent = new Intent(this, ReminderReceiver.class);
-    reminderIntent.putExtra("id", todo.get_id());
-    reminderIntent.putExtra("msg", todo.getTitle());
-    return reminderIntent;
-  }
-
-  private boolean isNotPastReminderDateTime(Todo todo) {
-    return todo.getReminderDateTimeInLong() >= new Date().getTime();
-  }
-
   private void handleReminders(String action) {
     ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
-      Intent reminderIntent = prepareReminderIntent(todo);
+      Intent receiverIntent = prepareReceiverIntent(todo);
+      int id = (int) todo.get_id();
       PendingIntent pendingIntent = PendingIntent.getBroadcast(
-          this, (int) todo.get_id(),
-          reminderIntent,
+          this,
+          id,
+          receiverIntent,
           PendingIntent.FLAG_ONE_SHOT
       );
       AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+      long reminderDateTime = todo.getReminderDateTimeInLong();
 
-      if (isNotPastReminderDateTime(todo)) {
+      if (isNotPastReminderDateTime(reminderDateTime)) {
         if (CREATE.equals(action)) {
           alarmManager.set(
               AlarmManager.RTC_WAKEUP,
-              todo.getReminderDateTimeInLong(),
+              reminderDateTime,
               pendingIntent
           );
         } else {
@@ -122,6 +112,18 @@ public class ReminderService extends IntentService {
         alarmManager.cancel(pendingIntent);
       }
     }
+  }
+
+  @NonNull
+  private Intent prepareReceiverIntent(Todo todo) {
+    Intent receiverIntent = new Intent(this, ReminderReceiver.class);
+    receiverIntent.putExtra("id", todo.get_id());
+    receiverIntent.putExtra("notificationText", todo.getTitle());
+    return receiverIntent;
+  }
+
+  private boolean isNotPastReminderDateTime(long reminderDateTime) {
+    return reminderDateTime >= new Date().getTime();
   }
 
 }
