@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements
       if (sessionManager.isLoggedIn()) {
 
         long id = getIntent().getLongExtra("id", -1);
-        if (wasMainActivityStartedFromLauncherIcon(id)) {
+        boolean wasMainActivityStartedFromLauncherIcon = id == -1;
+        if (wasMainActivityStartedFromLauncherIcon) {
           openMainListFragment();
         } else if (wasMainActivityStartedFromNotification(id)){
           openMainListFragment();
@@ -90,10 +91,6 @@ public class MainActivity extends AppCompatActivity implements
       prepareActionBarNavigationHandler();
       shouldDisplayHomeAsUp();
     }
-  }
-
-  private boolean wasMainActivityStartedFromLauncherIcon(long id) {
-    return id == -1;
   }
 
   private boolean wasMainActivityStartedFromNotification(long id) {
