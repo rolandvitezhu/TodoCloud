@@ -3,6 +3,12 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/itemSearch"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/itemSearch"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/itemCreateCategory"
         android:title="@string/itemCreateCategory"
         android:orderInCategory="0"

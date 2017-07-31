@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -30,6 +31,7 @@ import com.example.todocloud.fragment.LogoutUserDialogFragment;
 import com.example.todocloud.fragment.MainListFragment;
 import com.example.todocloud.fragment.ModifyTodoFragment;
 import com.example.todocloud.fragment.RegisterUserFragment;
+import com.example.todocloud.fragment.SearchFragment;
 import com.example.todocloud.fragment.SettingsPreferenceFragment;
 import com.example.todocloud.fragment.TodoListFragment;
 import com.example.todocloud.helper.SessionManager;
@@ -46,7 +48,8 @@ public class MainActivity extends AppCompatActivity implements
     ModifyTodoFragment.IModifyTodoFragmentActionBar,
     CreateTodoFragment.ICreateTodoFragmentActionBar,
     SettingsPreferenceFragment.ISettingsPreferenceFragment,
-    LogoutUserDialogFragment.ILogoutUserDialogFragment {
+    LogoutUserDialogFragment.ILogoutUserDialogFragment,
+    SearchFragment.ISearchFragment {
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private SessionManager sessionManager;
@@ -151,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements
       @Override
       public void onClick(View view) {
         onBackPressed();
+        hideSoftInput();
       }
 
     });
@@ -224,14 +228,32 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   @Override
+  public void onSearchActionItemClick() {
+    openSearchFragment();
+  }
+
+  private void openSearchFragment() {
+    Bundle arguments = new Bundle(); // Will store UpdateTodoAdapter arguments later
+    SearchFragment searchFragment = new SearchFragment();
+    searchFragment.setArguments(arguments);
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    fragmentTransaction.replace(R.id.FragmentContainer, searchFragment);
+    fragmentTransaction.addToBackStack(null);
+    fragmentTransaction.commit();
+  }
+
+  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == android.R.id.home) {
-      hideSoftInput();
-      onBackPressed();
 
-      return true;
+    switch (itemId) {
+      case android.R.id.home:
+        hideSoftInput();
+        onBackPressed();
+        break;
     }
+
     return super.onOptionsItemSelected(item);
   }
 
@@ -398,11 +420,11 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void onClickTodo(Todo todo, TodoListFragment targetFragment) {
+  public void onClickTodo(Todo todo, Fragment targetFragment) {
     openModifyTodoFragment(todo, targetFragment);
   }
 
-  private void openModifyTodoFragment(Todo todo, TodoListFragment targetFragment) {
+  private void openModifyTodoFragment(Todo todo, Fragment targetFragment) {
     Bundle arguments = new Bundle();
     arguments.putParcelable("todo", todo);
     ModifyTodoFragment modifyTodoFragment = new ModifyTodoFragment();

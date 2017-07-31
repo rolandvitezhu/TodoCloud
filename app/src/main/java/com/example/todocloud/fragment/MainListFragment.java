@@ -42,11 +42,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainListFragment extends ListFragment implements
-    CreateCategoryDialogFragment.ICreateCategoryDialogFragment, ModifyCategoryDialogFragment.IModifyCategoryDialogFragment,
-    CreateListDialogFragment.ICreateListDialogFragment, ModifyListDialogFragment.IModifyListDialogFragment,
+    CreateCategoryDialogFragment.ICreateCategoryDialogFragment,
+    ModifyCategoryDialogFragment.IModifyCategoryDialogFragment,
+    CreateListDialogFragment.ICreateListDialogFragment,
+    ModifyListDialogFragment.IModifyListDialogFragment,
     CreateListInCategoryDialogFragment.ICreateListInCategoryDialogFragment,
-    MoveListDialogFragment.IMoveListDialogFragment, SwipeRefreshLayout.OnRefreshListener,
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment, LogoutUserDialogFragment.ILogoutUserDialogFragment,
+    MoveListDialogFragment.IMoveListDialogFragment,
+    SwipeRefreshLayout.OnRefreshListener,
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment,
+    LogoutUserDialogFragment.ILogoutUserDialogFragment,
     DataSynchronizer.OnSyncDataListener {
 
   private DbLoader dbLoader;
@@ -410,6 +414,9 @@ public class MainListFragment extends ListFragment implements
     int itemId = item.getItemId();
 
     switch (itemId) {
+      case R.id.itemSearch:
+        listener.onSearchActionItemClick();
+        break;
       case R.id.itemCreateCategory:
         openCreateCategoryDialogFragment();
         break;
@@ -978,12 +985,12 @@ public class MainListFragment extends ListFragment implements
   public void onSoftDelete(String onlineId, String itemType) {
     switch (itemType) {
       case "list":
-        dbLoader.softDeleteListAndTodos(onlineId);
+        dbLoader.softDeleteListAndRelatedTodos(onlineId);
         updateListAdapter();
         actionMode.finish();
         break;
       case "listInCategory":
-        dbLoader.softDeleteListAndTodos(onlineId);
+        dbLoader.softDeleteListAndRelatedTodos(onlineId);
         updateCategoryAdapter();
         actionMode.finish();
         break;
@@ -1001,7 +1008,7 @@ public class MainListFragment extends ListFragment implements
       case "list":
         ArrayList<com.example.todocloud.data.List> lists = itemsToDelete;
         for (com.example.todocloud.data.List list:lists) {
-          dbLoader.softDeleteListAndTodos(list.getListOnlineId());
+          dbLoader.softDeleteListAndRelatedTodos(list.getListOnlineId());
         }
         updateListAdapter();
         actionMode.finish();
@@ -1009,7 +1016,7 @@ public class MainListFragment extends ListFragment implements
       case "listInCategory":
         ArrayList<com.example.todocloud.data.List> listsInCategory = itemsToDelete;
         for (com.example.todocloud.data.List list:listsInCategory) {
-          dbLoader.softDeleteListAndTodos(list.getListOnlineId());
+          dbLoader.softDeleteListAndRelatedTodos(list.getListOnlineId());
         }
         updateCategoryAdapter();
         actionMode.finish();
@@ -1086,6 +1093,7 @@ public class MainListFragment extends ListFragment implements
     void onLogout();
     void onStartActionMode(ActionMode.Callback callback);
     void onPrepareNavigationHeader();
+    void onSearchActionItemClick();
   }
 
 }
