@@ -31,9 +31,14 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     this.dbLoader = dbLoader;
   }
 
-  public void updateDataSet(ArrayList<Todo> todosList) {
+  public void updateDataSet(ArrayList<Todo> todos) {
     this.todos.clear();
-    this.todos.addAll(todosList);
+    this.todos.addAll(todos);
+  }
+
+  public void clear() {
+    todos.clear();
+    notifyDataSetChanged();
   }
 
   @Override

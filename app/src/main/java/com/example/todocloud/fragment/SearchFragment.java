@@ -1,9 +1,12 @@
 package com.example.todocloud.fragment;
 
+import android.app.SearchManager;
+import android.app.SearchableInfo;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,35 +18,36 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
+import android.widget.SearchView;
 
 import com.example.todocloud.R;
 import com.example.todocloud.adapter.TodoAdapter;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
-import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
-import com.example.todocloud.helper.OnlineIdGenerator;
 import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 
-public class TodoListFragment extends Fragment implements
-    CreateTodoFragment.ICreateTodoFragment,
+public class SearchFragment extends Fragment implements
     ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
   private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
   private RecyclerView recyclerView;
-  private ITodoListFragment listener;
+  private SearchView searchView;
+  private ISearchFragment listener;
   private ActionMode actionMode;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ITodoListFragment) context;
+    listener = (ISearchFragment) context;
   }
 
   @Override
@@ -51,27 +55,19 @@ public class TodoListFragment extends Fragment implements
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     dbLoader = new DbLoader();
-    updateTodoAdapter();
+    todoAdapter = new TodoAdapter(dbLoader);
   }
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater,
-                           @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState
+  public View onCreateView(
+      LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.todo_list, container, false);
+    View view = inflater.inflate(R.layout.fragment_search, container, false);
     prepareRecyclerView(view);
     applyClickEvents();
     applySwipeToDismiss();
-    prepareFloatingActionButton(view);
     return view;
-  }
-
-  private void prepareFloatingActionButton(View view) {
-    FloatingActionButton floatingActionButton =
-        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
-    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
   }
 
   private void prepareRecyclerView(View view) {
@@ -92,6 +88,7 @@ public class TodoListFragment extends Fragment implements
           @Override
           public void onClick(View childView, int childViewAdapterPosition) {
             if (!isActionMode()) {
+              hideSoftInput();
               openModifyTodoFragment(childViewAdapterPosition);
             } else {
               todoAdapter.toggleSelection(childViewAdapterPosition);
@@ -192,30 +189,34 @@ public class TodoListFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    setActionBarTitle();
+    listener.onSetActionBarTitle("");
+    prepareSearchViewAfterModifyTodo();
   }
 
-  private void setActionBarTitle() {
-    String title = getArguments().getString("title");
-    if (title != null) {
-      if (!getArguments().getBoolean("isPredefinedList")) { // List
-        listener.onSetActionBarTitle(title);
-      } else { // PredefinedList
-        switch (title) {
-          case "0":
-            listener.onSetActionBarTitle(getString(R.string.MainListToday));
-            break;
-          case "1":
-            listener.onSetActionBarTitle(getString(R.string.MainListNext7Days));
-            break;
-          case "2":
-            listener.onSetActionBarTitle(getString(R.string.MainListAll));
-            break;
-          case "3":
-            listener.onSetActionBarTitle(getString(R.string.MainListCompleted));
-            break;
+  private void prepareSearchViewAfterModifyTodo() {
+    if (searchView != null && recyclerView != null) {
+      searchView.post(new Runnable() {
+        @Override
+        public void run() {
+          restoreQueryTextState();
+          recyclerView.requestFocusFromTouch();
+          searchView.clearFocus();
+          hideSoftInput();
         }
-      }
+      });
+    }
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    restoreQueryTextState();
+  }
+
+  private void restoreQueryTextState() {
+    if (searchView != null) {
+      String queryText = getArguments().getString("queryText");
+      searchView.setQuery(queryText, false);
     }
   }
 
@@ -225,8 +226,16 @@ public class TodoListFragment extends Fragment implements
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
       setActionMode(mode);
       mode.getMenuInflater().inflate(R.menu.todo, menu);
+      preventTypeIntoSearchView();
 
       return true;
+    }
+
+    private void preventTypeIntoSearchView() {
+      if (searchView != null && recyclerView != null) {
+        recyclerView.requestFocusFromTouch();
+      }
+      hideSoftInput();
     }
 
     @Override
@@ -284,16 +293,6 @@ public class TodoListFragment extends Fragment implements
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
   }
 
-  private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
-
-    @Override
-    public void onClick(View v) {
-      if (isActionMode()) actionMode.finish();
-      listener.onOpenCreateTodoFragment(TodoListFragment.this);
-    }
-
-  };
-
   private void updateTodoAdapter() {
     if (todoAdapter == null) {
       todoAdapter = new TodoAdapter(dbLoader);
@@ -304,76 +303,125 @@ public class TodoListFragment extends Fragment implements
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    inflater.inflate(R.menu.todo_options_menu, menu);
+    inflater.inflate(R.menu.search_options_menu, menu);
+    prepareSearchView(menu);
   }
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    int optionsItemId = item.getItemId();
-
-    switch (optionsItemId) {
-      case R.id.createTodo:
-        listener.onOpenCreateTodoFragment(this);
-        break;
-    }
-
-    return super.onOptionsItemSelected(item);
-  }
-
-  @Override
-  public void onCreateTodo(Todo todo) {
-    createTodoInLocalDatabase(todo);
-    updateTodoAdapter();
-
-    if (isSetReminder(todo) && isNotCompleted(todo)) {
-      ReminderSetter.createReminderService(todo);
-    }
-  }
-
-  private void createTodoInLocalDatabase(Todo todoToCreate) {
-    Bundle arguments = getArguments();
-
-    if (isPredefinedListCompleted(arguments)) {
-      todoToCreate.setCompleted(true);
-    }
-
-    String listOnlineId = arguments.getString("listOnlineId");
-    if (!isPredefinedList(listOnlineId)) {
-      todoToCreate.setListOnlineId(listOnlineId);
-    }
-
-    todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
-    todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
-    String todoOnlineId = OnlineIdGenerator.generateOnlineId(
-        DbConstants.Todo.DATABASE_TABLE,
-        todoToCreate.get_id(),
-        dbLoader.getApiKey()
+  private void prepareSearchView(Menu menu) {
+    MenuItem searchMenuItem = menu.findItem(R.id.itemSearch);
+    searchView = (SearchView) searchMenuItem.getActionView();
+    SearchManager searchManager = (SearchManager) getActivity()
+        .getSystemService(Context.SEARCH_SERVICE);
+    SearchableInfo searchableInfo = searchManager.getSearchableInfo(
+        getActivity().getComponentName()
     );
-    todoToCreate.setTodoOnlineId(todoOnlineId);
-    dbLoader.updateTodo(todoToCreate);
+    searchView.setSearchableInfo(searchableInfo);
+    searchView.setMaxWidth(Integer.MAX_VALUE);
+    searchView.setIconified(false);
+    searchView.setFocusable(true);
+    searchView.requestFocusFromTouch();
+    disableSearchViewCloseButton();
+    removeSearchViewUnderline();
+    removeSearchViewHintIcon();
+    applyOnQueryTextEvents();
   }
 
-  private boolean isPredefinedListCompleted(Bundle arguments) {
-    String selectFromArguments = arguments.getString("selectFromDB");
-    String selectPredefinedListCompleted =
-        DbConstants.Todo.KEY_COMPLETED +
-            "=" +
-            1 +
-            " AND " +
-            DbConstants.Todo.KEY_USER_ONLINE_ID +
-            "='" +
-            dbLoader.getUserOnlineId() +
-            "'" +
-            " AND " +
-            DbConstants.Todo.KEY_DELETED +
-            "=" +
-            0;
-
-    return selectFromArguments != null && selectFromArguments.equals(selectPredefinedListCompleted);
+  private void removeSearchViewUnderline() {
+    int searchPlateId = searchView.getContext().getResources().getIdentifier(
+        "android:id/search_plate", null, null
+    );
+    View searchPlate = searchView.findViewById(searchPlateId);
+    if (searchPlate != null) {
+      searchPlate.setBackgroundResource(0);
+    }
   }
 
-  private boolean isPredefinedList(String listOnlineId) {
-    return listOnlineId == null;
+  private void removeSearchViewHintIcon() {
+    if (searchView != null) {
+      int searchMagIconId = searchView.getContext().getResources().getIdentifier(
+          "android:id/search_mag_icon", null, null
+      );
+      View searchMagIcon = searchView.findViewById(searchMagIconId);
+      if (searchMagIcon != null) {
+        searchView.setIconifiedByDefault(false);
+        searchMagIcon.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+      }
+    }
+  }
+
+  private void disableSearchViewCloseButton() {
+    searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+      @Override
+      public boolean onClose() {
+        return true;
+      }
+    });
+  }
+
+  private void applyOnQueryTextEvents() {
+    searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        preventToExecuteQueryTextSubmitTwice();
+        return true;
+      }
+
+      private void preventToExecuteQueryTextSubmitTwice() {
+        if (searchView != null) {
+          searchView.clearFocus();
+          hideSoftInput();
+        }
+      }
+
+      @Override
+      public boolean onQueryTextChange(String newText) {
+        saveQueryTextState(newText);
+        if (!newText.isEmpty()) {
+          showSearchResults(newText);
+        } else {
+          clearSearchResults();
+        }
+        return true;
+      }
+
+      private void saveQueryTextState(String queryText) {
+        Bundle arguments = new Bundle();
+        arguments.putString("queryText", queryText);
+        Bundle currentArguments = getArguments();
+        currentArguments.putAll(arguments);
+      }
+
+      private void showSearchResults(String newText) {
+        setUpdateTodoAdapterArguments(newText);
+        updateTodoAdapter();
+      }
+
+      private void clearSearchResults() {
+        todoAdapter.clear();
+      }
+
+      private void setUpdateTodoAdapterArguments(String queryText) {
+        String where = dbLoader.prepareSearchWhere(queryText);
+        Bundle arguments = new Bundle();
+        arguments.putString("selectFromDB", where);
+        Bundle currentArguments = getArguments();
+        currentArguments.putAll(arguments);
+      }
+
+    });
+  }
+
+  private void hideSoftInput() {
+    InputMethodManager inputMethodManager =
+        (InputMethodManager) getActivity().getSystemService(
+            Context.INPUT_METHOD_SERVICE
+        );
+    View currentlyFocusedView = getActivity().getCurrentFocus();
+    if (currentlyFocusedView != null) {
+      IBinder windowToken = currentlyFocusedView.getWindowToken();
+      inputMethodManager.hideSoftInputFromWindow(windowToken, 0);
+    }
   }
 
   private boolean isSetReminder(Todo todo) {
@@ -426,11 +474,10 @@ public class TodoListFragment extends Fragment implements
     actionMode.finish();
   }
 
-  public interface ITodoListFragment {
+  public interface ISearchFragment {
     void onSetActionBarTitle(String actionBarTitle);
     void onStartActionMode(ActionMode.Callback callback);
     void onClickTodo(Todo todo, Fragment targetFragment);
-    void onOpenCreateTodoFragment(TodoListFragment targetFragment);
   }
 
 }

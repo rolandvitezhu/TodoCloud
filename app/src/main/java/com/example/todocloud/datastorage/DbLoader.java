@@ -429,6 +429,26 @@ public class DbLoader {
         + 0;
   }
 
+  public String prepareSearchWhere(String queryText) {
+    String searchWherePrefix = prepareSearchWherePrefix(queryText);
+    String standardWherePostfix = prepareStandardWherePostfix();
+    return searchWherePrefix
+        + standardWherePostfix;
+  }
+
+  private String prepareSearchWherePrefix(String queryText) {
+    return "("
+        + DbConstants.Todo.KEY_TITLE
+        + " LIKE '%"
+        + queryText
+        + "%'"
+        + " OR "
+        + DbConstants.Todo.KEY_DESCRIPTION
+        + " LIKE '%"
+        + queryText
+        + "%')";
+  }
+
   public ArrayList<Todo> getTodosWithReminder() {
     String where = DbConstants.Todo.KEY_REMINDER_DATETIME + "!= -1";
     return getTodos(where);
@@ -439,7 +459,7 @@ public class DbLoader {
     return getTodos(where);
   }
 
-  public ArrayList<String> getTodoOnlineIdsByListOnlineId(String listOnlineId) {
+  private ArrayList<String> getTodoOnlineIdsByListOnlineId(String listOnlineId) {
     open();
     String[] columns = {DbConstants.Todo.KEY_TODO_ONLINE_ID};
     String where = DbConstants.Todo.KEY_LIST_ONLINE_ID + "='" + listOnlineId + "'";
@@ -686,7 +706,7 @@ public class DbLoader {
     ) > 0;
   }
 
-  public void softDeleteListAndTodos(String listOnlineId) {
+  public void softDeleteListAndRelatedTodos(String listOnlineId) {
     ArrayList<String> todoOnlineIds = getTodoOnlineIdsByListOnlineId(listOnlineId);
     boolean areRelatedTodos = !todoOnlineIds.isEmpty();
     if (areRelatedTodos) {
@@ -884,7 +904,7 @@ public class DbLoader {
     boolean areRelatedLists = !lists.isEmpty();
     if (areRelatedLists) {
       for (List list:lists) {
-        softDeleteListAndTodos(list.getListOnlineId());
+        softDeleteListAndRelatedTodos(list.getListOnlineId());
       }
     }
     softDeleteCategory(categoryOnlineId);
