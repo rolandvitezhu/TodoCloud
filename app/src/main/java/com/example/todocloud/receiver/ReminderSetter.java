@@ -24,7 +24,7 @@ public class ReminderSetter extends BroadcastReceiver {
   public static void createReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
     Intent serviceIntent = new Intent(applicationContext, ReminderService.class);
-    serviceIntent.putExtra("todo", todo);
+    serviceIntent.putExtra("layout_appbar_todolist", todo);
     serviceIntent.setAction(ReminderService.CREATE);
     applicationContext.startService(serviceIntent);
   }
@@ -32,7 +32,7 @@ public class ReminderSetter extends BroadcastReceiver {
   public static void cancelReminderService(Todo todo) {
     Context applicationContext = AppController.getAppContext();
     Intent serviceIntent = new Intent(applicationContext, ReminderService.class);
-    serviceIntent.putExtra("todo", todo);
+    serviceIntent.putExtra("layout_appbar_todolist", todo);
     serviceIntent.setAction(ReminderService.CANCEL);
     applicationContext.startService(serviceIntent);
   }

@@ -256,22 +256,22 @@ public class MainListFragment extends ListFragment implements
         private void prepareMenu(ActionMode mode, Menu menu) {
           if (oneCategorySelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.group, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_group, menu);
           } else if (oneListInCategorySelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.child, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_child, menu);
           } else if (oneListSelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.item, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_item, menu);
           } else if (manyCategoriesSelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_group, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_many_group, menu);
           } else if (manyListsInCategorySelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_child, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_many_child, menu);
           } else if (manyListsSelected()) {
             menu.clear();
-            mode.getMenuInflater().inflate(R.menu.many_item, menu);
+            mode.getMenuInflater().inflate(R.menu.layout_appbar_mainlist_many_item, menu);
           } else if (manyCategoriesAndListsInCategorySelected()) {
             menu.clear();
           } else if (manyCategoriesAndListsSelected()) {
@@ -406,7 +406,7 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    inflater.inflate(R.menu.main_options_menu, menu);
+    inflater.inflate(R.menu.fragment_mainlist, menu);
   }
 
   @Override

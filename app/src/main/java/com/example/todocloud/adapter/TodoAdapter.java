@@ -100,7 +100,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private boolean shouldHandleCheckBoxTouchEvent(MotionEvent event, ItemViewHolder holder) {
-    // To reproduce "holder.getAdapterPosition() == -1", do the following: select 1 todo and
+    // To reproduce "holder.getAdapterPosition() == -1", do the following: select 1 layout_appbar_todolist and
     // touch it's CheckBox.
     return !AppController.isActionMode()
         && event.getAction() == MotionEvent.ACTION_UP

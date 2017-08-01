@@ -68,7 +68,7 @@ public class ModifyTodoFragment extends Fragment implements
   ) {
 		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
 
-    Todo todo = (Todo) getArguments().get("todo");
+    Todo todo = (Todo) getArguments().get("layout_appbar_todolist");
 	  tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
     switchPriority = (SwitchCompat) view.findViewById(R.id.switchPriority);
     tvDueDate = (TextView) view.findViewById(R.id.tvDueDate);
@@ -122,7 +122,7 @@ public class ModifyTodoFragment extends Fragment implements
     if (rootView != null) {
       hideSoftInput(rootView);
       Bundle arguments = getArguments();
-      Todo todo = (Todo) arguments.get("todo");
+      Todo todo = (Todo) arguments.get("layout_appbar_todolist");
       String givenTitle = tietTitle.getText().toString().trim();
 
       if (givenTitle.isEmpty()) {

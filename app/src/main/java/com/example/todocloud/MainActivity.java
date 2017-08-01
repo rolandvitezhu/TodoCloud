@@ -426,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements
 
   private void openModifyTodoFragment(Todo todo, Fragment targetFragment) {
     Bundle arguments = new Bundle();
-    arguments.putParcelable("todo", todo);
+    arguments.putParcelable("layout_appbar_todolist", todo);
     ModifyTodoFragment modifyTodoFragment = new ModifyTodoFragment();
     modifyTodoFragment.setTargetFragment(targetFragment, 0);
     modifyTodoFragment.setArguments(arguments);

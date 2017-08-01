@@ -128,7 +128,7 @@ public class CreateTodoFragment extends Fragment implements
     String givenTitle = tietTitle.getText().toString().trim();
     if (!givenTitle.isEmpty()) {
       menu.clear();
-      inflater.inflate(R.menu.create_todo, menu);
+      inflater.inflate(R.menu.fragment_createtodo, menu);
     }
   }
 

@@ -41,7 +41,7 @@ public class ReminderService extends IntentService {
   @Override
   protected void onHandleIntent(Intent intent) {
     String action = intent.getAction();
-    Todo todo = intent.getParcelableExtra("todo");
+    Todo todo = intent.getParcelableExtra("layout_appbar_todolist");
 
     if (intentFilter.matchAction(action)) {
       execute(action, todo);

@@ -208,7 +208,7 @@ public class SearchFragment extends Fragment implements
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
       setActionMode(mode);
-      mode.getMenuInflater().inflate(R.menu.todo, menu);
+      mode.getMenuInflater().inflate(R.menu.layout_appbar_search, menu);
       preventTypeIntoSearchView();
 
       return true;
@@ -264,7 +264,7 @@ public class SearchFragment extends Fragment implements
   private void openConfirmDeleteTodosDialog() {
     ArrayList<Todo> selectedTodos = todoAdapter.getSelectedTodos();
     Bundle arguments = new Bundle();
-    arguments.putString("itemType", "todo");
+    arguments.putString("itemType", "layout_appbar_todolist");
     arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
     openConfirmDeleteDialogFragment(arguments);
   }
@@ -273,7 +273,7 @@ public class SearchFragment extends Fragment implements
     ArrayList<Todo> selectedTodos = new ArrayList<>();
     selectedTodos.add(swipedTodo);
     Bundle arguments = new Bundle();
-    arguments.putString("itemType", "todo");
+    arguments.putString("itemType", "layout_appbar_todolist");
     arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
     openConfirmDeleteDialogFragment(arguments, swipedTodoAdapterPosition);
   }
@@ -322,7 +322,7 @@ public class SearchFragment extends Fragment implements
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    inflater.inflate(R.menu.search_options_menu, menu);
+    inflater.inflate(R.menu.fragment_search, menu);
     prepareSearchView(menu);
   }
 
