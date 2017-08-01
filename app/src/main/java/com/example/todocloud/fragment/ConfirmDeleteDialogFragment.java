@@ -77,7 +77,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   private void prepareDialogTexts() {
     String itemTitle = getArguments().getString("itemTitle");
     switch (itemType) {
-      case "layout_appbar_todolist":
+      case "todo":
         if (isManyItems) {
           prepareConfirmDeleteTodosDialogTexts();
         } else {
@@ -178,7 +178,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
       @Override
       public void onClick(View v) {
-        if (itemType.equals("layout_appbar_todolist")) {
+        if (itemType.equals("todo")) {
           listener.onSoftDelete(itemsToDelete, itemType);
         } else if (!isManyItems) {
           String onlineId = getArguments().getString("onlineId");

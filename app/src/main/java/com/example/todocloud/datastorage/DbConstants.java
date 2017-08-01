@@ -35,7 +35,7 @@ public class DbConstants {
 	
 	public static class Todo {
 		
-		public static final String DATABASE_TABLE = "layout_appbar_todolist";
+		public static final String DATABASE_TABLE = "todo";
 		public static final String KEY_ROW_ID = "_id";
     public static final String KEY_TODO_ONLINE_ID = "todo_online_id";
     public static final String KEY_USER_ONLINE_ID = "user_online_id";

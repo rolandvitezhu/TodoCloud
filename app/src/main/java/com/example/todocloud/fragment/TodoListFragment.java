@@ -255,7 +255,7 @@ public class TodoListFragment extends Fragment implements
   private void openConfirmDeleteTodosDialog() {
     ArrayList<Todo> selectedTodos = todoAdapter.getSelectedTodos();
     Bundle arguments = new Bundle();
-    arguments.putString("itemType", "layout_appbar_todolist");
+    arguments.putString("itemType", "todo");
     arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
     openConfirmDeleteDialogFragment(arguments);
   }
@@ -264,7 +264,7 @@ public class TodoListFragment extends Fragment implements
     ArrayList<Todo> selectedTodos = new ArrayList<>();
     selectedTodos.add(swipedTodo);
     Bundle arguments = new Bundle();
-    arguments.putString("itemType", "layout_appbar_todolist");
+    arguments.putString("itemType", "todo");
     arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
     openConfirmDeleteDialogFragment(arguments, swipedTodoAdapterPosition);
   }
