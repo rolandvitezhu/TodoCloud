@@ -48,7 +48,7 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.create_list, container);
+    View view = inflater.inflate(R.layout.dialog_createlist, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.itemModifyList);
     setSoftInputMode();

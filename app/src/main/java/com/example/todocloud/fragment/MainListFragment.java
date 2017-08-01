@@ -102,7 +102,7 @@ public class MainListFragment extends ListFragment implements
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    View combinedListView = inflater.inflate(R.layout.main_list, null);
+    View combinedListView = inflater.inflate(R.layout.fragment_mainlist, null);
     coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(R.id.coordinatorLayout);
 
     preparePredefinedList(combinedListView);

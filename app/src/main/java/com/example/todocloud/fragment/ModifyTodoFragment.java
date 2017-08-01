@@ -66,7 +66,7 @@ public class ModifyTodoFragment extends Fragment implements
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-		View view = inflater.inflate(R.layout.create_todo, container, false);
+		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
 
     Todo todo = (Todo) getArguments().get("todo");
 	  tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);

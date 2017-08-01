@@ -62,7 +62,7 @@ public class TodoListFragment extends Fragment implements
                            @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.todo_list, container, false);
+    View view = inflater.inflate(R.layout.fragment_todolist, container, false);
     prepareRecyclerView(view);
     applyClickEvents();
     applySwipeToDismiss();

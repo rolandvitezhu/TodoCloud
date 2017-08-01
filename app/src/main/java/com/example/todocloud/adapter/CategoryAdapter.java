@@ -81,7 +81,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
         Context.LAYOUT_INFLATER_SERVICE
     );
-    convertView = layoutInflater.inflate(R.layout.category_item, null);
+    convertView = layoutInflater.inflate(R.layout.item_category, null);
     TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
     tvTitle.setText(category.getTitle());
     handleCategoryIndicator(groupPosition, isExpanded, convertView);
@@ -132,7 +132,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
         Context.LAYOUT_INFLATER_SERVICE
     );
-    convertView = layoutInflater.inflate(R.layout.list_in_category_item, null);
+    convertView = layoutInflater.inflate(R.layout.item_listincategory, null);
     TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
     tvTitle.setText(list.getTitle());
 

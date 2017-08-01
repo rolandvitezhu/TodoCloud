@@ -41,7 +41,7 @@ public class ListAdapter extends BaseAdapter {
     LayoutInflater layoutInflater = (LayoutInflater) parent.getContext().getSystemService(
         Context.LAYOUT_INFLATER_SERVICE
     );
-    convertView = layoutInflater.inflate(R.layout.list_item, null);
+    convertView = layoutInflater.inflate(R.layout.item_list, null);
     TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
     tvTitle.setText(list.getTitle());
 

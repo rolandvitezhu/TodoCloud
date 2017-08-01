@@ -35,7 +35,7 @@ public class LogoutUserDialogFragment extends AppCompatDialogFragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.logout_user, container);
+    View view = inflater.inflate(R.layout.dialog_logoutuser, container);
     getDialog().setTitle(R.string.itemLogout);
 
     Button btnOK = (Button) view.findViewById(R.id.btnOK);

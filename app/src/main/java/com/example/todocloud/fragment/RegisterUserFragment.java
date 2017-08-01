@@ -72,7 +72,7 @@ public class RegisterUserFragment extends Fragment
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.register_user, container, false);
+    View view = inflater.inflate(R.layout.fragment_registeruser, container, false);
 
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
     formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);

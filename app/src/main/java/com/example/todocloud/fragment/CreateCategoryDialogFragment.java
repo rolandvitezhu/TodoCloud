@@ -49,7 +49,7 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.create_category, container);
+    View view = inflater.inflate(R.layout.dialog_createcategory, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.itemCreateCategory);
     setSoftInputMode();

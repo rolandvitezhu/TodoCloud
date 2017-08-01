@@ -47,7 +47,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.move_list, container);
+    View view = inflater.inflate(R.layout.dialog_movelist, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.itemMoveList);
     setSoftInputMode();

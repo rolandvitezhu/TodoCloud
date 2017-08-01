@@ -44,7 +44,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   @Override
   public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     View itemView = LayoutInflater.from(parent.getContext())
-        .inflate(R.layout.todo_item, parent, false);
+        .inflate(R.layout.item_todo, parent, false);
 
     return new ItemViewHolder(itemView);
   }
