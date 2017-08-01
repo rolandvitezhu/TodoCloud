@@ -1,8 +1,10 @@
 package com.example.todocloud.fragment;
 
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -117,7 +119,7 @@ public class SearchFragment extends Fragment implements
 
   private void applySwipeToDismiss() {
     ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(
-        0, ItemTouchHelper.END
+        0, ItemTouchHelper.START
     ) {
 
       @Override
@@ -132,17 +134,15 @@ public class SearchFragment extends Fragment implements
       @Override
       public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         Todo swipedTodo = getSwipedTodo(viewHolder);
-        toggleCompleted(swipedTodo);
-        updateTodo(swipedTodo);
-        todoAdapter.removeTodoFromAdapter((TodoAdapter.ItemViewHolder) viewHolder);
-        handleReminderService(swipedTodo);
+        int swipedTodoAdapterPosition = viewHolder.getAdapterPosition();
+        openConfirmDeleteTodosDialog(swipedTodo, swipedTodoAdapterPosition);
       }
 
       @Override
       public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         int swipeFlags;
         if (AppController.isActionMode()) swipeFlags = 0;
-        else swipeFlags = ItemTouchHelper.END;
+        else swipeFlags = ItemTouchHelper.START;
         return makeMovementFlags(0, swipeFlags);
       }
 
@@ -154,23 +154,6 @@ public class SearchFragment extends Fragment implements
   private Todo getSwipedTodo(RecyclerView.ViewHolder viewHolder) {
     int swipedTodoAdapterPosition = viewHolder.getAdapterPosition();
     return todoAdapter.getTodo(swipedTodoAdapterPosition);
-  }
-
-  private void toggleCompleted(Todo todo) {
-    todo.setCompleted(!todo.isCompleted());
-  }
-
-  private void updateTodo(Todo todo) {
-    todo.setDirty(true);
-    dbLoader.updateTodo(todo);
-  }
-
-  private void handleReminderService(Todo todo) {
-    if (todo.isCompleted()) {
-      ReminderSetter.cancelReminderService(todo);
-    } else if (isSetReminder(todo)) {
-      ReminderSetter.createReminderService(todo);
-    }
   }
 
   private boolean areSelectedItems() {
@@ -286,11 +269,47 @@ public class SearchFragment extends Fragment implements
     openConfirmDeleteDialogFragment(arguments);
   }
 
+  private void openConfirmDeleteTodosDialog(Todo swipedTodo, int swipedTodoAdapterPosition) {
+    ArrayList<Todo> selectedTodos = new ArrayList<>();
+    selectedTodos.add(swipedTodo);
+    Bundle arguments = new Bundle();
+    arguments.putString("itemType", "todo");
+    arguments.putParcelableArrayList("itemsToDelete", selectedTodos);
+    openConfirmDeleteDialogFragment(arguments, swipedTodoAdapterPosition);
+  }
+
   private void openConfirmDeleteDialogFragment(Bundle arguments) {
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
     confirmDeleteDialogFragment.setArguments(arguments);
     confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
+  }
+
+  private void openConfirmDeleteDialogFragment(
+      Bundle arguments, final int swipedTodoAdapterPosition
+  ) {
+    ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
+    confirmDeleteDialogFragment.setTargetFragment(this, 0);
+    confirmDeleteDialogFragment.setArguments(arguments);
+    confirmDeleteDialogFragment.show(getChildFragmentManager(), "ConfirmDeleteDialogFragment");
+    applyDismissEvents(swipedTodoAdapterPosition, confirmDeleteDialogFragment);
+  }
+
+  private void applyDismissEvents(
+      final int swipedTodoAdapterPosition, ConfirmDeleteDialogFragment confirmDeleteDialogFragment
+  ) {
+    getChildFragmentManager().executePendingTransactions();
+    Dialog confirmDeleteDialogFragmentDialog = confirmDeleteDialogFragment.getDialog();
+    confirmDeleteDialogFragmentDialog.setOnDismissListener(
+        new DialogInterface.OnDismissListener() {
+
+          @Override
+          public void onDismiss(DialogInterface dialog) {
+            todoAdapter.notifyItemChanged(swipedTodoAdapterPosition);
+          }
+
+        }
+    );
   }
 
   private void updateTodoAdapter() {
@@ -460,7 +479,9 @@ public class SearchFragment extends Fragment implements
     dbLoader.softDeleteTodo(todoToSoftDelete);
     updateTodoAdapter();
     ReminderSetter.cancelReminderService(todoToSoftDelete);
-    actionMode.finish();
+    if (actionMode != null) {
+      actionMode.finish();
+    }
   }
 
   @Override
@@ -471,7 +492,9 @@ public class SearchFragment extends Fragment implements
       ReminderSetter.cancelReminderService(todoToSoftDelete);
     }
     updateTodoAdapter();
-    actionMode.finish();
+    if (actionMode != null) {
+      actionMode.finish();
+    }
   }
 
   public interface ISearchFragment {
