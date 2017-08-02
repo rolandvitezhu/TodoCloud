@@ -20,7 +20,7 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="android:listSeparatorTextViewStyle">@style/ListSeparatorTextView</item>
         <item name="actionModeStyle">@style/Widget.ActionMode</item>
-        <item name="actionBarSize">@dimen/toolbar_height</item>
+        <item name="actionBarSize">@dimen/height_toolbar</item>
     </style>
 
     <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog">
