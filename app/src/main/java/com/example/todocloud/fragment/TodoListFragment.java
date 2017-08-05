@@ -186,16 +186,16 @@ public class TodoListFragment extends Fragment implements
       } else { // PredefinedList
         switch (title) {
           case "0":
-            listener.onSetActionBarTitle(getString(R.string.MainListToday));
+            listener.onSetActionBarTitle(getString(R.string.all_today));
             break;
           case "1":
-            listener.onSetActionBarTitle(getString(R.string.MainListNext7Days));
+            listener.onSetActionBarTitle(getString(R.string.all_next7days));
             break;
           case "2":
-            listener.onSetActionBarTitle(getString(R.string.MainListAll));
+            listener.onSetActionBarTitle(getString(R.string.all_all));
             break;
           case "3":
-            listener.onSetActionBarTitle(getString(R.string.MainListCompleted));
+            listener.onSetActionBarTitle(getString(R.string.all_completed));
             break;
         }
       }
@@ -241,7 +241,7 @@ public class TodoListFragment extends Fragment implements
 
     private String prepareTitle() {
       int selectedItemCount = todoAdapter.getSelectedItemCount();
-      String title = selectedItemCount + " " + getString(R.string.selected);
+      String title = selectedItemCount + " " + getString(R.string.all_selected);
       return title;
     }
 

@@ -36,7 +36,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         .setTicker(notificationText)
         .setWhen(System.currentTimeMillis())
         .setContentIntent(pendingIntent)
-        .setContentTitle(context.getString(R.string.titleReminder))
+        .setContentTitle(context.getString(R.string.all_reminder))
         .setContentText(notificationText)
         .setAutoCancel(true)
         .build();

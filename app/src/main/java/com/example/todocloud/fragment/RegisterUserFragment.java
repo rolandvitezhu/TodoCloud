@@ -169,7 +169,7 @@ public class RegisterUserFragment extends Fragment
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.register));
+    listener.onSetActionBarTitle(getString(R.string.all_register));
     applyOrientationPortrait();
   }
 
@@ -192,7 +192,7 @@ public class RegisterUserFragment extends Fragment
   private boolean validateName() {
     String givenName = tietName.getText().toString().trim();
     if (givenName.isEmpty()) {
-      tilName.setError(getString(R.string.enter_name));
+      tilName.setError(getString(R.string.registeruser_nameerrorlabel));
       return false;
     } else {
       tilName.setErrorEnabled(false);
@@ -204,7 +204,7 @@ public class RegisterUserFragment extends Fragment
     String givenEmail = tietEmail.getText().toString().trim();
     boolean isGivenEmailValid = !givenEmail.isEmpty() && isValidEmail(givenEmail);
     if (!isGivenEmailValid) {
-      tilEmail.setError(getString(R.string.enter_valid_email));
+      tilEmail.setError(getString(R.string.registeruser_entervalidemailhint));
       return false;
     } else {
       tilEmail.setErrorEnabled(false);
@@ -216,7 +216,7 @@ public class RegisterUserFragment extends Fragment
     String givenPassword = tietPassword.getText().toString().trim();
     boolean isGivenPasswordValid = !givenPassword.isEmpty() && isValidPassword(givenPassword);
     if (!isGivenPasswordValid) {
-      tilPassword.setError(getString(R.string.enter_proper_password));
+      tilPassword.setError(getString(R.string.registeruser_enterproperpasswordhint));
       return false;
     } else {
       tilPassword.setErrorEnabled(false);
@@ -230,7 +230,7 @@ public class RegisterUserFragment extends Fragment
     boolean isGivenConfirmPasswordValid = !givenConfirmPassword.isEmpty()
         && givenPassword.equals(givenConfirmPassword);
     if (!isGivenConfirmPasswordValid) {
-      tilConfirmPassword.setError(getString(R.string.passwords_does_not_match));
+      tilConfirmPassword.setError(getString(R.string.registeruser_confirmpassworderrorlabel));
       return false;
     } else {
       tilConfirmPassword.setErrorEnabled(false);
@@ -282,21 +282,21 @@ public class RegisterUserFragment extends Fragment
   private void showFailedToConnectError() {
     Snackbar snackbar = Snackbar.make(
         coordinatorLayout,
-        R.string.failed_to_connect,
+        R.string.all_failedtoconnect,
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);
   }
 
   private void showThisEmailAlreadyExistedError() {
-    formSubmissionErrors.setText(R.string.this_email_already_existed);
+    formSubmissionErrors.setText(R.string.registeruser_thisemailalreadyexisted);
     formSubmissionErrors.setVisibility(View.VISIBLE);
   }
 
   private void showAnErrorOccurredError() {
     Snackbar snackbar = Snackbar.make(
         coordinatorLayout,
-        R.string.an_error_occurred,
+        R.string.all_anerroroccurred,
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);

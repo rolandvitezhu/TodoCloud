@@ -58,7 +58,7 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_priority_high_black_24dp"
-            android:contentDescription="@string/priority_create_todo"
+            android:contentDescription="@string/all_priority"
             android:visibility="invisible"/>
 
 	</RelativeLayout>

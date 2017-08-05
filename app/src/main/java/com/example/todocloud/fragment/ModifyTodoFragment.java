@@ -93,7 +93,7 @@ public class ModifyTodoFragment extends Fragment implements
     switchPriority.setChecked(todo.isPriority());
     tvDueDate.setText(simpleDateFormat.format(dueDate));
     if (!isReminderDateTimeSet) {
-      tvReminderDateTime.setText(R.string.txtNoReminders);
+      tvReminderDateTime.setText(R.string.all_noreminder);
     } else {
       tvReminderDateTime.setText(reminderDateTimeFormat.format(reminderDateTime));
     }
@@ -114,7 +114,7 @@ public class ModifyTodoFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    actionBarListener.onSetActionBarTitle(getString(R.string.todo));
+    actionBarListener.onSetActionBarTitle(getString(R.string.modifytodo_title));
   }
 
   public void handleModifyTodo() {
@@ -145,7 +145,7 @@ public class ModifyTodoFragment extends Fragment implements
     todo.setPriority(priority);
     todo.setDueDate(dueDate);
     String description = tietDescription.getText().toString().trim();
-    boolean isNoReminderSet = tvReminderDateTime.getText().equals(getString(R.string.txtNoReminders));
+    boolean isNoReminderSet = tvReminderDateTime.getText().equals(getString(R.string.all_noreminder));
     if (isNoReminderSet) {
       todo.setReminderDateTime("-1");
     } else {
@@ -230,7 +230,7 @@ public class ModifyTodoFragment extends Fragment implements
   @Override
   public void onDeleteReminder() {
     reminderDateTime = new Date();
-    tvReminderDateTime.setText(getString(R.string.txtNoReminders));
+    tvReminderDateTime.setText(getString(R.string.all_noreminder));
   }
 
   @Override

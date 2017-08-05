@@ -110,7 +110,7 @@ public class CreateTodoFragment extends Fragment implements
 			}
 
 		});
-    tvReminderDateTime.setText(R.string.txtNoReminders);
+    tvReminderDateTime.setText(R.string.all_noreminder);
     tvReminderDateTime.setOnClickListener(onReminderDateTimeClick);
 
 	  return view;
@@ -119,7 +119,7 @@ public class CreateTodoFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    actionBarListener.onSetActionBarTitle(getString(R.string.new_todo));
+    actionBarListener.onSetActionBarTitle(getString(R.string.all_createtodo));
   }
 
   @Override
@@ -150,7 +150,7 @@ public class CreateTodoFragment extends Fragment implements
     todo.setTitle(tietTitle.getText().toString().trim());
     todo.setPriority(switchPriority.isChecked());
     todo.setDueDate(simpleDateFormat.format(dueDate));
-    if (tvReminderDateTime.getText().equals(getString(R.string.txtNoReminders))) {
+    if (tvReminderDateTime.getText().equals(getString(R.string.all_noreminder))) {
       todo.setReminderDateTime("-1");
     } else {
       String reminderDateTime = reminderDateTimeFormat.format(this.reminderDateTime);
@@ -184,7 +184,7 @@ public class CreateTodoFragment extends Fragment implements
   private void validateTitle() {
     getActivity().invalidateOptionsMenu();
     String givenTitle = tietTitle.getText().toString().trim();
-    if (givenTitle.isEmpty()) tilTitle.setError(getString(R.string.enter_title));
+    if (givenTitle.isEmpty()) tilTitle.setError(getString(R.string.all_entertitle));
     else tilTitle.setErrorEnabled(false);
   }
 
@@ -247,7 +247,7 @@ public class CreateTodoFragment extends Fragment implements
   @Override
   public void onDeleteReminder() {
     reminderDateTime = new Date();
-    tvReminderDateTime.setText(getString(R.string.txtNoReminders));
+    tvReminderDateTime.setText(getString(R.string.all_noreminder));
   }
 
   @Override

@@ -47,7 +47,7 @@
                         android:id="@+id/tietEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_email"
+                        android:hint="@string/all_emailhint"
                         android:inputType="textEmailAddress"
                         android:textColor="@color/textColorSecondary"
                         android:theme="@style/MyEditTextTheme"/>
@@ -65,7 +65,7 @@
                         android:id="@+id/tietPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_password"
+                        android:hint="@string/all_passwordhint"
                         android:inputType="textPassword"
                         android:imeOptions="actionDone"
                         android:textColor="@color/textColorSecondary"
@@ -77,7 +77,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dip"
-                    android:text="@string/btnLogin"
+                    android:text="@string/all_login"
                     android:background="@color/colorPrimary"/>
 
                 <Button
@@ -86,7 +86,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="40dip"
                     android:background="@null"
-                    android:text="@string/btn_link_to_register"
+                    android:text="@string/loginuser_linktoregisterbutton"
                     android:textColor="@color/textColorSecondary"
                     android:textSize="15sp"/>
 

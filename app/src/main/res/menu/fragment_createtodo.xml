@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/itemCreateTodo"
-        android:title="@string/itemCreateTodo"
+        android:title="@string/all_createtodo"
         android:orderInCategory="0"
         android:icon="@drawable/ic_check_white_24dp"
         app:showAsAction="ifRoom"/>

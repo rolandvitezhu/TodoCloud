@@ -165,7 +165,7 @@ public class LoginUserFragment extends Fragment
   public void onResume() {
     super.onResume();
     if (getActivity() != null)
-    listener.onSetActionBarTitle(getString(R.string.login));
+    listener.onSetActionBarTitle(getString(R.string.all_login));
     applyOrientationPortrait();
   }
 
@@ -188,7 +188,7 @@ public class LoginUserFragment extends Fragment
   private boolean validateEmail() {
     String givenEmail = tietEmail.getText().toString().trim();
     if (givenEmail.isEmpty()) {
-      tilEmail.setError(getString(R.string.enter_email));
+      tilEmail.setError(getString(R.string.registeruser_enteremailhint));
       return false;
     } else {
       tilEmail.setErrorEnabled(false);
@@ -199,7 +199,7 @@ public class LoginUserFragment extends Fragment
   private boolean validatePassword() {
     String givenPassword = tietPassword.getText().toString().trim();
     if (givenPassword.isEmpty()) {
-      tilPassword.setError(getString(R.string.enter_password));
+      tilPassword.setError(getString(R.string.registeruser_enterpasswordhint));
       return false;
     } else {
       tilPassword.setErrorEnabled(false);
@@ -238,21 +238,21 @@ public class LoginUserFragment extends Fragment
   private void showFailedToConnectError() {
     Snackbar snackbar = Snackbar.make(
         coordinatorLayout,
-        R.string.failed_to_connect,
+        R.string.all_failedtoconnect,
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);
   }
 
   private void showIncorrectCredentialsError() {
-    formSubmissionErrors.setText(R.string.invalid_username_or_password);
+    formSubmissionErrors.setText(R.string.loginuser_error);
     formSubmissionErrors.setVisibility(View.VISIBLE);
   }
 
   private void showAnErrorOccurredError() {
     Snackbar snackbar = Snackbar.make(
         coordinatorLayout,
-        R.string.an_error_occurred,
+        R.string.all_anerroroccurred,
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);

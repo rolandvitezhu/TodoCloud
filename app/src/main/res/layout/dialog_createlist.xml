@@ -26,7 +26,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:hint="@string/title_create_list"
+                android:hint="@string/all_create"
                 android:textColor="@color/textColorSecondary"
                 android:theme="@style/MyEditTextTheme"/>
         </android.support.design.widget.TextInputLayout>
@@ -41,13 +41,13 @@
 
         <Button
             android:id="@+id/btnCancel"
-            android:text="@string/btnCancel"
+            android:text="@string/all_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/borderlessButtonStyle"/>
         <Button
             android:id="@+id/btnOK"
-            android:text="@string/btnOK"
+            android:text="@string/all_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/btnCancel"

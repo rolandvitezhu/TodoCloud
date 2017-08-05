@@ -250,7 +250,7 @@ public class SearchFragment extends Fragment implements
 
     private String prepareTitle() {
       int selectedItemCount = todoAdapter.getSelectedItemCount();
-      String title = selectedItemCount + " " + getString(R.string.selected);
+      String title = selectedItemCount + " " + getString(R.string.all_selected);
       return title;
     }
 

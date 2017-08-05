@@ -5,18 +5,18 @@
     <item
         android:id="@+id/itemSearch"
         android:icon="@drawable/ic_search_white_24dp"
-        android:title="@string/itemSearch"
+        android:title="@string/all_search"
         app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/itemCreateCategory"
-        android:title="@string/itemCreateCategory"
+        android:title="@string/all_createcategory"
         android:orderInCategory="0"
         app:showAsAction="never"/>
 
     <item
         android:id="@+id/itemCreateList"
-        android:title="@string/itemCreateList"
+        android:title="@string/all_createlist"
         android:orderInCategory="0"
         app:showAsAction="never"/>
 

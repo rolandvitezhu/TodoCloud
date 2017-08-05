@@ -24,7 +24,7 @@ public class SettingsPreferenceFragment extends PreferenceFragmentCompat {
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.itemSettings));
+    listener.onSetActionBarTitle(getString(R.string.all_settings));
   }
 
   public interface ISettingsPreferenceFragment {

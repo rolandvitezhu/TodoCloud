@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private boolean isMainListFragment(boolean shouldDisplay, CharSequence actionBarTitle) {
-    return !shouldDisplay && actionBarTitle != null && !actionBarTitle.equals(getString(R.string.login));
+    return !shouldDisplay && actionBarTitle != null && !actionBarTitle.equals(getString(R.string.all_login));
   }
 
   private void setDrawerEnabled(boolean enabled) {
@@ -201,8 +201,8 @@ public class MainActivity extends AppCompatActivity implements
         this,
         drawerLayout,
         toolbar,
-        R.string.open_drawer,
-        R.string.close_drawer
+        R.string.actionbardrawertoggle_opendrawer,
+        R.string.actionbardrawertoggle_closedrawer
     );
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
     actionBarDrawerToggle.syncState();
@@ -289,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements
 
   private void navigateBackToLoginUserFragment() {
     super.onBackPressed();
-    onSetActionBarTitle(getString(R.string.login));
+    onSetActionBarTitle(getString(R.string.all_login));
   }
 
   @Override
@@ -369,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openLoginUserFragment();
-    onSetActionBarTitle(getString(R.string.login));
+    onSetActionBarTitle(getString(R.string.all_login));
   }
 
   private void openLoginUserFragment() {

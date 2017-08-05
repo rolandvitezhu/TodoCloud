@@ -51,19 +51,19 @@ public class PredefinedListAdapter extends BaseAdapter {
     switch (title) {
       case "0":
         ivPredefinedList.setImageResource(R.drawable.ic_calendar_1_24dp);
-        tvTitle.setText(R.string.itemMainListToday);
+        tvTitle.setText(R.string.all_today);
         break;
       case "1":
         ivPredefinedList.setImageResource(R.drawable.ic_week_view_24dp);
-        tvTitle.setText(R.string.itemMainListNext7Days);
+        tvTitle.setText(R.string.all_next7days);
         break;
       case "2":
         ivPredefinedList.setImageResource(R.drawable.ic_infinity_24dp);
-        tvTitle.setText(R.string.itemMainListAll);
+        tvTitle.setText(R.string.all_all);
         break;
       case "3":
         ivPredefinedList.setImageResource(R.drawable.ic_today_24dp);
-        tvTitle.setText(R.string.itemMainListCompleted);
+        tvTitle.setText(R.string.all_completed);
         break;
     }
 

@@ -6,7 +6,7 @@
               android:gravity="center_horizontal">
 
     <TextView
-        android:text="@string/lblListCategory"
+        android:text="@string/movelist_spinnerlabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
@@ -34,13 +34,13 @@
 
         <Button
             android:id="@+id/btnCancelMoveList"
-            android:text="@string/btnCancel"
+            android:text="@string/all_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/borderlessButtonStyle"/>
         <Button
             android:id="@+id/btnOKMoveList"
-            android:text="@string/btnOK"
+            android:text="@string/all_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/btnCancelMoveList"

@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:hint="@string/title_create_todo"
+                android:hint="@string/all_create"
                 android:textColor="@color/textColorSecondary"
                 android:theme="@style/MyEditTextTheme"/>
         </android.support.design.widget.TextInputLayout>
@@ -38,13 +38,13 @@
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
-            android:text="@string/priority_create_todo"
+            android:text="@string/all_priority"
             android:textColor="@color/colorControlNormal"
             android:textSize="16sp"
             android:theme="@style/MyAppCompatSwitchTheme"/>
 
         <TextView
-            android:text="@string/due_date_create_todo"
+            android:text="@string/createtodo_duedatetitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
@@ -60,7 +60,7 @@
             android:textColor="@android:color/black"/>
 
         <TextView
-            android:text="@string/reminder_date_time_create_todo"
+            android:text="@string/all_reminder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
@@ -92,7 +92,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
-                    android:hint="@string/description_create_todo"
+                    android:hint="@string/createtodo_descriptionhint"
                     android:textColor="@color/textColorSecondary"
                     android:theme="@style/MyEditTextTheme"/>
             </android.support.design.widget.TextInputLayout>

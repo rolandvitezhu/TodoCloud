@@ -4,21 +4,21 @@
 
     <item
         android:id="@+id/itemModify"
-        android:title="@string/itemModify"
+        android:title="@string/all_modify"
         android:orderInCategory="0"
         android:icon="@drawable/ic_edit_white_24dp"
         app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/itemDelete"
-        android:title="@string/itemDelete"
+        android:title="@string/all_delete"
         android:orderInCategory="0"
         android:icon="@drawable/ic_delete_white_24dp"
         app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/itemMove"
-        android:title="@string/itemMove"
+        android:title="@string/all_move"
         android:orderInCategory="0"
         android:icon="@drawable/ic_move_white_24dp"
         app:showAsAction="ifRoom"/>

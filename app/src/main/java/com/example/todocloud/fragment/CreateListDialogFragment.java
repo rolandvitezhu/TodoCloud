@@ -51,7 +51,7 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
   ) {
     View view = inflater.inflate(R.layout.dialog_createlist, container);
     Dialog dialog = getDialog();
-    dialog.setTitle(R.string.itemCreateList);
+    dialog.setTitle(R.string.all_createlist);
     setSoftInputMode();
 
     tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
@@ -155,7 +155,7 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
   private boolean validateTitle() {
     String givenTitle = tietTitle.getText().toString().trim();
     if (givenTitle.isEmpty()) {
-      tilTitle.setError(getString(R.string.enter_title));
+      tilTitle.setError(getString(R.string.all_entertitle));
       return false;
     } else {
       tilTitle.setErrorEnabled(false);

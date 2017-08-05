@@ -250,7 +250,7 @@ public class MainListFragment extends ListFragment implements
         private String prepareActionModeTitle() {
           int checkedItemCount = list.getCheckedItemCount()
               + expandableListView.getCheckedItemCount();
-          return checkedItemCount + " " + getString(R.string.selected);
+          return checkedItemCount + " " + getString(R.string.all_selected);
         }
 
         private void prepareMenu(ActionMode mode, Menu menu) {
@@ -1071,7 +1071,7 @@ public class MainListFragment extends ListFragment implements
     if (getView() != null) {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
-          R.string.failed_to_connect,
+          R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
@@ -1081,7 +1081,7 @@ public class MainListFragment extends ListFragment implements
   private void showAnErrorOccurredError() {
     Snackbar snackbar = Snackbar.make(
         coordinatorLayout,
-        R.string.an_error_occurred,
+        R.string.all_anerroroccurred,
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);

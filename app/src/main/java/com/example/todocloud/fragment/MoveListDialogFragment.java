@@ -49,7 +49,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   ) {
     View view = inflater.inflate(R.layout.dialog_movelist, container);
     Dialog dialog = getDialog();
-    dialog.setTitle(R.string.itemMoveList);
+    dialog.setTitle(R.string.movelist_title);
     setSoftInputMode();
 
     spnrCategory = (Spinner) view.findViewById(R.id.listCategory);
@@ -65,7 +65,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   private void prepareSpinner() {
     DbLoader dbLoader = new DbLoader();
     Category categoryForListWithoutCategory = new Category(
-        getString(R.string.itemListWithoutCategory)
+        getString(R.string.movelist_spinneritemlistnotincategory)
     );
     Category categoryOriginallyRelatedToList = (Category) getArguments().get("category");
     ArrayList<Category> realCategoriesFromDatabase = dbLoader.getCategories();

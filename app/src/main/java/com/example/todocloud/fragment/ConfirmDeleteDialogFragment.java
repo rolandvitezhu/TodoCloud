@@ -109,47 +109,47 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   }
 
   private void prepareConfirmDeleteCategoryDialogTexts(String itemTitle) {
-    String dialogTitle = getString(R.string.delete_category);
-    String actionTextPrefix = getString(R.string.action_text_delete_category);
+    String dialogTitle = getString(R.string.confirmdelete_deletecategorytitle);
+    String actionTextPrefix = getString(R.string.confirmdelete_deletecategoryactiontext);
     String actionText = prepareActionText(actionTextPrefix, itemTitle);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }
 
   private void prepareConfirmDeleteCategoriesDialogTexts() {
-    String dialogTitle = getString(R.string.delete_categories);
-    String actionText = getString(R.string.action_text_delete_categories);
+    String dialogTitle = getString(R.string.confirmdelete_categoriestitle);
+    String actionText = getString(R.string.confirmdelete_categoriesactiontext);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }
 
   private void prepareConfirmDeleteListDialogTexts(String itemTitle) {
-    String dialogTitle = getString(R.string.delete_list);
-    String actionTextPrefix = getString(R.string.action_text_delete_list);
+    String dialogTitle = getString(R.string.confirmdelete_deletelisttitle);
+    String actionTextPrefix = getString(R.string.confirmdelete_deletelistactiontext);
     String actionText = prepareActionText(actionTextPrefix, itemTitle);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }
 
   private void prepareConfirmDeleteListsDialogTexts() {
-    String dialogTitle = getString(R.string.delete_lists);
-    String actionText = getString(R.string.action_text_delete_lists);
+    String dialogTitle = getString(R.string.confirmdelete_liststitle);
+    String actionText = getString(R.string.confirmdelete_listsactiontext);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }
 
   private void prepareConfirmDeleteTodoDialogTexts() {
-    String dialogTitle = getString(R.string.delete_todo);
+    String dialogTitle = getString(R.string.confirmdelete_deletetodotitle);
     String itemTitle = prepareTodoItemTitle();
-    String actionTextPrefix = getString(R.string.action_text_delete_todo);
+    String actionTextPrefix = getString(R.string.confirmdelete_deletetodoactiontext);
     String actionText = prepareActionText(actionTextPrefix, itemTitle);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }
 
   private void prepareConfirmDeleteTodosDialogTexts() {
-    String dialogTitle = getString(R.string.delete_todos);
-    String actionText = getString(R.string.action_text_delete_todos);
+    String dialogTitle = getString(R.string.confirmdelete_todostitle);
+    String actionText = getString(R.string.confirmdelete_todosactiontext);
     setDialogTitle(dialogTitle);
     setActionText(actionText);
   }

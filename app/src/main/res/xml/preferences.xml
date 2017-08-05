@@ -3,21 +3,21 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <android.support.v7.preference.PreferenceCategory
-        android:title="@string/title_reminders">
+        android:title="@string/settings_reminderstitle">
 
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="reminder_sound_preference"
-            android:title="@string/title_reminder_sound_preference"
+            android:title="@string/settings_remindersoundtitle"
             android:defaultValue="true"/>
 
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="vibration_preference"
-            android:title="@string/title_vibration_preference"
+            android:title="@string/settings_vibrationtitle"
             android:defaultValue="true"/>
 
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="led_light_preference"
-            android:title="@string/title_led_light_preference"
+            android:title="@string/settings_ledlighttitle"
             android:defaultValue="true"/>
 
     </android.support.v7.preference.PreferenceCategory>
