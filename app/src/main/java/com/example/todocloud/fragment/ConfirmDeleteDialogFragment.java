@@ -64,9 +64,9 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   ) {
     View view = inflater.inflate(R.layout.dialog_confirmdelete, container);
 
-    tvActionText = (TextView) view.findViewById(R.id.tvActionText);
-    btnOK = (Button) view.findViewById(R.id.btnOK);
-    btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    tvActionText = (TextView) view.findViewById(R.id.textview_confirmdelete_actiontext);
+    btnOK = (Button) view.findViewById(R.id.button_confirmdelete_ok);
+    btnCancel = (Button) view.findViewById(R.id.button_confirmdelete_cancel);
 
     prepareDialogTexts();
     applyClickEvents();

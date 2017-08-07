@@ -63,7 +63,7 @@ public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouch
   }
 
   private boolean touchCheckBoxCompleted(View nonViewGroupView) {
-    return nonViewGroupView != null && nonViewGroupView.getId() == R.id.completed;
+    return nonViewGroupView != null && nonViewGroupView.getId() == R.id.checkbox_todo_completed;
   }
 
   private View findNonViewGroupViewUnder(View parentView, int rawX, int rawY) {

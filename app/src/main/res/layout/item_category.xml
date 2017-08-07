@@ -24,7 +24,7 @@
         android:layout_marginEnd="@dimen/margin_activity_horizontal">
 
         <TextView
-            android:id="@+id/tvActionText"
+            android:id="@+id/textview_itemcategory_actiontext"
             android:textSize="18sp"
             android:textColor="@android:color/black"
             android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
             android:ellipsize="end"/>
 
         <ImageView
-            android:id="@+id/imageViewGroupIndicator"
+            android:id="@+id/imageview_itemcategory_groupindicator"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_alignParentRight="true"

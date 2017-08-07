@@ -16,7 +16,7 @@
         android:layout_marginStart="@dimen/margin_activity_horizontal_double"/>
 
     <TextView
-        android:id="@+id/tvActionText"
+        android:id="@+id/textview_itemlistincategory_actiontext"
         android:textSize="18sp"
         android:textColor="@android:color/black"
         android:layout_width="match_parent"

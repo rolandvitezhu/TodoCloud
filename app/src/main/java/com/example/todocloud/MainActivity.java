@@ -59,15 +59,15 @@ public class MainActivity extends AppCompatActivity implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
     setSupportActionBar(toolbar);
 
-    drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-    NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
+    drawerLayout = (DrawerLayout) findViewById(R.id.mainlist_drawerlayout);
+    NavigationView navigationView = (NavigationView) findViewById(R.id.mainlist_navigationview);
 
     prepareNavigationView(navigationView, toolbar);
 
-    if (findViewById(R.id.FragmentContainer) != null) {
+    if (findViewById(R.id.framelayout_main) != null) {
       if (savedInstanceState != null) {
         // Prevent Fragment overlapping
         return;
@@ -181,10 +181,10 @@ public class MainActivity extends AppCompatActivity implements
             int itemId = menuItem.getItemId();
 
             switch (itemId) {
-              case R.id.itemSettings:
+              case R.id.menuitem_navigationdrawer_settings:
                 openSettingsPreferenceFragment();
                 break;
-              case R.id.itemLogout:
+              case R.id.menuitem_navigationdrawer_logout:
                 openLogoutUserDialogFragment();
                 break;
             }
@@ -215,10 +215,10 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onPrepareNavigationHeader() {
-    NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
+    NavigationView navigationView = (NavigationView) findViewById(R.id.mainlist_navigationview);
     View navigationHeader = navigationView.getHeaderView(0);
-    TextView tvName = (TextView) navigationHeader.findViewById(R.id.tvName);
-    TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.tvEmail);
+    TextView tvName = (TextView) navigationHeader.findViewById(R.id.textview_navigationdrawerheader_name);
+    TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.textview_navigationdrawerheader_email);
     DbLoader dbLoader = new DbLoader();
     User user = dbLoader.getUser();
     if (user != null) {
@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements
     searchFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, searchFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, searchFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements
     todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, todoListFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -322,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements
   private void openTodoListFragment(TodoListFragment todoListFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, todoListFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, todoListFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.FragmentContainer,
+        R.id.framelayout_main,
         registerUserFragment,
         "RegisterUserFragment"
     );
@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements
     LoginUserFragment loginUserFragment = new LoginUserFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, loginUserFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, loginUserFragment);
     fragmentTransaction.commit();
   }
 
@@ -392,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements
     MainListFragment mainListFragment = new MainListFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, mainListFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, mainListFragment);
     fragmentTransaction.commit();
   }
 
@@ -433,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.FragmentContainer,
+        R.id.framelayout_main,
         modifyTodoFragment,
         "ModifyTodoFragment"
     );
@@ -447,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements
     createTodoFragment.setTargetFragment(targetFragment, 0);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, createTodoFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, createTodoFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements
     SettingsPreferenceFragment settingsPreferenceFragment = new SettingsPreferenceFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.FragmentContainer, settingsPreferenceFragment);
+    fragmentTransaction.replace(R.id.framelayout_main, settingsPreferenceFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }

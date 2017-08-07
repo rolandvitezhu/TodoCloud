@@ -66,14 +66,16 @@ public class ModifyTodoFragment extends Fragment implements
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
+		View view = inflater.inflate(R.layout.fragment_modifytodo, container, false);
 
     Todo todo = (Todo) getArguments().get("todo");
-	  tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    switchPriority = (SwitchCompat) view.findViewById(R.id.switchPriority);
-    tvDueDate = (TextView) view.findViewById(R.id.tvDueDate);
-    tvReminderDateTime = (TextView) view.findViewById(R.id.tvReminderDateTime);
-    tietDescription = (TextInputEditText) view.findViewById(R.id.tietDescription);
+	  tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifytodo_title);
+    switchPriority = (SwitchCompat) view.findViewById(R.id.switch_modifytodo_priority);
+    tvDueDate = (TextView) view.findViewById(R.id.textview_modifytodo_duedate);
+    tvReminderDateTime = (TextView) view.findViewById(R.id.textview_modifytodo_reminderdatetime);
+    tietDescription = (TextInputEditText) view.findViewById(
+        R.id.textinputedittext_modifytodo_description
+    );
 
     try {
       dueDate = simpleDateFormat.parse(todo.getDueDate());

@@ -103,7 +103,9 @@ public class MainListFragment extends ListFragment implements
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
     View combinedListView = inflater.inflate(R.layout.fragment_mainlist, null);
-    coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(R.id.coordinatorLayout);
+    coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(
+        R.id.coordinatorlayout_mainlist
+    );
 
     preparePredefinedList(combinedListView);
     prepareExpandableListView(combinedListView);
@@ -115,13 +117,13 @@ public class MainListFragment extends ListFragment implements
 
   private void prepareSwipeRefreshLayout(View combinedListView) {
     swipeRefreshLayout = (SwipeRefreshLayout)
-        combinedListView.findViewById(R.id.swipe_refresh_layout);
+        combinedListView.findViewById(R.id.swiperefreshlayout_mainlist);
     setScrollViewSwipeRefreshBehavior(combinedListView);
     swipeRefreshLayout.setOnRefreshListener(this);
   }
 
   private void setScrollViewSwipeRefreshBehavior(View combinedListView) {
-    scrollView = (ScrollView) combinedListView.findViewById(R.id.scroll_view);
+    scrollView = (ScrollView) combinedListView.findViewById(R.id.scrollview_mainlist);
     scrollView.getViewTreeObserver().addOnScrollChangedListener(
         new ViewTreeObserver.OnScrollChangedListener() {
 
@@ -143,7 +145,9 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void prepareList(View combinedListView) {
-    list = (ExpandableHeightListView) combinedListView.findViewById(R.id.lvList);
+    list = (ExpandableHeightListView) combinedListView.findViewById(
+        R.id.expandableheightlistview_mainlist_list
+    );
     list.setExpanded(true);
     list.setAdapter(listAdapter);
     list.setOnItemClickListener(listItemClicked);
@@ -152,7 +156,7 @@ public class MainListFragment extends ListFragment implements
 
   private void prepareExpandableListView(View combinedListView) {
     expandableListView = (ExpandableHeightExpandableListView)
-        combinedListView.findViewById(R.id.expLVCategory);
+        combinedListView.findViewById(R.id.expandableheightexpandablelistview_mainlist_category);
     expandableListView.setExpanded(true);
     expandableListView.setAdapter(categoryAdapter);
     expandableListView.setOnChildClickListener(expLVChildClicked);
@@ -166,7 +170,9 @@ public class MainListFragment extends ListFragment implements
 
   private void preparePredefinedList(View combinedListView) {
     final ExpandableHeightListView predefinedList =
-        (ExpandableHeightListView) combinedListView.findViewById(R.id.lvPredefinedList);
+        (ExpandableHeightListView) combinedListView.findViewById(
+            R.id.expandableheightlistview_mainlist_predefinedlist
+        );
     predefinedList.setExpanded(true);
     predefinedList.setAdapter(predefinedListAdapter);
     predefinedList.setOnItemClickListener(predefinedListItemClicked);
@@ -287,48 +293,48 @@ public class MainListFragment extends ListFragment implements
           int itemId = item.getItemId();
           if (oneCategorySelected()) {
             switch (itemId) {
-              case R.id.itemNewList:
+              case R.id.menuitem_layoutappbarmainlistgroup_createlist:
                 openCreateListInCategoryDialogFragment();
                 break;
-              case R.id.itemModify:
+              case R.id.menuitem_layoutappbarmainlistgroup_modify:
                 openModifyCategoryDialogFragment();
                 break;
-              case R.id.itemDelete:
+              case R.id.menuitem_layoutappbarmainlistgroup_delete:
                 openConfirmDeleteCategoryDialog();
                 break;
             }
           } else if (oneListInCategorySelected()) {
             switch (itemId) {
-              case R.id.itemModify:
+              case R.id.menuitem_layoutappbarmainlistchild_modify:
                 openModifyListInCategoryDialog();
                 break;
-              case R.id.itemDelete:
+              case R.id.menuitem_layoutappbarmainlistchild_delete:
                 openConfirmDeleteListInCategoryDialog();
                 break;
-              case R.id.itemMove:
+              case R.id.menuitem_layoutappbarmainlistchild_move:
                 openMoveListInCategoryDialog();
                 break;
             }
           } else if (oneListSelected()) {
             switch (itemId) {
-              case R.id.itemModify:
+              case R.id.menuitem_layoutappbarmainlistitem_modify:
                 openModifyListDialog();
                 break;
-              case R.id.itemDelete:
+              case R.id.menuitem_layoutappbarmainlistitem_delete:
                 openConfirmDeleteListDialog();
                 break;
-              case R.id.itemMove:
+              case R.id.menuitem_layoutappbarmainlistitem_move:
                 openMoveListIntoAnotherCategoryDialog();
                 break;
             }
           } else if (manyCategoriesSelected()) {
-            if (itemId == R.id.itemDelete)
+            if (itemId == R.id.menuitem_layoutappbarmainlistmanygroup_delete)
               openConfirmDeleteCategoriesDialog();
           } else if (manyListsInCategorySelected()) {
-            if (itemId == R.id.itemDelete)
+            if (itemId == R.id.menuitem_layoutappbarmainlistmanychild_delete)
               openConfirmDeleteListsInCategoryDialog();
           } else if (manyListsSelected()) {
-            if (itemId == R.id.itemDelete)
+            if (itemId == R.id.menuitem_layoutappbarmainlistmanyitem_delete)
               openConfirmDeleteListsDialog();
           } else if (manyCategoriesAndListsInCategorySelected()) {
 
@@ -414,13 +420,13 @@ public class MainListFragment extends ListFragment implements
     int itemId = item.getItemId();
 
     switch (itemId) {
-      case R.id.itemSearch:
+      case R.id.menuitem_mainlist_search:
         listener.onSearchActionItemClick();
         break;
-      case R.id.itemCreateCategory:
+      case R.id.menuitem_mainlist_createcategory:
         openCreateCategoryDialogFragment();
         break;
-      case R.id.itemCreateList:
+      case R.id.menuitem_mainlist_createlist:
         openCreateListDialogFragment();
         break;
     }

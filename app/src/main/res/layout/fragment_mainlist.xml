@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/coordinatorLayout"
+    android:id="@+id/coordinatorlayout_mainlist"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh_layout"
+        android:id="@+id/swiperefreshlayout_mainlist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <ScrollView
-            android:id="@+id/scroll_view"
+            android:id="@+id/scrollview_mainlist"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -26,12 +26,12 @@
                     android:layout_height="wrap_content"/>
 
                 <com.example.todocloud.customcomponent.ExpandableHeightListView
-                    android:id="@+id/lvPredefinedList"
+                    android:id="@+id/expandableheightlistview_mainlist_predefinedlist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
                 <com.example.todocloud.customcomponent.ExpandableHeightExpandableListView
-                    android:id="@+id/expLVCategory"
+                    android:id="@+id/expandableheightexpandablelistview_mainlist_category"
                     android:groupIndicator="@null"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -39,7 +39,7 @@
                 </com.example.todocloud.customcomponent.ExpandableHeightExpandableListView>
 
                 <com.example.todocloud.customcomponent.ExpandableHeightListView
-                    android:id="@+id/lvList"
+                    android:id="@+id/expandableheightlistview_mainlist_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
                 </com.example.todocloud.customcomponent.ExpandableHeightListView>
@@ -51,10 +51,3 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>
-
-<!--Mivel ListFragment-hez állítjuk be az ExpandableListView-s layout-ot,
-ezért fontos az "android:id="@android:id/list" sor.
-
-A következő sorra akkor van szükség, ha egyénileg akarjuk helyettesí-
-teni a groupindicator-t:
-android:groupIndicator="@null"-->

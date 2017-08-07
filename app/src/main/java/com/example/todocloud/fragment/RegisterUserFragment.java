@@ -74,17 +74,25 @@ public class RegisterUserFragment extends Fragment
   ) {
     View view = inflater.inflate(R.layout.fragment_registeruser, container, false);
 
-    coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
-    formSubmissionErrors = (TextView) view.findViewById(R.id.tvFormSubmissionErrors);
-    tilName = (TextInputLayout) view.findViewById(R.id.tilName);
-    tilEmail = (TextInputLayout) view.findViewById(R.id.tilEmail);
-    tilPassword = (TextInputLayout) view.findViewById(R.id.tilPassword);
-    tilConfirmPassword = (TextInputLayout) view.findViewById(R.id.tilConfirmPassword);
-    tietName = (TextInputEditText) view.findViewById(R.id.tietName);
-    tietEmail = (TextInputEditText) view.findViewById(R.id.tietEmail);
-    tietPassword = (TextInputEditText) view.findViewById(R.id.tietPassword);
-    tietConfirmPassword = (TextInputEditText) view.findViewById(R.id.tietConfirmPassword);
-    btnRegister = (Button) view.findViewById(R.id.btnRegister);
+    coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorlayout_registeruser);
+    formSubmissionErrors = (TextView) view.findViewById(
+        R.id.textview_registeruser_formsubmissionerrors
+    );
+    tilName = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_name);
+    tilEmail = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_email);
+    tilPassword = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_password);
+    tilConfirmPassword = (TextInputLayout) view.findViewById(
+        R.id.textinputlayout_registeruser_confirmpassword
+    );
+    tietName = (TextInputEditText) view.findViewById(R.id.textinputedittext_registeruser_name);
+    tietEmail = (TextInputEditText) view.findViewById(R.id.textinputedittext_registeruser_email);
+    tietPassword = (TextInputEditText) view.findViewById(
+        R.id.textinputedittext_registeruser_password
+    );
+    tietConfirmPassword = (TextInputEditText) view.findViewById(
+        R.id.textinputedittext_registeruser_confirmpassword
+    );
+    btnRegister = (Button) view.findViewById(R.id.button_registeruser);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
@@ -323,16 +331,16 @@ public class RegisterUserFragment extends Fragment
     @Override
     public void afterTextChanged(Editable s) {
       switch (view.getId()) {
-        case R.id.tietName:
+        case R.id.textinputedittext_registeruser_name:
           validateName();
           break;
-        case R.id.tietEmail:
+        case R.id.textinputedittext_registeruser_email:
           validateEmail();
           break;
-        case R.id.tietPassword:
+        case R.id.textinputedittext_registeruser_password:
           validatePassword();
           break;
-        case R.id.tietConfirmPassword:
+        case R.id.textinputedittext_registeruser_confirmpassword:
           validateConfirmPassword();
           break;
       }

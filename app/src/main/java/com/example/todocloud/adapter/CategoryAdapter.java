@@ -82,7 +82,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_category, null);
-    TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
+    TextView tvTitle = (TextView) convertView.findViewById(R.id.textview_itemcategory_actiontext);
     tvTitle.setText(category.getTitle());
     handleCategoryIndicator(groupPosition, isExpanded, convertView);
 
@@ -101,14 +101,14 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
 
   private void showCollapsedGroupIndicator(View convertView) {
     ImageView groupIndicator = (ImageView) convertView.findViewById(
-        R.id.imageViewGroupIndicator
+        R.id.imageview_itemcategory_groupindicator
     );
     groupIndicator.setImageResource(R.drawable.ic_previous_18dp);
   }
 
   private void showExpandedGroupIndicator(View convertView) {
     ImageView groupIndicator = (ImageView) convertView.findViewById(
-        R.id.imageViewGroupIndicator
+        R.id.imageview_itemcategory_groupindicator
     );
     groupIndicator.setImageResource(R.drawable.ic_expand_arrow_18dp);
   }
@@ -133,7 +133,9 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_listincategory, null);
-    TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
+    TextView tvTitle = (TextView) convertView.findViewById(
+        R.id.textview_itemlistincategory_actiontext
+    );
     tvTitle.setText(list.getTitle());
 
     return convertView;

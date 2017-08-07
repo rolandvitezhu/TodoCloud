@@ -3,7 +3,7 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/itemDelete"
+        android:id="@+id/menuitem_layoutappbarmainlistmanychild_delete"
         android:title="@string/all_delete"
         android:orderInCategory="0"
         android:icon="@drawable/ic_delete_white_24dp"

@@ -48,17 +48,17 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.dialog_createlist, container);
+    View view = inflater.inflate(R.layout.dialog_modifylist, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.modifylist_title);
     setSoftInputMode();
 
     final List list = (List) getArguments().get("list");
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    btnOK = (Button) view.findViewById(R.id.btnOK);
-    btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_modifylist_title);
+    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifylist_title);
+    btnOK = (Button) view.findViewById(R.id.button_modifylist_ok);
+    btnCancel = (Button) view.findViewById(R.id.button_modifylist_cancel);
 
     tietTitle.setText(list.getTitle());
     applyTextChangedEvents();

@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/itemNewList"
+        android:id="@+id/menuitem_layoutappbarmainlistgroup_createlist"
         android:title="@string/all_createlist"
         android:orderInCategory="0"
         android:icon="@drawable/ic_add_white_24dp"
         app:showAsAction="ifRoom"/>
 
     <item
-        android:id="@+id/itemModify"
+        android:id="@+id/menuitem_layoutappbarmainlistgroup_modify"
         android:title="@string/all_modify"
         android:orderInCategory="0"
         android:icon="@drawable/ic_edit_white_24dp"
         app:showAsAction="ifRoom"/>
 
     <item
-        android:id="@+id/itemDelete"
+        android:id="@+id/menuitem_layoutappbarmainlistgroup_delete"
         android:title="@string/all_delete"
         android:orderInCategory="0"
         android:icon="@drawable/ic_delete_white_24dp"

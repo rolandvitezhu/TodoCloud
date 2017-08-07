@@ -7,7 +7,7 @@
               android:background="?android:attr/activatedBackgroundIndicator">
 	
 	<android.support.v7.widget.AppCompatCheckBox
-        android:id="@+id/completed"
+        android:id="@+id/checkbox_todo_completed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -34,7 +34,7 @@
             android:layout_marginEnd="@dimen/margin_activity_horizontal_double">
 
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/textview_todo_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
@@ -43,7 +43,7 @@
                 android:ellipsize="end"/>
 
             <TextView
-                android:id="@+id/dueDate"
+                android:id="@+id/textview_todo_duedate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
@@ -52,7 +52,7 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/priority"
+            android:id="@+id/imageview_todo_priority"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"

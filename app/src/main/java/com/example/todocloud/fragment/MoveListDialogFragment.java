@@ -52,9 +52,9 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
     dialog.setTitle(R.string.movelist_title);
     setSoftInputMode();
 
-    spnrCategory = (Spinner) view.findViewById(R.id.listCategory);
-    btnOK = (Button) view.findViewById(R.id.btnOKMoveList);
-    btnCancel = (Button) view.findViewById(R.id.btnCancelMoveList);
+    spnrCategory = (Spinner) view.findViewById(R.id.spinner_movelist_category);
+    btnOK = (Button) view.findViewById(R.id.button_movelist_ok);
+    btnCancel = (Button) view.findViewById(R.id.button_movelist_cancel);
 
     prepareSpinner();
     applyClickEvents();

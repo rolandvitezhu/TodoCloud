@@ -76,12 +76,14 @@ public class CreateTodoFragment extends Fragment implements
   ) {
 		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    switchPriority = (SwitchCompat) view.findViewById(R.id.switchPriority);
-    tvDueDate = (TextView) view.findViewById(R.id.tvDueDate);
-    tvReminderDateTime = (TextView) view.findViewById(R.id.tvReminderDateTime);
-    tietDescription = (TextInputEditText) view.findViewById(R.id.tietDescription);
+    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_createtodo_title);
+    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_createtodo_title);
+    switchPriority = (SwitchCompat) view.findViewById(R.id.switch_createtodo_priority);
+    tvDueDate = (TextView) view.findViewById(R.id.textview_createtodo_duedate);
+    tvReminderDateTime = (TextView) view.findViewById(R.id.textview_createtodo_reminderdatetime);
+    tietDescription = (TextInputEditText) view.findViewById(
+        R.id.textinputedittext_createtodo_description
+    );
 
     tietTitle.addTextChangedListener(new TextWatcher() {
 
@@ -135,7 +137,7 @@ public class CreateTodoFragment extends Fragment implements
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == R.id.itemCreateTodo) {
+    if (itemId == R.id.menuitem_createtodo) {
       hideSoftInput();
       Todo todoToCreate = prepareTodoToCreate();
       listener.onCreateTodo(todoToCreate);

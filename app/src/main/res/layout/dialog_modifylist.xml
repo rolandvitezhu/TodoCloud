@@ -15,14 +15,14 @@
         android:layout_marginBottom="20dp">
 
         <android.support.design.widget.TextInputLayout
-            android:id="@+id/textinputlayout_createcategory_title"
+            android:id="@+id/textinputlayout_modifylist_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColorHint="@color/colorControlNormal"
             android:theme="@style/MyMaterialTheme">
 
             <android.support.design.widget.TextInputEditText
-                android:id="@+id/textinputedittext_createcategory_title"
+                android:id="@+id/textinputedittext_modifylist_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
@@ -40,18 +40,18 @@
         android:paddingBottom="8dp">
 
         <Button
-            android:id="@+id/button_createcategory_cancel"
+            android:id="@+id/button_modifylist_cancel"
             android:text="@string/all_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/borderlessButtonStyle"/>
         <Button
-            android:id="@+id/button_createcategory_ok"
+            android:id="@+id/button_modifylist_ok"
             android:text="@string/all_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/button_createcategory_cancel"
-            android:layout_toRightOf="@+id/button_createcategory_cancel"
+            android:layout_toEndOf="@+id/button_modifylist_cancel"
+            android:layout_toRightOf="@+id/button_modifylist_cancel"
             style="?attr/borderlessButtonStyle"/>
 
     </RelativeLayout>

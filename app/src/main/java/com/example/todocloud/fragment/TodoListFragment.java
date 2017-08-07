@@ -72,12 +72,12 @@ public class TodoListFragment extends Fragment implements
 
   private void prepareFloatingActionButton(View view) {
     FloatingActionButton floatingActionButton =
-        (FloatingActionButton) view.findViewById(R.id.floatingActionButton);
+        (FloatingActionButton) view.findViewById(R.id.floatingactionbutton_todolist);
     floatingActionButton.setOnClickListener(floatingActionButtonClicked);
   }
 
   private void prepareRecyclerView(View view) {
-    recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+    recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_todolist);
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
         getContext().getApplicationContext()
     );
@@ -225,7 +225,7 @@ public class TodoListFragment extends Fragment implements
       int actionItemId = item.getItemId();
 
       switch (actionItemId) {
-        case R.id.itemDelete:
+        case R.id.menuitem_layoutappbartodolist_delete:
           openConfirmDeleteTodosDialog();
           break;
       }
@@ -331,7 +331,7 @@ public class TodoListFragment extends Fragment implements
     int optionsItemId = item.getItemId();
 
     switch (optionsItemId) {
-      case R.id.createTodo:
+      case R.id.menuitem_todolist_createtodo:
         listener.onOpenCreateTodoFragment(this);
         break;
     }

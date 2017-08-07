@@ -6,7 +6,7 @@
               android:gravity="center_horizontal">
 
     <TextView
-        android:id="@+id/tvActionText"
+        android:id="@+id/textview_confirmdelete_actiontext"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         android:layout_width="match_parent"
@@ -24,18 +24,18 @@
         android:paddingBottom="8dp">
 
         <Button
-            android:id="@+id/btnCancel"
+            android:id="@+id/button_confirmdelete_cancel"
             android:text="@string/all_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/borderlessButtonStyle"/>
         <Button
-            android:id="@+id/btnOK"
+            android:id="@+id/button_confirmdelete_ok"
             android:text="@string/all_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/btnCancel"
-            android:layout_toRightOf="@+id/btnCancel"
+            android:layout_toEndOf="@+id/button_confirmdelete_cancel"
+            android:layout_toRightOf="@+id/button_confirmdelete_cancel"
             style="?attr/borderlessButtonStyle"/>
 
     </RelativeLayout>

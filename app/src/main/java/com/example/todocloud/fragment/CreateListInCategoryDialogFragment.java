@@ -49,15 +49,19 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.dialog_createlist, container);
+    View view = inflater.inflate(R.layout.dialog_createlistincategory, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.all_createlist);
     setSoftInputMode();
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    btnOK = (Button) view.findViewById(R.id.btnOK);
-    btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    tilTitle = (TextInputLayout) view.findViewById(
+        R.id.textinputlayout_createlistincategory_title
+    );
+    tietTitle = (TextInputEditText) view.findViewById(
+        R.id.textinputedittext_createlistincategory_title
+    );
+    btnOK = (Button) view.findViewById(R.id.button_createlistincategory_ok);
+    btnCancel = (Button) view.findViewById(R.id.button_createlistincategory_cancel);
 
     applyTextChangedEvents();
     applyEditorActionEvents();

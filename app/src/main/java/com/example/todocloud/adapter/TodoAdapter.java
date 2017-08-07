@@ -162,10 +162,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
     public ItemViewHolder(View itemView) {
       super(itemView);
-      completed = (AppCompatCheckBox) itemView.findViewById(R.id.completed);
-      title = (TextView) itemView.findViewById(R.id.title);
-      dueDate = (TextView) itemView.findViewById(R.id.dueDate);
-      priority = (ImageView) itemView.findViewById(R.id.priority);
+      completed = (AppCompatCheckBox) itemView.findViewById(R.id.checkbox_todo_completed);
+      title = (TextView) itemView.findViewById(R.id.textview_todo_title);
+      dueDate = (TextView) itemView.findViewById(R.id.textview_todo_duedate);
+      priority = (ImageView) itemView.findViewById(R.id.imageview_todo_priority);
     }
 
   }

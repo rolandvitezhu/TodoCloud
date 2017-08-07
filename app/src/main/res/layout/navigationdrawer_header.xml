@@ -15,7 +15,7 @@
         android:padding="@dimen/margin_activity_horizontal">
 
         <TextView
-            android:id="@+id/tvName"
+            android:id="@+id/textview_navigationdrawerheader_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/spacing_nav_header_vertical"
@@ -23,7 +23,7 @@
             android:textColor="@color/textColorPrimary"/>
 
         <TextView
-            android:id="@+id/tvEmail"
+            android:id="@+id/textview_navigationdrawerheader_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/textColorPrimary"/>

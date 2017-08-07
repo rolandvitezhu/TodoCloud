@@ -55,8 +55,8 @@
     <string name="all_move">Áthelyezés</string>
     <string name="all_create">Cím</string>
     <string name="all_priority">Prioritás</string>
-    <string name="createtodo_descriptionhint">Leírás</string>
-    <string name="createtodo_duedatetitle">Esedékesség</string>
+    <string name="all_descriptionhint">Leírás</string>
+    <string name="all_duedatetitle">Esedékesség</string>
     <string name="all_entertitle">Adjon meg címet!</string>
     <string name="registeruser_enteremailhint">Adjon meg e-mail címet!</string>
     <string name="registeruser_enterpasswordhint">Adjon meg jelszót!</string>

@@ -73,7 +73,7 @@ public class SearchFragment extends Fragment implements
   }
 
   private void prepareRecyclerView(View view) {
-    recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+    recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_search);
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
         getContext().getApplicationContext()
     );
@@ -234,7 +234,7 @@ public class SearchFragment extends Fragment implements
       int actionItemId = item.getItemId();
 
       switch (actionItemId) {
-        case R.id.itemDelete:
+        case R.id.menuitem_layoutappbarsearch_delete:
           openConfirmDeleteTodosDialog();
           break;
       }
@@ -327,7 +327,7 @@ public class SearchFragment extends Fragment implements
   }
 
   private void prepareSearchView(Menu menu) {
-    MenuItem searchMenuItem = menu.findItem(R.id.itemSearch);
+    MenuItem searchMenuItem = menu.findItem(R.id.menuitem_search);
     searchView = (SearchView) searchMenuItem.getActionView();
     SearchManager searchManager = (SearchManager) getActivity()
         .getSystemService(Context.SEARCH_SERVICE);

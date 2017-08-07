@@ -42,7 +42,7 @@ public class ListAdapter extends BaseAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_list, null);
-    TextView tvTitle = (TextView) convertView.findViewById(R.id.tvActionText);
+    TextView tvTitle = (TextView) convertView.findViewById(R.id.textview_itemlist_actiontext);
     tvTitle.setText(list.getTitle());
 
     return convertView;

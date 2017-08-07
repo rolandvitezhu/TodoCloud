@@ -48,17 +48,17 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
       ViewGroup container,
       Bundle savedInstanceState
   ) {
-    View view = inflater.inflate(R.layout.dialog_createcategory, container);
+    View view = inflater.inflate(R.layout.dialog_modifycategory, container);
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.modifycategory_title);
     setSoftInputMode();
 
     final Category category = (Category) getArguments().get("category");
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.tilTitle);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.tietTitle);
-    btnOK = (Button) view.findViewById(R.id.btnOK);
-    btnCancel = (Button) view.findViewById(R.id.btnCancel);
+    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_modifycategory_title);
+    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifycategory_title);
+    btnOK = (Button) view.findViewById(R.id.button_modifycategory_ok);
+    btnCancel = (Button) view.findViewById(R.id.button_modifycategory_cancel);
 
     tietTitle.setText(category.getTitle());
     applyTextChangedEvents();

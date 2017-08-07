@@ -17,7 +17,7 @@
         android:textSize="12sp"
         android:textColor="@color/colorControlNormal"/>
     <Spinner
-        android:id="@+id/listCategory"
+        android:id="@+id/spinner_movelist_category"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
@@ -33,18 +33,18 @@
         android:paddingBottom="8dp">
 
         <Button
-            android:id="@+id/btnCancelMoveList"
+            android:id="@+id/button_movelist_cancel"
             android:text="@string/all_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/borderlessButtonStyle"/>
         <Button
-            android:id="@+id/btnOKMoveList"
+            android:id="@+id/button_movelist_ok"
             android:text="@string/all_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/btnCancelMoveList"
-            android:layout_toRightOf="@+id/btnCancelMoveList"
+            android:layout_toEndOf="@+id/button_movelist_cancel"
+            android:layout_toRightOf="@+id/button_movelist_cancel"
             style="?attr/borderlessButtonStyle"/>
 
     </RelativeLayout>
