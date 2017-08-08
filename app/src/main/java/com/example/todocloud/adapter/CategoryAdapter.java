@@ -100,17 +100,17 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   }
 
   private void showCollapsedGroupIndicator(View convertView) {
-    ImageView groupIndicator = (ImageView) convertView.findViewById(
+    ImageView ivGroupIndicator = (ImageView) convertView.findViewById(
         R.id.imageview_itemcategory_groupindicator
     );
-    groupIndicator.setImageResource(R.drawable.ic_previous_18dp);
+    ivGroupIndicator.setImageResource(R.drawable.ic_previous_18dp);
   }
 
   private void showExpandedGroupIndicator(View convertView) {
-    ImageView groupIndicator = (ImageView) convertView.findViewById(
+    ImageView ivGroupIndicator = (ImageView) convertView.findViewById(
         R.id.imageview_itemcategory_groupindicator
     );
-    groupIndicator.setImageResource(R.drawable.ic_expand_arrow_18dp);
+    ivGroupIndicator.setImageResource(R.drawable.ic_expand_arrow_18dp);
   }
 
   private boolean shouldNotShowGroupIndicator(int groupPosition) {

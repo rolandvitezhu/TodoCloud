@@ -231,9 +231,9 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-      int actionItemId = item.getItemId();
+      int menuItemId = item.getItemId();
 
-      switch (actionItemId) {
+      switch (menuItemId) {
         case R.id.menuitem_layoutappbarsearch_delete:
           openConfirmDeleteTodosDialog();
           break;

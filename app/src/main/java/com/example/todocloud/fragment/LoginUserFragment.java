@@ -32,7 +32,7 @@ public class LoginUserFragment extends Fragment
     implements UserDataSynchronizer.OnLoginUserListener {
 
   private CoordinatorLayout coordinatorLayout;
-  private TextView formSubmissionErrors;
+  private TextView tvFormSubmissionErrors;
   private TextInputLayout tilEmail, tilPassword;
   private TextInputEditText tietEmail, tietPassword;
 
@@ -69,7 +69,7 @@ public class LoginUserFragment extends Fragment
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_loginuser, container, false);
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorlayout_loginuser);
-    formSubmissionErrors = (TextView) view.findViewById(
+    tvFormSubmissionErrors = (TextView) view.findViewById(
         R.id.textview_loginuser_formsubmissionerrors
     );
     tilEmail = (TextInputLayout) view.findViewById(R.id.textinputlayout_loginuser_email);
@@ -235,8 +235,8 @@ public class LoginUserFragment extends Fragment
   }
 
   private void hideFormSubmissionErrors() {
-    formSubmissionErrors.setText("");
-    formSubmissionErrors.setVisibility(View.GONE);
+    tvFormSubmissionErrors.setText("");
+    tvFormSubmissionErrors.setVisibility(View.GONE);
   }
 
   private void showFailedToConnectError() {
@@ -249,8 +249,8 @@ public class LoginUserFragment extends Fragment
   }
 
   private void showIncorrectCredentialsError() {
-    formSubmissionErrors.setText(R.string.loginuser_error);
-    formSubmissionErrors.setVisibility(View.VISIBLE);
+    tvFormSubmissionErrors.setText(R.string.loginuser_error);
+    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
   }
 
   private void showAnErrorOccurredError() {

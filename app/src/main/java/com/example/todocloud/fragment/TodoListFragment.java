@@ -328,9 +328,9 @@ public class TodoListFragment extends Fragment implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    int optionsItemId = item.getItemId();
+    int menuItemId = item.getItemId();
 
-    switch (optionsItemId) {
+    switch (menuItemId) {
       case R.id.menuitem_todolist_createtodo:
         listener.onOpenCreateTodoFragment(this);
         break;

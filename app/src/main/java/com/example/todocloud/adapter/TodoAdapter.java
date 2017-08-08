@@ -53,13 +53,13 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final Todo todo = todos.get(position);
 
-    holder.completed.setChecked(todo.isCompleted());
-    holder.title.setText(todo.getTitle());
-    holder.dueDate.setText(todo.getDueDate());
-    holder.priority.setVisibility(todo.isPriority() ? View.VISIBLE : View.INVISIBLE);
+    holder.cbCompleted.setChecked(todo.isCompleted());
+    holder.tvTitle.setText(todo.getTitle());
+    holder.tvDueDate.setText(todo.getDueDate());
+    holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.INVISIBLE);
 
     holder.itemView.setActivated(selectedTodos.get(position));
-    holder.completed.setOnTouchListener(new View.OnTouchListener() {
+    holder.cbCompleted.setOnTouchListener(new View.OnTouchListener() {
 
       @Override
       public boolean onTouch(View v, MotionEvent event) {
@@ -155,17 +155,17 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   public class ItemViewHolder extends RecyclerView.ViewHolder {
 
-    public AppCompatCheckBox completed;
-    public TextView title;
-    public TextView dueDate;
-    public ImageView priority;
+    public AppCompatCheckBox cbCompleted;
+    public TextView tvTitle;
+    public TextView tvDueDate;
+    public ImageView ivPriority;
 
     public ItemViewHolder(View itemView) {
       super(itemView);
-      completed = (AppCompatCheckBox) itemView.findViewById(R.id.checkbox_todo_completed);
-      title = (TextView) itemView.findViewById(R.id.textview_todo_title);
-      dueDate = (TextView) itemView.findViewById(R.id.textview_todo_duedate);
-      priority = (ImageView) itemView.findViewById(R.id.imageview_todo_priority);
+      cbCompleted = (AppCompatCheckBox) itemView.findViewById(R.id.checkbox_todo_completed);
+      tvTitle = (TextView) itemView.findViewById(R.id.textview_todo_title);
+      tvDueDate = (TextView) itemView.findViewById(R.id.textview_todo_duedate);
+      ivPriority = (ImageView) itemView.findViewById(R.id.imageview_todo_priority);
     }
 
   }

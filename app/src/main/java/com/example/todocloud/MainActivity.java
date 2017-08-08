@@ -178,9 +178,9 @@ public class MainActivity extends AppCompatActivity implements
 
           @Override
           public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-            int itemId = menuItem.getItemId();
+            int menuItemId = menuItem.getItemId();
 
-            switch (itemId) {
+            switch (menuItemId) {
               case R.id.menuitem_navigationdrawer_settings:
                 openSettingsPreferenceFragment();
                 break;
@@ -217,8 +217,12 @@ public class MainActivity extends AppCompatActivity implements
   public void onPrepareNavigationHeader() {
     NavigationView navigationView = (NavigationView) findViewById(R.id.mainlist_navigationview);
     View navigationHeader = navigationView.getHeaderView(0);
-    TextView tvName = (TextView) navigationHeader.findViewById(R.id.textview_navigationdrawerheader_name);
-    TextView tvEmail = (TextView) navigationHeader.findViewById(R.id.textview_navigationdrawerheader_email);
+    TextView tvName = (TextView) navigationHeader.findViewById(
+        R.id.textview_navigationdrawerheader_name
+    );
+    TextView tvEmail = (TextView) navigationHeader.findViewById(
+        R.id.textview_navigationdrawerheader_email
+    );
     DbLoader dbLoader = new DbLoader();
     User user = dbLoader.getUser();
     if (user != null) {

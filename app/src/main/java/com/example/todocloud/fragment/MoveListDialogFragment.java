@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class MoveListDialogFragment extends AppCompatDialogFragment {
 
-  private Spinner spnrCategory;
+  private Spinner spinnerCategory;
   private Button btnOK;
   private Button btnCancel;
 
@@ -52,7 +52,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
     dialog.setTitle(R.string.movelist_title);
     setSoftInputMode();
 
-    spnrCategory = (Spinner) view.findViewById(R.id.spinner_movelist_category);
+    spinnerCategory = (Spinner) view.findViewById(R.id.spinner_movelist_category);
     btnOK = (Button) view.findViewById(R.id.button_movelist_ok);
     btnCancel = (Button) view.findViewById(R.id.button_movelist_cancel);
 
@@ -74,13 +74,13 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
     categoriesForSpinner.add(categoryForListWithoutCategory);
     categoriesForSpinner.addAll(realCategoriesFromDatabase);
 
-    spnrCategory.setAdapter(new ArrayAdapter<>(
+    spinnerCategory.setAdapter(new ArrayAdapter<>(
         getActivity(),
         android.R.layout.simple_spinner_item,
         categoriesForSpinner
     ));
     int categoryOriginallyRelatedToListPosition = categoriesForSpinner.indexOf(categoryOriginallyRelatedToList);
-    spnrCategory.setSelection(categoryOriginallyRelatedToListPosition);
+    spinnerCategory.setSelection(categoryOriginallyRelatedToListPosition);
   }
 
   private void setSoftInputMode() {
@@ -101,7 +101,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
         Category category = (Category) getArguments().get("category");
         boolean isListNotInCategoryBeforeMove = category.getCategoryOnlineId() == null;
         List list = getArguments().getParcelable("list");
-        Category selectedCategory = (Category) spnrCategory.getSelectedItem();
+        Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
         String categoryOnlineId = selectedCategory.getCategoryOnlineId();
         listener.onMoveList(list, categoryOnlineId, isListNotInCategoryBeforeMove);
         dismiss();

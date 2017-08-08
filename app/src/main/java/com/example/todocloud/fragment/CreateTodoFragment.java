@@ -136,8 +136,8 @@ public class CreateTodoFragment extends Fragment implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    int itemId = item.getItemId();
-    if (itemId == R.id.menuitem_createtodo) {
+    int menuItemId = item.getItemId();
+    if (menuItemId == R.id.menuitem_createtodo) {
       hideSoftInput();
       Todo todoToCreate = prepareTodoToCreate();
       listener.onCreateTodo(todoToCreate);

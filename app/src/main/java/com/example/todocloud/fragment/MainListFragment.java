@@ -63,8 +63,8 @@ public class MainListFragment extends ListFragment implements
   private CategoryAdapter categoryAdapter;
   private ListAdapter listAdapter;
 
-  private ExpandableHeightExpandableListView expandableListView;
-  private ExpandableHeightListView list;
+  private ExpandableHeightExpandableListView expandableHeightExpandableListView;
+  private ExpandableHeightListView ehlvList;
 
   private SwipeRefreshLayout swipeRefreshLayout;
   private CoordinatorLayout coordinatorLayout;
@@ -145,37 +145,37 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void prepareList(View combinedListView) {
-    list = (ExpandableHeightListView) combinedListView.findViewById(
+    ehlvList = (ExpandableHeightListView) combinedListView.findViewById(
         R.id.expandableheightlistview_mainlist_list
     );
-    list.setExpanded(true);
-    list.setAdapter(listAdapter);
-    list.setOnItemClickListener(listItemClicked);
-    list.setOnItemLongClickListener(listItemLongClicked);
+    ehlvList.setExpanded(true);
+    ehlvList.setAdapter(listAdapter);
+    ehlvList.setOnItemClickListener(listItemClicked);
+    ehlvList.setOnItemLongClickListener(listItemLongClicked);
   }
 
   private void prepareExpandableListView(View combinedListView) {
-    expandableListView = (ExpandableHeightExpandableListView)
+    expandableHeightExpandableListView = (ExpandableHeightExpandableListView)
         combinedListView.findViewById(R.id.expandableheightexpandablelistview_mainlist_category);
-    expandableListView.setExpanded(true);
-    expandableListView.setAdapter(categoryAdapter);
-    expandableListView.setOnChildClickListener(expLVChildClicked);
-    expandableListView.setOnGroupClickListener(expLVGroupClicked);
+    expandableHeightExpandableListView.setExpanded(true);
+    expandableHeightExpandableListView.setAdapter(categoryAdapter);
+    expandableHeightExpandableListView.setOnChildClickListener(expLVChildClicked);
+    expandableHeightExpandableListView.setOnGroupClickListener(expLVGroupClicked);
     applyExpLVLongClickEvents();
   }
 
   private void applyExpLVLongClickEvents() {
-    expandableListView.setOnCreateContextMenuListener(expLVCategoryContextMenuListener);
+    expandableHeightExpandableListView.setOnCreateContextMenuListener(expLVCategoryContextMenuListener);
   }
 
   private void preparePredefinedList(View combinedListView) {
-    final ExpandableHeightListView predefinedList =
+    final ExpandableHeightListView ehlvPredefinedList =
         (ExpandableHeightListView) combinedListView.findViewById(
             R.id.expandableheightlistview_mainlist_predefinedlist
         );
-    predefinedList.setExpanded(true);
-    predefinedList.setAdapter(predefinedListAdapter);
-    predefinedList.setOnItemClickListener(predefinedListItemClicked);
+    ehlvPredefinedList.setExpanded(true);
+    ehlvPredefinedList.setAdapter(predefinedListAdapter);
+    ehlvPredefinedList.setOnItemClickListener(predefinedListItemClicked);
   }
 
   private ActionMode.Callback callback =
@@ -215,8 +215,8 @@ public class MainListFragment extends ListFragment implements
           selectedLists.clear();
 
           AppController.setActionModeEnabled(false);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
-          list.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+          expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+          ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
         }
 
         /**
@@ -231,7 +231,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void preventUnwantedClickEvent() {
-          expandableListView.setOnTouchListener(new View.OnTouchListener() {
+          expandableHeightExpandableListView.setOnTouchListener(new View.OnTouchListener() {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -249,13 +249,13 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void restoreDefaultBehavior() {
-          expandableListView.setOnTouchListener(null);
+          expandableHeightExpandableListView.setOnTouchListener(null);
         }
 
         @NonNull
         private String prepareActionModeTitle() {
-          int checkedItemCount = list.getCheckedItemCount()
-              + expandableListView.getCheckedItemCount();
+          int checkedItemCount = ehlvList.getCheckedItemCount()
+              + expandableHeightExpandableListView.getCheckedItemCount();
           return checkedItemCount + " " + getString(R.string.all_selected);
         }
 
@@ -290,9 +290,9 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void applyActionItemBehavior(MenuItem item) {
-          int itemId = item.getItemId();
+          int menuItemId = item.getItemId();
           if (oneCategorySelected()) {
-            switch (itemId) {
+            switch (menuItemId) {
               case R.id.menuitem_layoutappbarmainlistgroup_createlist:
                 openCreateListInCategoryDialogFragment();
                 break;
@@ -304,7 +304,7 @@ public class MainListFragment extends ListFragment implements
                 break;
             }
           } else if (oneListInCategorySelected()) {
-            switch (itemId) {
+            switch (menuItemId) {
               case R.id.menuitem_layoutappbarmainlistchild_modify:
                 openModifyListInCategoryDialog();
                 break;
@@ -316,7 +316,7 @@ public class MainListFragment extends ListFragment implements
                 break;
             }
           } else if (oneListSelected()) {
-            switch (itemId) {
+            switch (menuItemId) {
               case R.id.menuitem_layoutappbarmainlistitem_modify:
                 openModifyListDialog();
                 break;
@@ -328,13 +328,13 @@ public class MainListFragment extends ListFragment implements
                 break;
             }
           } else if (manyCategoriesSelected()) {
-            if (itemId == R.id.menuitem_layoutappbarmainlistmanygroup_delete)
+            if (menuItemId == R.id.menuitem_layoutappbarmainlistmanygroup_delete)
               openConfirmDeleteCategoriesDialog();
           } else if (manyListsInCategorySelected()) {
-            if (itemId == R.id.menuitem_layoutappbarmainlistmanychild_delete)
+            if (menuItemId == R.id.menuitem_layoutappbarmainlistmanychild_delete)
               openConfirmDeleteListsInCategoryDialog();
           } else if (manyListsSelected()) {
-            if (itemId == R.id.menuitem_layoutappbarmainlistmanyitem_delete)
+            if (menuItemId == R.id.menuitem_layoutappbarmainlistmanyitem_delete)
               openConfirmDeleteListsDialog();
           } else if (manyCategoriesAndListsInCategorySelected()) {
 
@@ -394,7 +394,7 @@ public class MainListFragment extends ListFragment implements
 
         private void deselectListItems() {
           for (int i = 0; i < listAdapter.getCount(); i++) {
-            list.setItemChecked(i, false);
+            ehlvList.setItemChecked(i, false);
           }
         }
 
@@ -403,8 +403,8 @@ public class MainListFragment extends ListFragment implements
          * items of expanded group items.
          */
         private void deselectExpandableListViewVisibleItems() {
-          for (int i = 0; i <= expandableListView.getLastVisiblePosition(); i++) {
-            expandableListView.setItemChecked(i, false);
+          for (int i = 0; i <= expandableHeightExpandableListView.getLastVisiblePosition(); i++) {
+            expandableHeightExpandableListView.setItemChecked(i, false);
           }
         }
 
@@ -417,9 +417,9 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    int itemId = item.getItemId();
+    int menuItemId = item.getItemId();
 
-    switch (itemId) {
+    switch (menuItemId) {
       case R.id.menuitem_mainlist_search:
         listener.onSearchActionItemClick();
         break;
@@ -631,7 +631,7 @@ public class MainListFragment extends ListFragment implements
     private void handleItemSelection(int position, com.example.todocloud.data.List clickedList) {
       // Item checked state being set automatically on item click event. We should track
       // the changes only.
-      if (list.isItemChecked(position)) {
+      if (ehlvList.isItemChecked(position)) {
         selectedLists.add(clickedList);
       } else {
         selectedLists.remove(clickedList);
@@ -650,8 +650,8 @@ public class MainListFragment extends ListFragment implements
     }
 
     private int getCheckedItemCount() {
-      return list.getCheckedItemCount() +
-          expandableListView.getCheckedItemCount();
+      return ehlvList.getCheckedItemCount() +
+          expandableHeightExpandableListView.getCheckedItemCount();
     }
 
   };
@@ -670,12 +670,12 @@ public class MainListFragment extends ListFragment implements
 
         private void startActionMode(int position) {
           listener.onStartActionMode(callback);
-          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          list.setItemChecked(position, true);
+          ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          ehlvList.setItemChecked(position, true);
           com.example.todocloud.data.List selectedList =
-              (com.example.todocloud.data.List) list.getItemAtPosition(position);
+              (com.example.todocloud.data.List) ehlvList.getItemAtPosition(position);
           selectedLists.add(selectedList);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
         }
 
@@ -719,7 +719,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void toggleItemCheckedState(ExpandableListView parent, int position) {
-          expandableListView.setItemChecked(position, !parent.isItemChecked(position));
+          expandableHeightExpandableListView.setItemChecked(position, !parent.isItemChecked(position));
         }
 
         private boolean isNoSelectedItems() {
@@ -728,8 +728,8 @@ public class MainListFragment extends ListFragment implements
         }
 
         private int getCheckedItemCount() {
-          return list.getCheckedItemCount() +
-              expandableListView.getCheckedItemCount();
+          return ehlvList.getCheckedItemCount() +
+              expandableHeightExpandableListView.getCheckedItemCount();
         }
 
       };
@@ -767,7 +767,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void toggleItemCheckedState(ExpandableListView parent, int position) {
-          expandableListView.setItemChecked(position, !parent.isItemChecked(position));
+          expandableHeightExpandableListView.setItemChecked(position, !parent.isItemChecked(position));
         }
 
         private void handleGroupExpanding(ExpandableListView parent, int groupPosition) {
@@ -784,8 +784,8 @@ public class MainListFragment extends ListFragment implements
         }
 
         private int getCheckedItemCount() {
-          return list.getCheckedItemCount() +
-              expandableListView.getCheckedItemCount();
+          return ehlvList.getCheckedItemCount() +
+              expandableHeightExpandableListView.getCheckedItemCount();
         }
 
       };
@@ -800,7 +800,7 @@ public class MainListFragment extends ListFragment implements
         ExpandableListView.ExpandableListContextMenuInfo info =
             (ExpandableListView.ExpandableListContextMenuInfo) menuInfo;
         long packedPosition = info.packedPosition;
-        int position = expandableListView.getFlatListPosition(packedPosition);
+        int position = expandableHeightExpandableListView.getFlatListPosition(packedPosition);
         int packedPositionType = ExpandableListView.getPackedPositionType(packedPosition);
 
         if (categoryClicked(packedPositionType)) {
@@ -814,23 +814,23 @@ public class MainListFragment extends ListFragment implements
         private void startActionModeWithList(int position) {
           actionModeStartedWithELV = true;
           listener.onStartActionMode(callback);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          expandableListView.setItemChecked(position, true);
+          expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          expandableHeightExpandableListView.setItemChecked(position, true);
           com.example.todocloud.data.List clickedList = (com.example.todocloud.data.List)
-              expandableListView.getItemAtPosition(position);
+              expandableHeightExpandableListView.getItemAtPosition(position);
           selectedListsInCategory.add(clickedList);
-          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
         }
 
         private void startActionModeWithCategory(int position) {
           actionModeStartedWithELV = true;
           listener.onStartActionMode(callback);
-          expandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-          expandableListView.setItemChecked(position, true);
-          Category clickedCategory = (Category) expandableListView.getItemAtPosition(position);
+          expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          expandableHeightExpandableListView.setItemChecked(position, true);
+          Category clickedCategory = (Category) expandableHeightExpandableListView.getItemAtPosition(position);
           selectedCategories.add(clickedCategory);
-          list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+          ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           actionMode.invalidate();
         }
 

@@ -35,7 +35,7 @@ public class RegisterUserFragment extends Fragment
     implements UserDataSynchronizer.OnRegisterUserListener {
 
   private CoordinatorLayout coordinatorLayout;
-  private TextView formSubmissionErrors;
+  private TextView tvFormSubmissionErrors;
   private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
   private TextInputEditText tietName, tietEmail, tietPassword, tietConfirmPassword;
 
@@ -75,7 +75,7 @@ public class RegisterUserFragment extends Fragment
     View view = inflater.inflate(R.layout.fragment_registeruser, container, false);
 
     coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorlayout_registeruser);
-    formSubmissionErrors = (TextView) view.findViewById(
+    tvFormSubmissionErrors = (TextView) view.findViewById(
         R.id.textview_registeruser_formsubmissionerrors
     );
     tilName = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_name);
@@ -283,8 +283,8 @@ public class RegisterUserFragment extends Fragment
   }
 
   private void hideFormSubmissionErrors() {
-    formSubmissionErrors.setText("");
-    formSubmissionErrors.setVisibility(View.GONE);
+    tvFormSubmissionErrors.setText("");
+    tvFormSubmissionErrors.setVisibility(View.GONE);
   }
 
   private void showFailedToConnectError() {
@@ -297,8 +297,8 @@ public class RegisterUserFragment extends Fragment
   }
 
   private void showThisEmailAlreadyExistedError() {
-    formSubmissionErrors.setText(R.string.registeruser_thisemailalreadyexisted);
-    formSubmissionErrors.setVisibility(View.VISIBLE);
+    tvFormSubmissionErrors.setText(R.string.registeruser_thisemailalreadyexisted);
+    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
   }
 
   private void showAnErrorOccurredError() {
