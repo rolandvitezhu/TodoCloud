@@ -126,10 +126,18 @@ public class MainActivity extends AppCompatActivity implements
     boolean shouldDisplay = fragmentManager.getBackStackEntryCount()>0;
     ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
-      actionBar.setDisplayHomeAsUpEnabled(shouldDisplay);
+      if (shouldDisplay) {
+        setDrawerEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+      } else {
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        setDrawerEnabled(true);
+      }
+
       CharSequence actionBarTitle = actionBar.getTitle();
       if (isMainListFragment(shouldDisplay, actionBarTitle)) {
         actionBar.setTitle(R.string.app_name);
+        actionBar.setDisplayHomeAsUpEnabled(false);
         setDrawerEnabled(true);
       }
     }
