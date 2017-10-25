@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
 import android.view.View;
@@ -85,6 +87,23 @@ public class AppController extends Application {
         snackbarView.findViewById(android.support.design.R.id.snackbar_text);
     snackbarText.setTextColor(Color.WHITE);
     snackbar.show();
+  }
+
+  /**
+   * Fix unnecessary TextInputEditText animation on set text.
+   * @param text The text to set.
+   * @param textInputEditText TextInputEditText to set text.
+   * @param relatedTextInputLayout The TextInputLayout related to the textInputEditText.
+   */
+  public static void setText(
+      String text, TextInputEditText textInputEditText, TextInputLayout relatedTextInputLayout
+  ) {
+    // Disable animation before set text. The unnecessary animation won't play in this case.
+    relatedTextInputLayout.setHintAnimationEnabled(false);
+    textInputEditText.setText(text);
+
+    // Enable animation, because it should work on user interaction.
+    relatedTextInputLayout.setHintAnimationEnabled(true);
   }
 
 }

@@ -68,18 +68,18 @@ public class LoginUserFragment extends Fragment
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_loginuser, container, false);
-    coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorlayout_loginuser);
-    tvFormSubmissionErrors = (TextView) view.findViewById(
+    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_loginuser);
+    tvFormSubmissionErrors = view.findViewById(
         R.id.textview_loginuser_formsubmissionerrors
     );
-    tilEmail = (TextInputLayout) view.findViewById(R.id.textinputlayout_loginuser_email);
-    tilPassword = (TextInputLayout) view.findViewById(R.id.textinputlayout_loginuser_password);
-    tietEmail = (TextInputEditText) view.findViewById(R.id.textinputedittext_loginuser_email);
-    tietPassword = (TextInputEditText) view.findViewById(
+    tilEmail = view.findViewById(R.id.textinputlayout_loginuser_email);
+    tilPassword = view.findViewById(R.id.textinputlayout_loginuser_password);
+    tietEmail = view.findViewById(R.id.textinputedittext_loginuser_email);
+    tietPassword = view.findViewById(
         R.id.textinputedittext_loginuser_password
     );
-    btnLogin = (Button) view.findViewById(R.id.button_loginuser_login);
-    btnLinkToRegister = (Button) view.findViewById(R.id.button_loginuser_linktoregister);
+    btnLogin = view.findViewById(R.id.button_loginuser_login);
+    btnLinkToRegister = view.findViewById(R.id.button_loginuser_linktoregister);
 
     applyTextChangedEvents();
     applyEditorActionEvents();

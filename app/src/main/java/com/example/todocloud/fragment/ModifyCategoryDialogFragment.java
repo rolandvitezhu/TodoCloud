@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
+import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Category;
 
 public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
@@ -55,12 +56,12 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
 
     final Category category = (Category) getArguments().get("category");
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_modifycategory_title);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifycategory_title);
-    btnOK = (Button) view.findViewById(R.id.button_modifycategory_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_modifycategory_cancel);
+    tilTitle = view.findViewById(R.id.textinputlayout_modifycategory_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_modifycategory_title);
+    btnOK = view.findViewById(R.id.button_modifycategory_ok);
+    btnCancel = view.findViewById(R.id.button_modifycategory_cancel);
 
-    tietTitle.setText(category.getTitle());
+    AppController.setText(category.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorEvents(btnOK);
     applyClickEvents(category, btnOK, btnCancel);

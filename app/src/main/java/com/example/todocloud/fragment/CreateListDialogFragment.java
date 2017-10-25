@@ -54,10 +54,10 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
     dialog.setTitle(R.string.all_createlist);
     setSoftInputMode();
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_createlist_title);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_createlist_title);
-    btnOK = (Button) view.findViewById(R.id.button_createlist_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_createlist_cancel);
+    tilTitle = view.findViewById(R.id.textinputlayout_createlist_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_createlist_title);
+    btnOK = view.findViewById(R.id.button_createlist_ok);
+    btnCancel = view.findViewById(R.id.button_createlist_cancel);
 
     applyTextChangedEvents();
     applyEditorEvents();

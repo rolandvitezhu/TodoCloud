@@ -76,12 +76,12 @@ public class CreateTodoFragment extends Fragment implements
   ) {
 		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_createtodo_title);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_createtodo_title);
-    switchPriority = (SwitchCompat) view.findViewById(R.id.switch_createtodo_priority);
-    tvDueDate = (TextView) view.findViewById(R.id.textview_createtodo_duedate);
-    tvReminderDateTime = (TextView) view.findViewById(R.id.textview_createtodo_reminderdatetime);
-    tietDescription = (TextInputEditText) view.findViewById(
+    tilTitle = view.findViewById(R.id.textinputlayout_createtodo_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_createtodo_title);
+    switchPriority = view.findViewById(R.id.switch_createtodo_priority);
+    tvDueDate = view.findViewById(R.id.textview_createtodo_duedate);
+    tvReminderDateTime = view.findViewById(R.id.textview_createtodo_reminderdatetime);
+    tietDescription = view.findViewById(
         R.id.textinputedittext_createtodo_description
     );
 

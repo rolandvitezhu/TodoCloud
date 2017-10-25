@@ -54,10 +54,10 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
     dialog.setTitle(R.string.all_createcategory);
     setSoftInputMode();
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_createcategory_title);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_createcategory_title);
-    btnOK = (Button) view.findViewById(R.id.button_createcategory_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_createcategory_cancel);
+    tilTitle = view.findViewById(R.id.textinputlayout_createcategory_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_createcategory_title);
+    btnOK = view.findViewById(R.id.button_createcategory_ok);
+    btnCancel = view.findViewById(R.id.button_createcategory_cancel);
 
     applyTextChangeEvent();
     applyEditorActionEvents();

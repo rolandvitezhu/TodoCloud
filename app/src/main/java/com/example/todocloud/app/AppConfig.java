@@ -2,8 +2,8 @@ package com.example.todocloud.app;
 
 public class AppConfig {
 
-  /*private static String prefix = "http://192.168.1.100/todo_cloud/";*/  // LAN IP
-  private static String prefix = "http://192.168.56.1/todo_cloud/";  // Genymotion IP
+  private static String prefix = "http://192.168.1.100/todo_cloud/";  // LAN IP
+  /*private static String prefix = "http://192.168.56.1/todo_cloud/";*/  // Genymotion IP
   /*private static String prefix = "http://192.168.173.1/todo_cloud/";*/  // ad hoc network IP
 
   public static String URL_REGISTER = prefix + "v1/user/register";

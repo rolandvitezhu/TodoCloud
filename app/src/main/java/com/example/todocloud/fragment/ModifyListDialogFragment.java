@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
+import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.List;
 
 public class ModifyListDialogFragment extends AppCompatDialogFragment {
@@ -55,12 +56,12 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
     final List list = (List) getArguments().get("list");
 
-    tilTitle = (TextInputLayout) view.findViewById(R.id.textinputlayout_modifylist_title);
-    tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifylist_title);
-    btnOK = (Button) view.findViewById(R.id.button_modifylist_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_modifylist_cancel);
+    tilTitle = view.findViewById(R.id.textinputlayout_modifylist_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_modifylist_title);
+    btnOK = view.findViewById(R.id.button_modifylist_ok);
+    btnCancel = view.findViewById(R.id.button_modifylist_cancel);
 
-    tietTitle.setText(list.getTitle());
+    AppController.setText(list.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorActionEvents();
     applyClickEvents(list);

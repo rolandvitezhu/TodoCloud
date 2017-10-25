@@ -74,25 +74,25 @@ public class RegisterUserFragment extends Fragment
   ) {
     View view = inflater.inflate(R.layout.fragment_registeruser, container, false);
 
-    coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorlayout_registeruser);
-    tvFormSubmissionErrors = (TextView) view.findViewById(
+    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_registeruser);
+    tvFormSubmissionErrors = view.findViewById(
         R.id.textview_registeruser_formsubmissionerrors
     );
-    tilName = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_name);
-    tilEmail = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_email);
-    tilPassword = (TextInputLayout) view.findViewById(R.id.textinputlayout_registeruser_password);
-    tilConfirmPassword = (TextInputLayout) view.findViewById(
+    tilName = view.findViewById(R.id.textinputlayout_registeruser_name);
+    tilEmail = view.findViewById(R.id.textinputlayout_registeruser_email);
+    tilPassword = view.findViewById(R.id.textinputlayout_registeruser_password);
+    tilConfirmPassword = view.findViewById(
         R.id.textinputlayout_registeruser_confirmpassword
     );
-    tietName = (TextInputEditText) view.findViewById(R.id.textinputedittext_registeruser_name);
-    tietEmail = (TextInputEditText) view.findViewById(R.id.textinputedittext_registeruser_email);
-    tietPassword = (TextInputEditText) view.findViewById(
+    tietName = view.findViewById(R.id.textinputedittext_registeruser_name);
+    tietEmail = view.findViewById(R.id.textinputedittext_registeruser_email);
+    tietPassword = view.findViewById(
         R.id.textinputedittext_registeruser_password
     );
-    tietConfirmPassword = (TextInputEditText) view.findViewById(
+    tietConfirmPassword = view.findViewById(
         R.id.textinputedittext_registeruser_confirmpassword
     );
-    btnRegister = (Button) view.findViewById(R.id.button_registeruser);
+    btnRegister = view.findViewById(R.id.button_registeruser);
 
     applyTextChangedEvents();
     applyEditorActionEvents();

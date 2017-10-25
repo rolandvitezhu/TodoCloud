@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.SwitchCompat;
@@ -15,6 +16,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
+import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.fragment.DatePickerDialogFragment.IDatePickerDialogFragment;
 
@@ -28,6 +30,7 @@ public class ModifyTodoFragment extends Fragment implements
     ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
     ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
 
+  private TextInputLayout tilTitle;
   private TextInputEditText tietTitle;
 	private SwitchCompat switchPriority;
 	private TextView tvDueDate;
@@ -42,6 +45,7 @@ public class ModifyTodoFragment extends Fragment implements
       "yyyy.MM.dd HH:mm",
       Locale.getDefault()
   );
+  private TextInputLayout tilDescription;
   private TextInputEditText tietDescription;
 
   private IModifyTodoFragment listener;
@@ -69,11 +73,13 @@ public class ModifyTodoFragment extends Fragment implements
 		View view = inflater.inflate(R.layout.fragment_modifytodo, container, false);
 
     Todo todo = (Todo) getArguments().get("todo");
-	  tietTitle = (TextInputEditText) view.findViewById(R.id.textinputedittext_modifytodo_title);
-    switchPriority = (SwitchCompat) view.findViewById(R.id.switch_modifytodo_priority);
-    tvDueDate = (TextView) view.findViewById(R.id.textview_modifytodo_duedate);
-    tvReminderDateTime = (TextView) view.findViewById(R.id.textview_modifytodo_reminderdatetime);
-    tietDescription = (TextInputEditText) view.findViewById(
+    tilTitle = view.findViewById(R.id.textinputlayout_modifytodo_title);
+    tietTitle = view.findViewById(R.id.textinputedittext_modifytodo_title);
+    switchPriority = view.findViewById(R.id.switch_modifytodo_priority);
+    tvDueDate = view.findViewById(R.id.textview_modifytodo_duedate);
+    tvReminderDateTime = view.findViewById(R.id.textview_modifytodo_reminderdatetime);
+    tilDescription = view.findViewById(R.id.textinputlayout_modifytodo_description);
+    tietDescription = view.findViewById(
         R.id.textinputedittext_modifytodo_description
     );
 
@@ -91,7 +97,7 @@ public class ModifyTodoFragment extends Fragment implements
       }
     }
 
-    tietTitle.setText(todo.getTitle());
+    AppController.setText(todo.getTitle(), tietTitle, tilTitle);
     switchPriority.setChecked(todo.isPriority());
     tvDueDate.setText(simpleDateFormat.format(dueDate));
     if (!isReminderDateTimeSet) {
@@ -99,7 +105,7 @@ public class ModifyTodoFragment extends Fragment implements
     } else {
       tvReminderDateTime.setText(reminderDateTimeFormat.format(reminderDateTime));
     }
-    tietDescription.setText(todo.getDescription());
+    AppController.setText(todo.getDescription(), tietDescription, tilDescription);
     tvDueDate.setOnClickListener(new OnClickListener() {
 
       @Override
@@ -129,7 +135,7 @@ public class ModifyTodoFragment extends Fragment implements
 
       if (givenTitle.isEmpty()) {
         String originalTitle = todo.getTitle();
-        tietTitle.setText(originalTitle);
+        AppController.setText(originalTitle, tietTitle, tilTitle);
       } else {
         todo = prepareTodo(todo);
         listener.onModifyTodo(todo);
