@@ -291,14 +291,14 @@ public class SearchFragment extends Fragment implements
     ConfirmDeleteDialogFragment confirmDeleteDialogFragment = new ConfirmDeleteDialogFragment();
     confirmDeleteDialogFragment.setTargetFragment(this, 0);
     confirmDeleteDialogFragment.setArguments(arguments);
-    confirmDeleteDialogFragment.show(getChildFragmentManager(), "ConfirmDeleteDialogFragment");
+    confirmDeleteDialogFragment.show(getFragmentManager(), "ConfirmDeleteDialogFragment");
     applyDismissEvents(swipedTodoAdapterPosition, confirmDeleteDialogFragment);
   }
 
   private void applyDismissEvents(
       final int swipedTodoAdapterPosition, ConfirmDeleteDialogFragment confirmDeleteDialogFragment
   ) {
-    getChildFragmentManager().executePendingTransactions();
+    getFragmentManager().executePendingTransactions();
     Dialog confirmDeleteDialogFragmentDialog = confirmDeleteDialogFragment.getDialog();
     confirmDeleteDialogFragmentDialog.setOnDismissListener(
         new DialogInterface.OnDismissListener() {
