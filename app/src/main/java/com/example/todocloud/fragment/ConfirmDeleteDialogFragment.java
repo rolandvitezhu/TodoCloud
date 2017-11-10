@@ -32,7 +32,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (IConfirmDeleteDialogFragment) getParentFragment();
+    listener = (IConfirmDeleteDialogFragment) getTargetFragment();
   }
 
   @Override
