@@ -8,7 +8,6 @@ import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -26,6 +25,8 @@ public class AppController extends Application {
   private static boolean actionModeEnabled;
   private static ActionMode actionMode;
   private static Context applicationContext;
+
+  private static Snackbar lastShownSnackbar;
 
   @Override
   public void onCreate() {
@@ -82,11 +83,31 @@ public class AppController extends Application {
   }
 
   public static void showWhiteTextSnackbar(Snackbar snackbar) {
-    View snackbarView = snackbar.getView();
-    TextView snackbarText = (TextView)
-        snackbarView.findViewById(android.support.design.R.id.snackbar_text);
-    snackbarText.setTextColor(Color.WHITE);
-    snackbar.show();
+    TextView snackbarTextView = snackbar.getView()
+        .findViewById(android.support.design.R.id.snackbar_text);
+    TextView lastShownSnackbarTextView;
+
+    CharSequence snackbarText = snackbarTextView.getText();
+    CharSequence lastShownSnackbarText = "";
+
+    if (lastShownSnackbar != null) {
+      lastShownSnackbarTextView = lastShownSnackbar.getView()
+          .findViewById(android.support.design.R.id.snackbar_text);
+      lastShownSnackbarText = lastShownSnackbarTextView.getText();
+    }
+
+    boolean shouldShowSnackbar =
+        !(lastShownSnackbar != null
+            && lastShownSnackbar.isShown()
+            && snackbarText.equals(lastShownSnackbarText)
+        );
+
+    if (shouldShowSnackbar) {
+      snackbarTextView.setTextColor(Color.WHITE);
+      snackbar.show();
+
+      lastShownSnackbar = snackbar;
+    }
   }
 
   /**
