@@ -17,7 +17,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="@dimen/height_item"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
         android:layout_marginStart="@dimen/margin_activity_horizontal"
         android:layout_marginRight="@dimen/margin_activity_horizontal"
@@ -28,7 +28,7 @@
             android:textSize="18sp"
             android:textColor="@android:color/black"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/height_item"
             android:layout_marginRight="@dimen/margin_activity_horizontal_double"
             android:layout_marginEnd="@dimen/margin_activity_horizontal_double"
             android:gravity="center_vertical"
@@ -38,7 +38,7 @@
         <ImageView
             android:id="@+id/imageview_itemcategory_groupindicator"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/height_item"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"/>
 

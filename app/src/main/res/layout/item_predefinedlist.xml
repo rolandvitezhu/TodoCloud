@@ -19,7 +19,7 @@
         android:textSize="18sp"
         android:textColor="@android:color/black"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="@dimen/height_item"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
         android:layout_marginStart="@dimen/margin_activity_horizontal"
         android:layout_marginRight="@dimen/margin_activity_horizontal"
