@@ -43,37 +43,83 @@
             android:textSize="16sp"
             android:theme="@style/MyAppCompatSwitchTheme"/>
 
-        <TextView
-            android:text="@string/all_duedatetitle"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="12sp"
-            android:textColor="@color/colorControlNormal"/>
-        <TextView
-            android:id="@+id/textview_modifytodo_duedate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"/>
+            android:orientation="horizontal">
 
-        <TextView
-            android:text="@string/all_reminder"
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:text="@string/all_duedatetitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorControlNormal"/>
+                <TextView
+                    android:id="@+id/textview_modifytodo_duedate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/button_modifytodo_clearduedate"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/roundedbutton"
+                android:drawableTop="@drawable/round_clear_white_24"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"/>
+        </RelativeLayout>
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="12sp"
-            android:textColor="@color/colorControlNormal"/>
-        <TextView
-            android:id="@+id/textview_modifytodo_reminderdatetime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"/>
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:text="@string/all_reminder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorControlNormal"/>
+                <TextView
+                    android:id="@+id/textview_modifytodo_reminderdatetime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/button_modifytodo_clearreminder"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/roundedbutton"
+                android:drawableTop="@drawable/round_clear_white_24"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"/>
+        </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"

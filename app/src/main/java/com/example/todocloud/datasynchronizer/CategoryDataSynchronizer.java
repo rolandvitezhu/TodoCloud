@@ -12,6 +12,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Category;
+import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 
 import org.json.JSONArray;
@@ -22,12 +23,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class CategoryDataSynchronizer {
+class CategoryDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = CategoryDataSynchronizer.class.getSimpleName();
+  private static final String TABLE = DbConstants.Category.DATABASE_TABLE;
 
   private OnSyncCategoryDataListener onSyncCategoryDataListener;
-  private DbLoader dbLoader;
   private boolean isUpdateCategoryRequestsFinished;
   private int updateCategoryRequestCount;
   private int currentUpdateCategoryRequest;
@@ -35,8 +36,39 @@ class CategoryDataSynchronizer {
   private int insertCategoryRequestCount;
   private int currentInsertCategoryRequest;
 
+  private ArrayList<Category> categoriesToUpdate;
+  private ArrayList<Category> categoriesToInsert;
+
+  private Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
+    @Override
+    public void onResponse(JSONObject response) {
+      try {
+        boolean error = response.getBoolean("error");
+
+        if (!error) {
+          nextRowVersion = response.getInt("next_row_version");
+          setRowVersionsForCategories(categoriesToUpdate);
+          setRowVersionsForCategories(categoriesToInsert);
+          updateCategories();
+        } else {
+          String message = response.getString("message");
+          Log.d(TAG, "Error Message: " + message);
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+  };
+
+  private Response.ErrorListener responseErrorListener = new Response.ErrorListener() {
+    @Override
+    public void onErrorResponse(VolleyError error) {
+      Log.e(TAG, "Get Next Row Version Error: " + error);
+    }
+  };
+
   CategoryDataSynchronizer(DbLoader dbLoader) {
-    this.dbLoader = dbLoader;
+    super(dbLoader);
   }
 
   void setOnSyncCategoryDataListener(
@@ -53,6 +85,15 @@ class CategoryDataSynchronizer {
   private void initCategoryRequestsStates() {
     isUpdateCategoryRequestsFinished = false;
     isInsertCategoryRequestsFinished = false;
+    categoriesToUpdate = dbLoader.getCategoriesToUpdate();
+    categoriesToInsert = dbLoader.getCategoriesToInsert();
+    nextRowVersion = 0;
+  }
+
+  private void setRowVersionsForCategories(ArrayList<Category> categories) {
+    for (Category category : categories) {
+      category.setRowVersion(nextRowVersion++);
+    }
   }
 
   private void getCategories() {
@@ -62,8 +103,6 @@ class CategoryDataSynchronizer {
   }
 
   private void updateCategories() {
-    ArrayList<Category> categoriesToUpdate = dbLoader.getCategoriesToUpdate();
-
     if (!categoriesToUpdate.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_update_category";
@@ -83,8 +122,6 @@ class CategoryDataSynchronizer {
   }
 
   private void insertCategories() {
-    ArrayList<Category> categoriesToInsert = dbLoader.getCategoriesToInsert();
-
     if (!categoriesToInsert.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_insert_category";
@@ -121,7 +158,11 @@ class CategoryDataSynchronizer {
                 if (!categories.isEmpty()) {
                   updateCategoriesInLocalDatabase(categories);
                 }
-                updateCategories();
+
+                boolean shouldUpdateOrInsertCategories = !categoriesToUpdate.isEmpty() || !categoriesToInsert.isEmpty();
+                if (shouldUpdateOrInsertCategories)
+                  getNextRowVersion(TABLE, responseListener, responseErrorListener);
+                else onSyncCategoryDataListener.onFinishSyncCategoryData();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -184,10 +225,11 @@ class CategoryDataSynchronizer {
     return getCategoriesRequest;
   }
 
+  // 000webhost.com don't allow PUT and DELETE requests for free accounts
   private JsonObjectRequest prepareUpdateCategoryRequest(final Category categoryToUpdate) {
     JSONObject updateCategoryJsonRequest = prepareUpdateCategoryJsonRequest(categoryToUpdate);
     JsonObjectRequest updateCategoryRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.PUT,
+        JsonObjectRequest.Method.POST,
         AppConfig.URL_UPDATE_CATEGORY,
         updateCategoryJsonRequest,
         new Response.Listener<JSONObject>() {
@@ -199,7 +241,7 @@ class CategoryDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeCategoryUpToDate(response);
+                makeCategoryUpToDate();
                 if (isLastUpdateCategoryRequest()) {
                   isUpdateCategoryRequestsFinished = true;
                   if (isAllCategoryRequestsFinished()) {
@@ -232,8 +274,7 @@ class CategoryDataSynchronizer {
             }
           }
 
-          private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-            categoryToUpdate.setRowVersion(response.getInt("row_version"));
+          private void makeCategoryUpToDate() {
             categoryToUpdate.setDirty(false);
             dbLoader.updateCategory(categoryToUpdate);
           }
@@ -302,7 +343,7 @@ class CategoryDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeCategoryUpToDate(response);
+                makeCategoryUpToDate();
                 if (isLastInsertCategoryRequest()) {
                   isInsertCategoryRequestsFinished = true;
                   if (isAllCategoryRequestsFinished()) {
@@ -334,8 +375,7 @@ class CategoryDataSynchronizer {
             }
           }
 
-          private void makeCategoryUpToDate(JSONObject response) throws JSONException {
-            categoryToInsert.setRowVersion(response.getInt("row_version"));
+          private void makeCategoryUpToDate() {
             categoryToInsert.setDirty(false);
             dbLoader.updateCategory(categoryToInsert);
           }
@@ -418,7 +458,10 @@ class CategoryDataSynchronizer {
   ) throws JSONException {
     jsonRequest.put("category_online_id", categoryData.getCategoryOnlineId().trim());
     jsonRequest.put("title", categoryData.getTitle().trim());
+    jsonRequest.put(DbConstants.Category.KEY_ROW_VERSION, categoryData.getRowVersion());
     jsonRequest.put("deleted", categoryData.getDeleted() ? 1 : 0);
+    // TODO: Swap dummy value with real data
+    jsonRequest.put(DbConstants.Category.KEY_POSITION, 0);
   }
 
   private boolean isAllCategoryRequestsFinished() {

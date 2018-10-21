@@ -9,9 +9,9 @@ import android.support.v7.app.AppCompatDialogFragment;
 import android.widget.DatePicker;
 
 import com.example.todocloud.R;
+import com.example.todocloud.app.Constant;
 
-import java.util.Calendar;
-import java.util.Date;
+import org.threeten.bp.LocalDate;
 
 public class DatePickerDialogFragment extends AppCompatDialogFragment implements
     DatePickerDialog.OnDateSetListener {
@@ -19,8 +19,7 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
 	private int year;
 	private int month;
 	private int day;
-  private Date date;
-  private Calendar calendar = Calendar.getInstance();
+  private LocalDate date;
 	private IDatePickerDialogFragment listener;
 
   @Override
@@ -32,26 +31,31 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
   @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-		date = (Date) getArguments().get("date");
-    calendar.setTime(date);
-    year = calendar.get(Calendar.YEAR);
-    month = calendar.get(Calendar.MONTH);
-    day = calendar.get(Calendar.DAY_OF_MONTH);
+    boolean thereIsNoDate = getArguments() == null || getArguments().get(Constant.DUE_DATE) == null;
+
+    if (thereIsNoDate)
+      date = LocalDate.now();
+    else
+      date = (LocalDate) getArguments().get(Constant.DUE_DATE);
+
+    year = date.getYear();
+    month = date.getMonthValue();
+    day = date.getDayOfMonth();
+
 	  return new DatePickerDialog(
-        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day
+        getActivity(), R.style.MyPickerDialogTheme, this, year, month - 1, day
     );
   }
 
   @Override
   public void onDateSet(DatePicker view, int year, int month, int day) {
-    calendar.set(year, month, day);
-    date.setTime(calendar.getTimeInMillis());
+    date = LocalDate.of(year, month + 1, day);
     listener.onSelectDate(date);
 	  dismiss();
   }
 
   public interface IDatePickerDialogFragment {
-		void onSelectDate(Date date);
+		void onSelectDate(LocalDate date);
 	}
 
 }

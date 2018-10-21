@@ -12,6 +12,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.Todo;
+import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 
 import org.json.JSONArray;
@@ -22,12 +23,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class TodoDataSynchronizer {
+class TodoDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = TodoDataSynchronizer.class.getSimpleName();
+  private static final String TABLE = DbConstants.Todo.DATABASE_TABLE;
 
   private OnSyncTodoDataListener onSyncTodoDataListener;
-  private DbLoader dbLoader;
   private boolean isUpdateTodoRequestsFinished;
   private int updateTodoRequestCount;
   private int currentUpdateTodoRequest;
@@ -35,8 +36,39 @@ class TodoDataSynchronizer {
   private int insertTodoRequestCount;
   private int currentInsertTodoRequest;
 
+  private ArrayList<Todo> todosToUpdate;
+  private ArrayList<Todo> todosToInsert;
+
+  private Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
+    @Override
+    public void onResponse(JSONObject response) {
+      try {
+        boolean error = response.getBoolean("error");
+
+        if (!error) {
+          nextRowVersion = response.getInt("next_row_version");
+          setRowVersionsForTodos(todosToUpdate);
+          setRowVersionsForTodos(todosToInsert);
+          updateTodos();
+        } else {
+          String message = response.getString("message");
+          Log.d(TAG, "Error Message: " + message);
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+  };
+
+  private Response.ErrorListener responseErrorListener = new Response.ErrorListener() {
+    @Override
+    public void onErrorResponse(VolleyError error) {
+      Log.e(TAG, "Get Next Row Version Error: " + error);
+    }
+  };
+
   TodoDataSynchronizer(DbLoader dbLoader) {
-    this.dbLoader = dbLoader;
+    super(dbLoader);
   }
 
   void setOnSyncTodoDataListener(OnSyncTodoDataListener onSyncTodoDataListener) {
@@ -51,6 +83,15 @@ class TodoDataSynchronizer {
   private void initTodoRequestsStates() {
     isUpdateTodoRequestsFinished = false;
     isInsertTodoRequestsFinished = false;
+    todosToUpdate = dbLoader.getTodosToUpdate();
+    todosToInsert = dbLoader.getTodosToInsert();
+    nextRowVersion = 0;
+  }
+
+  private void setRowVersionsForTodos(ArrayList<Todo> todos) {
+    for (Todo todo : todos) {
+      todo.setRowVersion(nextRowVersion++);
+    }
   }
 
   private void getTodos() {
@@ -60,8 +101,6 @@ class TodoDataSynchronizer {
   }
 
   private void updateTodos() {
-    ArrayList<Todo> todosToUpdate = dbLoader.getTodosToUpdate();
-
     if (!todosToUpdate.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_update_todo";
@@ -81,8 +120,6 @@ class TodoDataSynchronizer {
   }
 
   private void insertTodos() {
-    ArrayList<Todo> todosToInsert = dbLoader.getTodosToInsert();
-
     if (!todosToInsert.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_insert_todo";
@@ -119,7 +156,11 @@ class TodoDataSynchronizer {
                 if (!todos.isEmpty()) {
                   updateTodosInLocalDatabase(todos);
                 }
-                updateTodos();
+
+                boolean shouldUpdateOrInsertTodos = !todosToUpdate.isEmpty() || !todosToInsert.isEmpty();
+                if (shouldUpdateOrInsertTodos)
+                  getNextRowVersion(TABLE, responseListener, responseErrorListener);
+                else onSyncTodoDataListener.onFinishSyncTodoData();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -182,10 +223,11 @@ class TodoDataSynchronizer {
     return getTodosRequest;
   }
 
+  // 000webhost.com don't allow PUT and DELETE requests for free accounts
   private JsonObjectRequest prepareUpdateTodoRequest(final Todo todoToUpdate) {
     JSONObject updateTodoJsonRequest = prepareUpdateTodoJsonRequest(todoToUpdate);
     JsonObjectRequest updateTodoRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.PUT,
+        JsonObjectRequest.Method.POST,
         AppConfig.URL_UPDATE_TODO,
         updateTodoJsonRequest,
         new Response.Listener<JSONObject>() {
@@ -197,7 +239,7 @@ class TodoDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeTodoUpToDate(response);
+                makeTodoUpToDate();
                 if (isLastUpdateTodoRequest()) {
                   isUpdateTodoRequestsFinished = true;
                   if (isAllTodoRequestsFinished()) {
@@ -229,8 +271,7 @@ class TodoDataSynchronizer {
             }
           }
 
-          private void makeTodoUpToDate(JSONObject response) throws JSONException {
-            todoToUpdate.setRowVersion(response.getInt("row_version"));
+          private void makeTodoUpToDate() {
             todoToUpdate.setDirty(false);
             dbLoader.updateTodo(todoToUpdate);
           }
@@ -299,7 +340,7 @@ class TodoDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeTodoUpToDate(response);
+                makeTodoUpToDate();
                 if (isLastInsertTodoRequest()) {
                   isInsertTodoRequestsFinished = true;
                   if (isAllTodoRequestsFinished()) {
@@ -332,8 +373,7 @@ class TodoDataSynchronizer {
             }
           }
 
-          private void makeTodoUpToDate(JSONObject response) throws JSONException {
-            todoToInsert.setRowVersion(response.getInt("row_version"));
+          private void makeTodoUpToDate() {
             todoToInsert.setDirty(false);
             dbLoader.updateTodo(todoToInsert);
           }
@@ -419,11 +459,15 @@ class TodoDataSynchronizer {
     }
     jsonRequest.put("title", todoData.getTitle().trim());
     jsonRequest.put("priority", todoData.isPriority() ? 1 : 0);
-    jsonRequest.put("due_date", todoData.getDueDate().trim());
-    if (todoData.getReminderDateTime() != null) {
-      jsonRequest.put("reminder_datetime", todoData.getReminderDateTime().trim());
+    if (todoData.getDueDate() != null) {
+      jsonRequest.put("due_date", todoData.getDueDate());
     } else {
-      jsonRequest.put("reminder_datetime", "");
+      jsonRequest.put("due_date", 0);
+    }
+    if (todoData.getReminderDateTime() != null) {
+      jsonRequest.put("reminder_date_time", todoData.getReminderDateTime());
+    } else {
+      jsonRequest.put("reminder_date_time", 0);
     }
     if (todoData.getDescription() != null) {
       jsonRequest.put("description", todoData.getDescription().trim());
@@ -431,7 +475,9 @@ class TodoDataSynchronizer {
       jsonRequest.put("description", "");
     }
     jsonRequest.put("completed", todoData.isCompleted() ? 1 : 0);
+    jsonRequest.put(DbConstants.Todo.KEY_ROW_VERSION, todoData.getRowVersion());
     jsonRequest.put("deleted", todoData.getDeleted() ? 1 : 0);
+    jsonRequest.put(DbConstants.Todo.KEY_POSITION, todoData.getPosition());
   }
 
   private boolean isAllTodoRequestsFinished() {

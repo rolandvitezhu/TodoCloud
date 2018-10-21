@@ -3,27 +3,32 @@ package com.example.todocloud.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.SwitchCompat;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.todocloud.R;
 import com.example.todocloud.app.AppController;
+import com.example.todocloud.app.Constant;
 import com.example.todocloud.data.Todo;
 import com.example.todocloud.fragment.DatePickerDialogFragment.IDatePickerDialogFragment;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 public class ModifyTodoFragment extends Fragment implements
     IDatePickerDialogFragment,
@@ -35,18 +40,22 @@ public class ModifyTodoFragment extends Fragment implements
 	private SwitchCompat switchPriority;
 	private TextView tvDueDate;
   private TextView tvReminderDateTime;
-  private Date dueDate = new Date();
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-      "yyyy.MM.dd.",
-      Locale.getDefault()
-  );
-  private Date reminderDateTime = new Date();
-  private SimpleDateFormat reminderDateTimeFormat = new SimpleDateFormat(
-      "yyyy.MM.dd HH:mm",
-      Locale.getDefault()
-  );
+  private Button btnClearDueDate;
+  private Button btnClearReminder;
   private TextInputLayout tilDescription;
   private TextInputEditText tietDescription;
+
+  private Todo todo;
+
+  private LocalDate dueDate;
+  private ZonedDateTime zdtDueDate;
+  private long dueDateLong;
+  private String dueDateDisp;
+
+  private LocalDateTime reminderDateTime;
+  private ZonedDateTime zdtReminderDateTime;
+  private long reminderDateTimeLong;
+  private String reminderDateTimeDisp;
 
   private IModifyTodoFragment listener;
   private IModifyTodoFragmentActionBar actionBarListener;
@@ -64,7 +73,17 @@ public class ModifyTodoFragment extends Fragment implements
     actionBarListener = (IModifyTodoFragmentActionBar) context;
   }
 
-	@Override
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    if (getArguments() != null) {
+      todo = (Todo) getArguments().get("todo");
+    }
+    initDueDate(todo);
+    initReminderDateTime(todo);
+  }
+
+  @Override
   public View onCreateView(
       LayoutInflater inflater,
       ViewGroup container,
@@ -72,39 +91,29 @@ public class ModifyTodoFragment extends Fragment implements
   ) {
 		View view = inflater.inflate(R.layout.fragment_modifytodo, container, false);
 
-    Todo todo = (Todo) getArguments().get("todo");
     tilTitle = view.findViewById(R.id.textinputlayout_modifytodo_title);
     tietTitle = view.findViewById(R.id.textinputedittext_modifytodo_title);
     switchPriority = view.findViewById(R.id.switch_modifytodo_priority);
     tvDueDate = view.findViewById(R.id.textview_modifytodo_duedate);
+    btnClearDueDate = view.findViewById(R.id.button_modifytodo_clearduedate);
+    btnClearReminder = view.findViewById(R.id.button_modifytodo_clearreminder);
     tvReminderDateTime = view.findViewById(R.id.textview_modifytodo_reminderdatetime);
     tilDescription = view.findViewById(R.id.textinputlayout_modifytodo_description);
     tietDescription = view.findViewById(
         R.id.textinputedittext_modifytodo_description
     );
 
-    try {
-      dueDate = simpleDateFormat.parse(todo.getDueDate());
-    } catch (ParseException e) {
-      e.printStackTrace();
-    }
-    boolean isReminderDateTimeSet = !todo.getReminderDateTime().equals("-1");
-    if (isReminderDateTimeSet) {
-      try {
-        reminderDateTime = reminderDateTimeFormat.parse(todo.getReminderDateTime());
-      } catch (ParseException e) {
-        e.printStackTrace();
-      }
-    }
+    setTvDueDateText(dueDate);
+    setTvReminderDateTimeText(reminderDateTime);
 
     AppController.setText(todo.getTitle(), tietTitle, tilTitle);
     switchPriority.setChecked(todo.isPriority());
-    tvDueDate.setText(simpleDateFormat.format(dueDate));
-    if (!isReminderDateTimeSet) {
-      tvReminderDateTime.setText(R.string.all_noreminder);
-    } else {
-      tvReminderDateTime.setText(reminderDateTimeFormat.format(reminderDateTime));
-    }
+//    tvDueDate.setText(simpleDateFormat.format(dueDate));
+//    if (!isReminderDateTimeSet) {
+//      tvReminderDateTime.setText(R.string.all_noreminder);
+//    } else {
+//      tvReminderDateTime.setText(reminderDateTimeFormat.format(reminderDateTime));
+//    }
     AppController.setText(todo.getDescription(), tietDescription, tilDescription);
     tvDueDate.setOnClickListener(new OnClickListener() {
 
@@ -116,6 +125,21 @@ public class ModifyTodoFragment extends Fragment implements
     });
     tvReminderDateTime.setOnClickListener(onReminderDateTimeClick);
 
+    btnClearDueDate.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        clearDueDate();
+        setClearDueDateVisibility();
+      }
+    });
+    btnClearReminder.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        clearReminder();
+        setClearReminderDateTimeVisibility();
+      }
+    });
+
 	  return view;
   }
 
@@ -123,6 +147,15 @@ public class ModifyTodoFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     actionBarListener.onSetActionBarTitle(getString(R.string.modifytodo_title));
+    setClearDueDateVisibility();
+    setClearReminderDateTimeVisibility();
+  }
+
+  private void setClearDueDateVisibility() {
+    if (dueDate != null)
+      btnClearDueDate.setVisibility(View.VISIBLE);
+    else
+      btnClearDueDate.setVisibility(View.GONE);
   }
 
   public void handleModifyTodo() {
@@ -148,17 +181,17 @@ public class ModifyTodoFragment extends Fragment implements
   private Todo prepareTodo(Todo todo) {
     String givenTitle = tietTitle.getText().toString().trim();
     boolean priority = switchPriority.isChecked();
-    String dueDate = simpleDateFormat.format(this.dueDate);
+//    String dueDate = simpleDateFormat.format(this.dueDate);
     todo.setTitle(givenTitle);
     todo.setPriority(priority);
-    todo.setDueDate(dueDate);
+//    todo.setDueDate(dueDate);
     String description = tietDescription.getText().toString().trim();
     boolean isNoReminderSet = tvReminderDateTime.getText().equals(getString(R.string.all_noreminder));
-    if (isNoReminderSet) {
-      todo.setReminderDateTime("-1");
-    } else {
-      todo.setReminderDateTime(reminderDateTimeFormat.format(reminderDateTime));
-    }
+//    if (isNoReminderSet) {
+//      todo.setReminderDateTime("-1");
+//    } else {
+//      todo.setReminderDateTime(reminderDateTimeFormat.format(reminderDateTime));
+//    }
     if (!description.equals("")) {
       todo.setDescription(description);
     } else {
@@ -181,7 +214,7 @@ public class ModifyTodoFragment extends Fragment implements
 
   private void openDatePickerDialogFragment() {
     Bundle arguments = new Bundle();
-    arguments.putSerializable("date", dueDate);
+    arguments.putSerializable(Constant.DUE_DATE, dueDate);
     DatePickerDialogFragment datePickerDialogFragment = new DatePickerDialogFragment();
     datePickerDialogFragment.setTargetFragment(this, 0);
 	  datePickerDialogFragment.setArguments(arguments);
@@ -199,7 +232,7 @@ public class ModifyTodoFragment extends Fragment implements
 
   private void openReminderDatePickerDialogFragment() {
     Bundle arguments = new Bundle();
-    arguments.putSerializable("reminderDate", reminderDateTime);
+    arguments.putSerializable(Constant.REMINDER_DATE_TIME, reminderDateTime);
     ReminderDatePickerDialogFragment reminderDatePickerDialogFragment =
         new ReminderDatePickerDialogFragment();
     reminderDatePickerDialogFragment.setTargetFragment(ModifyTodoFragment.this, 0);
@@ -211,20 +244,35 @@ public class ModifyTodoFragment extends Fragment implements
   }
 
   @Override
-  public void onSelectDate(Date date) {
-    dueDate = date;
-    String selectedDate = simpleDateFormat.format(date);
-    tvDueDate.setText(selectedDate);
+  public void onSelectDate(LocalDate date) {
+    setTvDueDateText(date);
+    setClearDueDateVisibility();
+  }
+
+  private void setTvDueDateText(@Nullable LocalDate date) {
+    if (date != null) {
+      dueDate = date;
+      zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
+      dueDateLong = zdtDueDate.toInstant().toEpochMilli();
+      dueDateDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          dueDateLong,
+          DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
+      );
+      tvDueDate.setText(dueDateDisp);
+    } else {
+      tvDueDate.setText(R.string.all_noduedate);
+    }
   }
 
   @Override
-  public void onSelectReminderDate(Date date) {
+  public void onSelectReminderDate(LocalDateTime date) {
     openReminderTimePickerDialogFragment(date);
   }
 
-  private void openReminderTimePickerDialogFragment(Date date) {
+  private void openReminderTimePickerDialogFragment(LocalDateTime date) {
     Bundle arguments = new Bundle();
-    arguments.putSerializable("reminderDate", date);
+    arguments.putSerializable(Constant.REMINDER_DATE_TIME, date);
     ReminderTimePickerDialogFragment reminderTimePickerDialogFragment =
         new ReminderTimePickerDialogFragment();
     reminderTimePickerDialogFragment.setTargetFragment(this, 0);
@@ -237,15 +285,114 @@ public class ModifyTodoFragment extends Fragment implements
 
   @Override
   public void onDeleteReminder() {
-    reminderDateTime = new Date();
+//    reminderDateTime = new Date();
     tvReminderDateTime.setText(getString(R.string.all_noreminder));
   }
 
   @Override
-  public void onSelectReminderDateTime(Date date) {
-    reminderDateTime = date;
-    String selectedReminderDateTime = reminderDateTimeFormat.format(date);
-    tvReminderDateTime.setText(selectedReminderDateTime);
+  public void onSelectReminderDateTime(LocalDateTime date) {
+    setTvReminderDateTimeText(date);
+    setClearReminderDateTimeVisibility();
+  }
+
+  private void setClearReminderDateTimeVisibility() {
+    if (reminderDateTime != null)
+      btnClearReminder.setVisibility(View.VISIBLE);
+    else
+      btnClearReminder.setVisibility(View.GONE);
+  }
+
+  private void setTvReminderDateTimeText(@Nullable LocalDateTime date) {
+    if (date != null) {
+      reminderDateTime = date;
+      zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
+      reminderDateTimeLong = zdtReminderDateTime.toInstant().toEpochMilli();
+      reminderDateTimeDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          reminderDateTimeLong,
+          DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_TIME
+      );
+      tvReminderDateTime.setText(reminderDateTimeDisp);
+    } else {
+      tvReminderDateTime.setText(R.string.all_noreminder);
+    }
+  }
+
+  private void initDueDate() {
+    if (dueDate == null) {
+      dueDate = LocalDate.now();
+      zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
+      dueDateLong = zdtDueDate.toInstant().toEpochMilli();
+      dueDateDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          dueDateLong,
+          DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
+      );
+    }
+  }
+
+  private void initDueDate(Todo todo) {
+    if (todo.getDueDate() != null && todo.getDueDate() != 0) {
+      dueDate = Instant.ofEpochMilli(todo.getDueDate()).atZone(ZoneId.systemDefault()).toLocalDate();
+      zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
+      dueDateLong = todo.getDueDate();
+      dueDateDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          dueDateLong,
+          DateUtils.FORMAT_SHOW_DATE
+              | DateUtils.FORMAT_NUMERIC_DATE
+              | DateUtils.FORMAT_SHOW_YEAR
+      );
+    }
+  }
+
+  private void initReminderDateTime() {
+    if (reminderDateTime == null) {
+      reminderDateTime = LocalDateTime.now();
+      zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
+      reminderDateTimeLong = zdtReminderDateTime.toInstant().toEpochMilli();
+      reminderDateTimeDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          reminderDateTimeLong,
+          DateUtils.FORMAT_SHOW_DATE
+              | DateUtils.FORMAT_NUMERIC_DATE
+              | DateUtils.FORMAT_SHOW_YEAR
+              | DateUtils.FORMAT_SHOW_TIME
+      );
+    }
+  }
+
+  private void initReminderDateTime(Todo todo) {
+    if (todo.getReminderDateTime() != null && todo.getReminderDateTime() != 0) {
+      reminderDateTime = Instant.ofEpochMilli(todo.getReminderDateTime())
+          .atZone(ZoneId.systemDefault()).toLocalDateTime();
+      zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
+      reminderDateTimeLong = todo.getReminderDateTime();
+      reminderDateTimeDisp = DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          reminderDateTimeLong,
+          DateUtils.FORMAT_SHOW_DATE
+              | DateUtils.FORMAT_NUMERIC_DATE
+              | DateUtils.FORMAT_SHOW_YEAR
+              | DateUtils.FORMAT_SHOW_TIME
+      );
+    }
+  }
+
+  private void clearDueDate() {
+    tvDueDate.setText(R.string.all_noduedate);
+    dueDate = null;
+    zdtDueDate = null;
+    dueDateLong = 0;
+    dueDateDisp = null;
+  }
+
+  private void clearReminder() {
+    tvReminderDateTime.setText(R.string.all_noreminder);
+    reminderDateTime = null;
+    zdtReminderDateTime = null;
+    reminderDateTimeLong = 0;
+    reminderDateTimeDisp = null;
   }
 
   public interface IModifyTodoFragment {

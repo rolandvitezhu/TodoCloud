@@ -30,6 +30,8 @@ import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TodoListFragment extends Fragment implements
     CreateTodoFragment.ICreateTodoFragment,
@@ -131,7 +133,70 @@ public class TodoListFragment extends Fragment implements
           RecyclerView.ViewHolder viewHolder,
           RecyclerView.ViewHolder target
       ) {
-        return false;
+        List<Todo> todos = todoAdapter.getTodos();
+
+//        // Change todo position values
+//        Todo todoA = todos.get(viewHolder.getAdapterPosition());
+//        Todo todoB = todos.get(target.getAdapterPosition());
+//        int tempTodoAPosition = todoA.getPosition();
+//        todoA.setPosition(todoB.getPosition());
+//        todoB.setPosition(tempTodoAPosition);
+//        todoA.setDirty(true);
+//        todoB.setDirty(true);
+//        dbLoader.updateTodo(todoA);
+//        dbLoader.updateTodo(todoB);
+
+//        Collections.swap(todos, viewHolder.getAdapterPosition(), target.getAdapterPosition());
+//        todoAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+        int fromPosition = viewHolder.getAdapterPosition();
+        int toPosition = target.getAdapterPosition();
+        if (fromPosition < toPosition) {
+          for (int i = fromPosition; i < toPosition; i++) {
+            swapItems(todos, i, i + 1);
+//            Collections.swap(todos, i, i + 1);
+          }
+        } else {
+          for (int i = fromPosition; i > toPosition; i--) {
+            swapItems(todos, i, i - 1);
+//            Collections.swap(todos, i, i - 1);
+          }
+        }
+        todoAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+
+//        if (target.getAdapterPosition() < viewHolder.getAdapterPosition()) {
+//          todos.get(target.getAdapterPosition())
+//        }
+
+//        // TODO: implement reoder/persist reorder
+//        // 0. DONE  Persist, when change the item's position value - set the item's dirty value to true
+//        // 1. Order in an AsyncTask
+//        // 2. The items, that changed it's position value should have a position value that is
+//        // halfway between the previous and the next item's position values.
+//        // 3. Implement more efficient order algorithm
+//        boolean didOrderLastTime = false;
+//        do {
+//          didOrderLastTime = false;
+//          for (int i = 0; i < todos.size()-1; i++) {
+//            // Order, if should
+//            if (todos.get(i).getPosition() >= todos.get(i+1).getPosition()) {
+//              todos.get(i).setPosition(todos.get(i).getPosition() - 51);
+//              todos.get(i).setDirty(true);
+//              dbLoader.updateTodo(todos.get(i));
+//              didOrderLastTime = true;
+//            }
+//          }
+//        } while (didOrderLastTime); // If it's ordered correctly, then the ordering process is done
+
+//        AsyncTask persistReorderAsyncTask = new AsyncTask() {
+//          @Override
+//          protected Object doInBackground(Object[] objects) {
+//
+//
+//            return null;
+//          }
+//        }.execute();
+
+        return true;
       }
 
       @Override
@@ -143,15 +208,41 @@ public class TodoListFragment extends Fragment implements
 
       @Override
       public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        int dragFlags;
         int swipeFlags;
-        if (AppController.isActionMode()) swipeFlags = 0;
-        else swipeFlags = ItemTouchHelper.START;
-        return makeMovementFlags(0, swipeFlags);
+        if (AppController.isActionMode()) {
+          dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+          swipeFlags = 0;
+        }
+        else {
+          dragFlags = 0;
+          swipeFlags = ItemTouchHelper.START;
+        }
+        return makeMovementFlags(dragFlags, swipeFlags);
       }
 
+      @Override
+      public boolean isLongPressDragEnabled() {
+        return false;
+      }
     };
     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
     itemTouchHelper.attachToRecyclerView(recyclerView);
+    todoAdapter.setItemTouchHelper(itemTouchHelper);
+  }
+
+  private void swapItems(List<Todo> todos, int fromPosition, int toPosition) {
+    // Change todo position values
+    Todo todoFrom = todos.get(fromPosition);
+    Todo todoTo = todos.get(toPosition);
+    int tempTodoToPosition = todoFrom.getPosition();
+    todoFrom.setPosition(todoTo.getPosition());
+    todoTo.setPosition(tempTodoToPosition);
+    todoFrom.setDirty(true);
+    todoTo.setDirty(true);
+    dbLoader.updateTodo(todoFrom);
+    dbLoader.updateTodo(todoTo);
+    Collections.swap(todos, fromPosition, toPosition);
   }
 
   private Todo getSwipedTodo(RecyclerView.ViewHolder viewHolder) {
@@ -216,6 +307,7 @@ public class TodoListFragment extends Fragment implements
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
       String title = prepareTitle();
       actionMode.setTitle(title);
+      todoAdapter.notifyDataSetChanged();
 
       return true;
     }
@@ -237,6 +329,7 @@ public class TodoListFragment extends Fragment implements
     public void onDestroyActionMode(ActionMode mode) {
       todoAdapter.clearSelection();
       setActionMode(null);
+      todoAdapter.notifyDataSetChanged();
     }
 
     private String prepareTitle() {

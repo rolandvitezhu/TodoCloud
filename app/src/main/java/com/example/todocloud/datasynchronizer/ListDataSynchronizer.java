@@ -12,6 +12,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.todocloud.app.AppConfig;
 import com.example.todocloud.app.AppController;
 import com.example.todocloud.data.List;
+import com.example.todocloud.datastorage.DbConstants;
 import com.example.todocloud.datastorage.DbLoader;
 
 import org.json.JSONArray;
@@ -22,12 +23,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class ListDataSynchronizer {
+class ListDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
+  private static final String TABLE = DbConstants.List.DATABASE_TABLE;
 
   private OnSyncListDataListener onSyncListDataListener;
-  private DbLoader dbLoader;
   private boolean isUpdateListRequestsFinished;
   private int updateListRequestCount;
   private int currentUpdateListRequest;
@@ -35,8 +36,39 @@ class ListDataSynchronizer {
   private int insertListRequestCount;
   private int currentInsertListRequest;
 
+  private ArrayList<List> listsToUpdate;
+  private ArrayList<List> listsToInsert;
+
+  private Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
+    @Override
+    public void onResponse(JSONObject response) {
+      try {
+        boolean error = response.getBoolean("error");
+
+        if (!error) {
+          nextRowVersion = response.getInt("next_row_version");
+          setRowVersionsForLists(listsToUpdate);
+          setRowVersionsForLists(listsToInsert);
+          updateLists();
+        } else {
+          String message = response.getString("message");
+          Log.d(TAG, "Error Message: " + message);
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+  };
+
+  private Response.ErrorListener responseErrorListener = new Response.ErrorListener() {
+    @Override
+    public void onErrorResponse(VolleyError error) {
+      Log.e(TAG, "Get Next Row Version Error: " + error);
+    }
+  };
+
   ListDataSynchronizer(DbLoader dbLoader) {
-    this.dbLoader = dbLoader;
+    super(dbLoader);
   }
 
   void setOnSyncListDataListener(OnSyncListDataListener onSyncListDataListener) {
@@ -51,6 +83,15 @@ class ListDataSynchronizer {
   private void initListRequestsStates() {
     isUpdateListRequestsFinished = false;
     isInsertListRequestsFinished = false;
+    listsToUpdate = dbLoader.getListsToUpdate();
+    listsToInsert = dbLoader.getListsToInsert();
+    nextRowVersion = 0;
+  }
+
+  private void setRowVersionsForLists(ArrayList<List> lists) {
+    for (List list : lists) {
+      list.setRowVersion(nextRowVersion++);
+    }
   }
 
   private void getLists() {
@@ -60,8 +101,6 @@ class ListDataSynchronizer {
   }
 
   private void updateLists() {
-    ArrayList<List> listsToUpdate = dbLoader.getListsToUpdate();
-
     if (!listsToUpdate.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_update_list";
@@ -81,8 +120,6 @@ class ListDataSynchronizer {
   }
 
   private void insertLists() {
-    ArrayList<List> listsToInsert = dbLoader.getListsToInsert();
-
     if (!listsToInsert.isEmpty()) {
       AppController appController = AppController.getInstance();
       String tag_json_object_request = "request_insert_list";
@@ -119,7 +156,11 @@ class ListDataSynchronizer {
                 if (!lists.isEmpty()) {
                   updateListsInLocalDatabase(lists);
                 }
-                updateLists();
+
+                boolean shouldUpdateOrInsertLists = !listsToUpdate.isEmpty() || !listsToInsert.isEmpty();
+                if (shouldUpdateOrInsertLists)
+                  getNextRowVersion(TABLE, responseListener, responseErrorListener);
+                else onSyncListDataListener.onFinishSyncListData();
               } else {
                 String message = jsonResponse.getString("message");
                 Log.d(TAG, "Error Message: " + message);
@@ -182,10 +223,11 @@ class ListDataSynchronizer {
     return getListsRequest;
   }
 
+  // 000webhost.com don't allow PUT and DELETE requests for free accounts
   private JsonObjectRequest prepareUpdateListRequest(final List listToUpdate) {
     JSONObject updateListJsonRequest = prepareUpdateListJsonRequest(listToUpdate);
     JsonObjectRequest updateListRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.PUT,
+        JsonObjectRequest.Method.POST,
         AppConfig.URL_UPDATE_LIST,
         updateListJsonRequest,
         new Response.Listener<JSONObject>() {
@@ -197,7 +239,7 @@ class ListDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeListUpToDate(response);
+                makeListUpToDate();
                 if (isLastUpdateListRequest()) {
                   isUpdateListRequestsFinished = true;
                   if (isAllListRequestsFinished()) {
@@ -230,8 +272,7 @@ class ListDataSynchronizer {
             }
           }
 
-          private void makeListUpToDate(JSONObject response) throws JSONException {
-            listToUpdate.setRowVersion(response.getInt("row_version"));
+          private void makeListUpToDate() {
             listToUpdate.setDirty(false);
             dbLoader.updateList(listToUpdate);
           }
@@ -300,7 +341,7 @@ class ListDataSynchronizer {
               boolean error = response.getBoolean("error");
 
               if (!error) {
-                makeListUpToDate(response);
+                makeListUpToDate();
                 if (isLastInsertListRequest()) {
                   isInsertListRequestsFinished = true;
                   if (isAllListRequestsFinished()) {
@@ -332,8 +373,7 @@ class ListDataSynchronizer {
             }
           }
 
-          private void makeListUpToDate(JSONObject response) throws JSONException {
-            listToInsert.setRowVersion(response.getInt("row_version"));
+          private void makeListUpToDate() {
             listToInsert.setDirty(false);
             dbLoader.updateList(listToInsert);
           }
@@ -418,7 +458,10 @@ class ListDataSynchronizer {
       jsonRequest.put("category_online_id", "");
     }
     jsonRequest.put("title", listData.getTitle().trim());
+    jsonRequest.put(DbConstants.List.KEY_ROW_VERSION, listData.getRowVersion());
     jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
+    // TODO: Swap dummy value with real data
+    jsonRequest.put(DbConstants.List.KEY_POSITION, 0);
   }
 
   private boolean isAllListRequestsFinished() {

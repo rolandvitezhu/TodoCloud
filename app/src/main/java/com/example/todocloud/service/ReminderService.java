@@ -67,13 +67,13 @@ public class ReminderService extends IntentService {
         PendingIntent.FLAG_ONE_SHOT
     );
     AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-    long reminderDateTime = todo.getReminderDateTimeInLong();
+    long reminderDateTimeLong = todo.getReminderDateTime();
 
-    if (isNotPastReminderDateTime(reminderDateTime)) {
+    if (isNotPastReminderDateTime(reminderDateTimeLong)) {
       if (CREATE.equals(action)) {
         alarmManager.set(
             AlarmManager.RTC_WAKEUP,
-            reminderDateTime,
+            reminderDateTimeLong,
             pendingIntent
         );
       } else {
@@ -96,13 +96,13 @@ public class ReminderService extends IntentService {
           PendingIntent.FLAG_ONE_SHOT
       );
       AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-      long reminderDateTime = todo.getReminderDateTimeInLong();
+      long reminderDateTimeLong = todo.getReminderDateTime();
 
-      if (isNotPastReminderDateTime(reminderDateTime)) {
+      if (isNotPastReminderDateTime(reminderDateTimeLong)) {
         if (CREATE.equals(action)) {
           alarmManager.set(
               AlarmManager.RTC_WAKEUP,
-              reminderDateTime,
+              reminderDateTimeLong,
               pendingIntent
           );
         } else {

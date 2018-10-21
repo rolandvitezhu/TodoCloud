@@ -43,12 +43,13 @@ public class DbConstants {
 		public static final String KEY_TITLE = "title";
 		public static final String KEY_PRIORITY = "priority";
 		public static final String KEY_DUE_DATE = "due_date";
-    public static final String KEY_REMINDER_DATETIME = "reminder_datetime";
+    public static final String KEY_REMINDER_DATE_TIME = "reminder_date_time";
 		public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_COMPLETED = "completed";
     public static final String KEY_ROW_VERSION = "row_version";
     public static final String KEY_DELETED = "deleted";
     public static final String KEY_DIRTY = "dirty";
+    public static final String KEY_POSITION = "position";
 		public static final String DATABASE_CREATE = "create table if not exists "
 				+ DATABASE_TABLE
 				+ " ( "
@@ -65,9 +66,9 @@ public class DbConstants {
 				+ KEY_PRIORITY
 				+ " integer default 0, "
 				+ KEY_DUE_DATE
-				+ " text default null, "
-        + KEY_REMINDER_DATETIME
-        + " text default null, "
+				+ " integer default null, "
+        + KEY_REMINDER_DATE_TIME
+        + " integer default null, "
 				+ KEY_DESCRIPTION
 				+ " text default null, "
         + KEY_COMPLETED
@@ -77,7 +78,9 @@ public class DbConstants {
         + KEY_DELETED
         + " integer default 0, "
         + KEY_DIRTY
-        + " integer default 1"
+        + " integer default 1, "
+        + KEY_POSITION
+        + " integer"
 				+ "); ";
 		public static final String DATABASE_DROP = "drop table if exists "
 				+ DATABASE_TABLE
@@ -96,6 +99,7 @@ public class DbConstants {
     public static final String KEY_ROW_VERSION = "row_version";
     public static final String KEY_DELETED = "deleted";
     public static final String KEY_DIRTY = "dirty";
+    public static final String KEY_POSITION = "position";
     public static final String DATABASE_CREATE = "create table if not exists "
         + DATABASE_TABLE
         + " ( "
@@ -114,7 +118,9 @@ public class DbConstants {
         + KEY_DELETED
         + " integer default 0, "
         + KEY_DIRTY
-        + " integer default 1"
+        + " integer default 1, "
+        + KEY_POSITION
+        + " integer"
         + "); ";
     public static final String DATABASE_DROP = "drop table if exists "
         + DATABASE_TABLE
@@ -132,6 +138,7 @@ public class DbConstants {
     public static final String KEY_ROW_VERSION = "row_version";
     public static final String KEY_DELETED = "deleted";
     public static final String KEY_DIRTY = "dirty";
+    public static final String KEY_POSITION = "position";
     public static final String DATABASE_CREATE = "create table if not exists "
         + DATABASE_TABLE
         + " ( "
@@ -148,7 +155,9 @@ public class DbConstants {
         + KEY_DELETED
         + " integer default 0, "
         + KEY_DIRTY
-        + " integer default 1"
+        + " integer default 1, "
+        + KEY_POSITION
+        + " integer"
         + "); ";
     public static final String DATABASE_DROP = "drop table if exists "
         + DATABASE_TABLE

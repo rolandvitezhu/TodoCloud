@@ -6,10 +6,11 @@ android {
 
     defaultConfig {
         applicationId "com.example.todocloud"
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -24,9 +25,10 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:27.0.0'
-    compile 'com.android.support:appcompat-v7:27.0.0'
-    compile 'com.android.support:design:27.0.0'
-    compile 'com.android.support:preference-v7:27.0.0'
-    compile 'com.android.volley:volley:1.0.0'
+    implementation 'com.android.support:support-v4:27.0.0'
+    implementation 'com.android.support:appcompat-v7:27.0.0'
+    implementation 'com.android.support:design:27.0.0'
+    implementation 'com.android.support:preference-v7:27.0.0'
+    implementation 'com.android.volley:volley:1.0.0'
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.1.0'
 }

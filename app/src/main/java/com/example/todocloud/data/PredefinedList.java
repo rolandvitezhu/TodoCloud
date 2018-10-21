@@ -4,12 +4,14 @@ public class PredefinedList {
 
   private String title;
   private String selectFromDB;
-  private int numberOfTodos;
 
-  public PredefinedList(String title, String selectFromDB, int numberOfTodos) {
+//  private int numberOfTodos;
+
+  public PredefinedList(String title, String selectFromDB/*, int numberOfTodos*/) {
     this.title = title;
     this.selectFromDB = selectFromDB;
-    this.numberOfTodos = numberOfTodos;
+
+//    this.numberOfTodos = numberOfTodos;
   }
 
   public String getTitle() {
@@ -28,12 +30,12 @@ public class PredefinedList {
     this.selectFromDB = selectFromDB;
   }
 
-  public int getNumberOfTodos() {
-    return numberOfTodos;
-  }
-
-  public void setNumberOfTodos(int numberOfTodos) {
-    this.numberOfTodos = numberOfTodos;
-  }
+//  public int getNumberOfTodos() {
+//    return numberOfTodos;
+//  }
+//
+//  public void setNumberOfTodos(int numberOfTodos) {
+//    this.numberOfTodos = numberOfTodos;
+//  }
 
 }

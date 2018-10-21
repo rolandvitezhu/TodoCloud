@@ -7,6 +7,14 @@ import android.os.Parcelable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_CATEGORY_ONLINE_ID;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_DELETED;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_LIST_ONLINE_ID;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_POSITION;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_ROW_VERSION;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_TITLE;
+import static com.example.todocloud.datastorage.DbConstants.List.KEY_USER_ONLINE_ID;
+
 public class List implements Parcelable {
 
   private long _id;
@@ -17,13 +25,15 @@ public class List implements Parcelable {
   private int rowVersion;
   private Boolean deleted;
   private Boolean dirty;
-  private int numberOfTodos;
+  private int position;
+
+//  private int numberOfTodos;
 
   public List() {
   }
 
   public List(long _id, String listOnlineId, String userOnlineId, String categoryOnlineId,
-              String title, int rowVersion, Boolean deleted, Boolean dirty) {
+              String title, int rowVersion, Boolean deleted, Boolean dirty, int position) {
     this._id = _id;
     this.listOnlineId = listOnlineId;
     this.userOnlineId = userOnlineId;
@@ -32,6 +42,7 @@ public class List implements Parcelable {
     this.rowVersion = rowVersion;
     this.deleted = deleted;
     this.dirty = dirty;
+    this.position = position;
   }
 
   protected List(Parcel in) {
@@ -43,7 +54,9 @@ public class List implements Parcelable {
     rowVersion = in.readInt();
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
-    numberOfTodos = in.readInt();
+    position = in.readInt();
+
+//    numberOfTodos = in.readInt();
   }
 
   public List(Cursor cursor) {
@@ -55,16 +68,18 @@ public class List implements Parcelable {
     rowVersion = cursor.getInt(5);
     deleted = cursor.getInt(6) != 0;
     dirty = cursor.getInt(7) != 0;
+    position = cursor.getInt(8);
   }
 
   public List(JSONObject jsonList) throws JSONException {
-    listOnlineId = jsonList.getString("list_online_id");
-    userOnlineId = jsonList.getString("user_online_id");
-    categoryOnlineId = jsonList.getString("category_online_id");
-    title = jsonList.getString("title");
-    rowVersion = jsonList.getInt("row_version");
-    deleted = jsonList.getInt("deleted") != 0;
+    listOnlineId = jsonList.getString(KEY_LIST_ONLINE_ID);
+    userOnlineId = jsonList.getString(KEY_USER_ONLINE_ID);
+    categoryOnlineId = jsonList.getString(KEY_CATEGORY_ONLINE_ID);
+    title = jsonList.getString(KEY_TITLE);
+    rowVersion = jsonList.getInt(KEY_ROW_VERSION);
+    deleted = jsonList.getInt(KEY_DELETED) != 0;
     dirty = false;
+    position = jsonList.getInt(KEY_POSITION);
   }
 
   public static final Creator<List> CREATOR = new Creator<List>() {
@@ -143,13 +158,21 @@ public class List implements Parcelable {
     this.dirty = dirty;
   }
 
-  public int getNumberOfTodos() {
-    return numberOfTodos;
+  public int getPosition() {
+    return position;
   }
 
-  public void setNumberOfTodos(int numberOfTodos) {
-    this.numberOfTodos = numberOfTodos;
+  public void setPosition(int position) {
+    this.position = position;
   }
+
+  //  public int getNumberOfTodos() {
+//    return numberOfTodos;
+//  }
+//
+//  public void setNumberOfTodos(int numberOfTodos) {
+//    this.numberOfTodos = numberOfTodos;
+//  }
 
   @Override
   public int describeContents() {
@@ -166,7 +189,9 @@ public class List implements Parcelable {
     dest.writeInt(rowVersion);
     dest.writeByte((byte) (deleted ? 1 : 0));
     dest.writeByte((byte) (dirty ? 1 : 0));
-    dest.writeInt(numberOfTodos);
+    dest.writeInt(position);
+
+//    dest.writeInt(numberOfTodos);
   }
 
 }

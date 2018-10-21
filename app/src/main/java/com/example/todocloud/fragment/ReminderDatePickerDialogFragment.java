@@ -10,9 +10,9 @@ import android.support.v7.app.AppCompatDialogFragment;
 import android.widget.DatePicker;
 
 import com.example.todocloud.R;
+import com.example.todocloud.app.Constant;
 
-import java.util.Calendar;
-import java.util.Date;
+import org.threeten.bp.LocalDateTime;
 
 public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment implements
     DatePickerDialog.OnDateSetListener {
@@ -20,8 +20,7 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
   private int year;
   private int month;
   private int day;
-  private Date date;
-  private Calendar calendar = Calendar.getInstance();
+  private LocalDateTime date;
   private IReminderDatePickerDialogFragment listener;
 
   @Override
@@ -33,13 +32,19 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
   @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    date = (Date) getArguments().get("reminderDate");
-    calendar.setTime(date);
-    year = calendar.get(Calendar.YEAR);
-    month = calendar.get(Calendar.MONTH);
-    day = calendar.get(Calendar.DAY_OF_MONTH);
+    boolean thereIsNoDateTime = getArguments() == null || getArguments().get(Constant.REMINDER_DATE_TIME) == null;
+
+    if (thereIsNoDateTime)
+      date = LocalDateTime.now();
+    else
+      date = (LocalDateTime) getArguments().get(Constant.REMINDER_DATE_TIME);
+
+    year = date.getYear();
+    month = date.getMonthValue();
+    day = date.getDayOfMonth();
+
     DatePickerDialog datePickerDialog = new DatePickerDialog(
-        getActivity(), R.style.MyPickerDialogTheme, this, year, month, day
+        getActivity(), R.style.MyPickerDialogTheme, this, year, month - 1, day
     );
     prepareDatePickerDialogButtons(datePickerDialog);
     return datePickerDialog;
@@ -51,30 +56,29 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
         getString(R.string.reminderdatepicker_positivebuttontext),
         datePickerDialog
     );
-    datePickerDialog.setButton(
-        DialogInterface.BUTTON_NEGATIVE,
-        getString(R.string.all_delete),
-        new DialogInterface.OnClickListener() {
-
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            listener.onDeleteReminder();
-          }
-
-        }
-    );
+//    datePickerDialog.setButton(
+//        DialogInterface.BUTTON_NEGATIVE,
+//        getString(R.string.all_delete),
+//        new DialogInterface.OnClickListener() {
+//
+//          @Override
+//          public void onClick(DialogInterface dialog, int which) {
+//            listener.onDeleteReminder();
+//          }
+//
+//        }
+//    );
   }
 
   @Override
-  public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-    calendar.set(year, monthOfYear, dayOfMonth);
-    date.setTime(calendar.getTimeInMillis());
+  public void onDateSet(DatePicker view, int year, int month, int day) {
+    date = LocalDateTime.of(year, month + 1, day, date.getHour(), date.getMinute());
     listener.onSelectReminderDate(date);
     dismiss();
   }
 
   public interface IReminderDatePickerDialogFragment {
-    void onSelectReminderDate(Date date);
+    void onSelectReminderDate(LocalDateTime date);
     void onDeleteReminder();
   }
 

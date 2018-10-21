@@ -69,6 +69,12 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
       String listOnlineId = params[0].getString("listOnlineId");
       todos = dbLoader.getTodosByListOnlineId(listOnlineId);
     }
+
+    // TODO: Remove dummy data
+//    ArrayList<Todo> dummyData = new ArrayList<>();
+//    dummyData.add(new Todo(0, "0", "0", "0", "0", false, 0L, 0L, "0", false, 0, false, false, 0));
+//
+//    todos = dummyData;
   }
 
   private boolean isPredefinedList(Bundle param) {
@@ -82,22 +88,22 @@ public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
     String completedPredefinedListWhere = dbLoader.prepareCompletedPredefinedListWhere();
     PredefinedList predefinedListToday = new PredefinedList(
         "0",
-        todayPredefinedListWhere,
-        0
+        todayPredefinedListWhere/*,
+        0*/
     );
     PredefinedList predefinedListNext7Days = new PredefinedList(
         "1",
-        next7DaysPredefinedListWhere,
-        0
+        next7DaysPredefinedListWhere/*,
+        0*/
     );
     PredefinedList predefinedListAll = new PredefinedList(
         "2",
-        allPredefinedListWhere,
-        0);
+        allPredefinedListWhere/*,
+        0*/);
     PredefinedList predefinedListCompleted = new PredefinedList(
         "3",
-        completedPredefinedListWhere,
-        0);
+        completedPredefinedListWhere/*,
+        0*/);
     PredefinedListAdapter predefinedListAdapter = (PredefinedListAdapter) adapter;
     predefinedListAdapter.addItem(predefinedListToday);
     predefinedListAdapter.addItem(predefinedListNext7Days);

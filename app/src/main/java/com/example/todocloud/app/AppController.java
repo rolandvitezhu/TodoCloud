@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 
 public class AppController extends Application {
 
@@ -31,8 +32,11 @@ public class AppController extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+
     instance = this;
     applicationContext = getApplicationContext();
+
+    AndroidThreeTen.init(this);
   }
 
   public static synchronized AppController getInstance() {

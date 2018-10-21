@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="@dimen/height_item"
               android:orientation="horizontal"
               android:background="?android:attr/activatedBackgroundIndicator">
 	
@@ -10,24 +10,25 @@
         android:id="@+id/checkbox_todo_completed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="center"
         android:focusable="false"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
+        android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+        android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+        android:layout_marginRight="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+        android:layout_marginEnd="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
         app:buttonTint="@color/navigationViewItemIconTint"/>
 
 	<RelativeLayout
 		android:layout_width="match_parent"
-		android:layout_height="@dimen/height_item"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
+		android:layout_height="match_parent"
         android:layout_marginRight="@dimen/margin_activity_horizontal"
         android:layout_marginEnd="@dimen/margin_activity_horizontal"
         android:gravity="center_vertical">
 
 		<LinearLayout
+            android:id="@+id/linearlayout_todo_title_and_due_date"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/height_item"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_vertical"
             android:layout_marginRight="@dimen/margin_activity_horizontal_double"
@@ -40,26 +41,82 @@
                 android:textSize="18sp"
                 android:textColor="@android:color/black"
                 android:lines="1"
-                android:ellipsize="end"/>
+                android:ellipsize="end"
+                android:text="99999999999999999999999999999999999999999999999999"/>
 
-            <TextView
-                android:id="@+id/textview_todo_duedate"
-                android:layout_width="wrap_content"
+            <!--<TextView-->
+                <!--android:id="@+id/textview_todo_duedate"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textSize="12sp"-->
+                <!--android:text="duedate"-->
+                <!--android:textColor="@android:color/black"/>-->
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@android:color/black"/>
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textview_todo_duedate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/black"/>
+
+                <!--<ImageView-->
+                    <!--android:id="@+id/imageview_todo_priority"-->
+                    <!--android:layout_width="12dp"-->
+                    <!--android:layout_height="14dp"-->
+                    <!--android:layout_alignParentEnd="true"-->
+                    <!--android:layout_alignParentRight="true"-->
+                    <!--android:layout_gravity="bottom"-->
+                    <!--android:src="@drawable/ic_priority_high_black_24dp"-->
+                    <!--android:contentDescription="@string/all_priority"-->
+                    <!--android:visibility="visible"/>-->
+            </LinearLayout>
+
+            <!--<ImageView-->
+                <!--android:layout_width="12dp"-->
+                <!--android:layout_height="12dp"-->
+                <!--android:layout_alignParentEnd="true"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:src="@drawable/ic_priority_high_black_24dp"-->
+                <!--android:contentDescription="@string/all_priority"/>-->
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/imageview_todo_priority"
+        <!--<LinearLayout-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_alignParentEnd="true"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:gravity="center_vertical">-->
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/height_item"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:src="@drawable/ic_priority_high_black_24dp"
-            android:contentDescription="@string/all_priority"
-            android:visibility="invisible"/>
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/imageview_todo_priority"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_priority_high_black_24dp"
+                android:contentDescription="@string/all_priority"
+                android:visibility="visible"/>
+
+            <ImageView
+                android:id="@+id/imageview_todo_draghandle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_drag_handle_black_24"
+                android:tint="@color/colorControlNormal"
+                android:visibility="visible"/>
+        </LinearLayout>
 
 	</RelativeLayout>
 

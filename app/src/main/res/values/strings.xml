@@ -18,6 +18,7 @@
     <string name="all_all">Összes</string>
     <string name="all_completed">Elvégzettek</string>
     <string name="all_noreminder">Nincs emlékeztető</string>
+    <string name="all_noduedate">Esedékesség nélkül</string>
     <string name="reminderdatepicker_positivebuttontext">Időpont</string>
     <string name="all_delete">Törlés</string>
     <string name="all_reminder">Emlékeztető</string>

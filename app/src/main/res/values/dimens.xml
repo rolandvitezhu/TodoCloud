@@ -1,6 +1,8 @@
 <resources>
 
     <!-- Default screen margins, per the Android Design guidelines. -->
+    <!-- AppCompatCheckbox's dimens == 32dp instead of 24dp; calculation: 32-24=8; 8/2=4; 12=16-4 -->
+    <dimen name="margin_activity_horizontal_scaled_to_app_compat_checkbox">12dp</dimen>
     <dimen name="margin_activity_horizontal">16dp</dimen>
     <dimen name="margin_activity_horizontal_double">32dp</dimen>
     <dimen name="margin_activity_vertical">16dp</dimen>

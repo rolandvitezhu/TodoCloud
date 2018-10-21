@@ -3,13 +3,26 @@ package com.example.todocloud.data;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.format.DateUtils;
+
+import com.example.todocloud.R;
+import com.example.todocloud.app.AppController;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_COMPLETED;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_DELETED;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_DESCRIPTION;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_DUE_DATE;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_LIST_ONLINE_ID;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_POSITION;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_PRIORITY;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_REMINDER_DATE_TIME;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_ROW_VERSION;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_TITLE;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_TODO_ONLINE_ID;
+import static com.example.todocloud.datastorage.DbConstants.Todo.KEY_USER_ONLINE_ID;
 
 public class Todo implements Parcelable {
 
@@ -19,21 +32,24 @@ public class Todo implements Parcelable {
   private String listOnlineId;
 	private String title;
 	private Boolean priority;
-	private String dueDate;
-  private String reminderDateTime;
+	private Long dueDate;
+  private Long reminderDateTime;
 	private String description;
   private Boolean completed;
   private int rowVersion;
   private Boolean deleted;
   private Boolean dirty;
+  private int position;
+
+  private boolean isSelected;
 
   public Todo() {
   }
 
 	public Todo(long _id, String todoOnlineId, String userOnlineId, String listOnlineId,
-              String title, Boolean priority, String dueDate, String reminderDateTime,
+              String title, Boolean priority, Long dueDate, Long reminderDateTime,
               String description, Boolean completed, int rowVersion, Boolean deleted,
-              Boolean dirty) {
+              Boolean dirty, int position) {
 	  this._id = _id;
     this.todoOnlineId = todoOnlineId;
     this.userOnlineId = userOnlineId;
@@ -47,6 +63,30 @@ public class Todo implements Parcelable {
     this.rowVersion = rowVersion;
     this.deleted = deleted;
     this.dirty = dirty;
+    this.position = position;
+
+    this.isSelected = false;
+  }
+
+  public Todo(long _id, String todoOnlineId, String userOnlineId, String listOnlineId,
+              String title, Boolean priority, Long dueDate, Long reminderDateTime,
+              String description, Boolean completed, int rowVersion, Boolean deleted,
+              Boolean dirty, int position, boolean isSelected) {
+    this._id = _id;
+    this.todoOnlineId = todoOnlineId;
+    this.userOnlineId = userOnlineId;
+    this.listOnlineId = listOnlineId;
+    this.title = title;
+    this.priority = priority;
+    this.dueDate = dueDate;
+    this.reminderDateTime = reminderDateTime;
+    this.description = description;
+    this.completed = completed;
+    this.rowVersion = rowVersion;
+    this.deleted = deleted;
+    this.dirty = dirty;
+    this.position = position;
+    this.isSelected = isSelected;
   }
 
   protected Todo(Parcel in) {
@@ -56,13 +96,16 @@ public class Todo implements Parcelable {
     listOnlineId = in.readString();
     title = in.readString();
     priority = in.readByte() != 0;
-    dueDate = in.readString();
-    reminderDateTime = in.readString();
+    dueDate = in.readLong();
+    reminderDateTime = in.readLong();
     description = in.readString();
     completed = in.readByte() != 0;
     rowVersion = in.readInt();
     deleted = in.readByte() != 0;
     dirty = in.readByte() != 0;
+    position = in.readInt();
+
+    isSelected = in.readByte() != 0;
   }
 
   public Todo(Cursor cursor) {
@@ -72,28 +115,34 @@ public class Todo implements Parcelable {
     listOnlineId = cursor.getString(3);
     title = cursor.getString(4);
     priority = cursor.getInt(5) != 0;
-    dueDate = cursor.getString(6);
-    reminderDateTime = cursor.getString(7);
+    dueDate = cursor.getLong(6);
+    reminderDateTime = cursor.getLong(7);
     description = cursor.getString(8);
     completed = cursor.getInt(9) != 0;
     rowVersion = cursor.getInt(10);
     deleted = cursor.getInt(11) != 0;
     dirty = cursor.getInt(12) != 0;
+    position = cursor.getInt(13);
+
+    isSelected = false;
   }
 
   public Todo(JSONObject jsonTodo) throws JSONException {
-    todoOnlineId = jsonTodo.getString("todo_online_id");
-    userOnlineId = jsonTodo.getString("user_online_id");
-    listOnlineId = jsonTodo.getString("list_online_id");
-    title = jsonTodo.getString("title");
-    priority = jsonTodo.getInt("priority") != 0;
-    dueDate = jsonTodo.getString("due_date");
-    reminderDateTime = jsonTodo.getString("reminder_datetime");
-    description = jsonTodo.getString("description");
-    completed = jsonTodo.getInt("completed") != 0;
-    rowVersion = jsonTodo.getInt("row_version");
-    deleted = jsonTodo.getInt("deleted") != 0;
+    todoOnlineId = jsonTodo.getString(KEY_TODO_ONLINE_ID);
+    userOnlineId = jsonTodo.getString(KEY_USER_ONLINE_ID);
+    listOnlineId = jsonTodo.getString(KEY_LIST_ONLINE_ID);
+    title = jsonTodo.getString(KEY_TITLE);
+    priority = jsonTodo.getInt(KEY_PRIORITY) != 0;
+    dueDate = jsonTodo.getLong(KEY_DUE_DATE);
+    reminderDateTime = jsonTodo.getLong(KEY_REMINDER_DATE_TIME);
+    description = jsonTodo.getString(KEY_DESCRIPTION);
+    completed = jsonTodo.getInt(KEY_COMPLETED) != 0;
+    rowVersion = jsonTodo.getInt(KEY_ROW_VERSION);
+    deleted = jsonTodo.getInt(KEY_DELETED) != 0;
     dirty = false;
+    position = jsonTodo.getInt(KEY_POSITION);
+
+    isSelected = false;
   }
 
 	public long get_id() {
@@ -120,19 +169,31 @@ public class Todo implements Parcelable {
 		this.priority = priority;
 	}
 
-	public String getDueDate() {
+	public Long getDueDate() {
 		return dueDate;
 	}
 
-	public void setDueDate(String dueDate) {
+	public void setDueDate(Long dueDate) {
 		this.dueDate = dueDate;
 	}
 
-  public String getReminderDateTime() {
+	public String getFormattedDueDate() {
+    if (dueDate != null) {
+      return DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          dueDate,
+          DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
+      );
+    } else {
+      return AppController.getAppContext().getString(R.string.all_noduedate);
+    }
+  }
+
+  public Long getReminderDateTime() {
     return reminderDateTime;
   }
 
-  public void setReminderDateTime(String reminderDateTime) {
+  public void setReminderDateTime(Long reminderDateTime) {
     this.reminderDateTime = reminderDateTime;
   }
 
@@ -200,20 +261,20 @@ public class Todo implements Parcelable {
     this.dirty = dirty;
   }
 
-  public long getReminderDateTimeInLong() {
-    SimpleDateFormat reminderDateFormat = new SimpleDateFormat(
-        "yyyy.MM.dd HH:mm", Locale.getDefault());
-    long reminderDate = 0;
+  public int getPosition() {
+    return position;
+  }
 
-    if (!reminderDateTime.equals("-1")) {
-      try {
-        reminderDate = reminderDateFormat.parse(reminderDateTime).getTime();
-      } catch (ParseException e) {
-        e.printStackTrace();
-      }
-    }
+  public void setPosition(int position) {
+    this.position = position;
+  }
 
-    return reminderDate;
+  public boolean isSelected() {
+    return isSelected;
+  }
+
+  public void setSelected(boolean selected) {
+    isSelected = selected;
   }
 
   public static final Creator<Todo> CREATOR = new Creator<Todo>() {
@@ -241,13 +302,16 @@ public class Todo implements Parcelable {
     dest.writeString(listOnlineId);
     dest.writeString(title);
     dest.writeByte((byte) (priority ? 1 : 0));
-    dest.writeString(dueDate);
-    dest.writeString(reminderDateTime);
+    dest.writeLong(dueDate);
+    dest.writeLong(reminderDateTime);
     dest.writeString(description);
     dest.writeByte((byte) (completed ? 1 : 0));
     dest.writeInt(rowVersion);
     dest.writeByte((byte) (deleted ? 1 : 0));
     dest.writeByte((byte) (dirty ? 1 : 0));
+    dest.writeInt(position);
+
+    dest.writeByte((byte) (isSelected ? 1 : 0));
   }
 	
 }
