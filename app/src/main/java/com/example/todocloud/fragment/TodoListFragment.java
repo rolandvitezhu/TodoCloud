@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +26,7 @@ import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.example.todocloud.helper.OnlineIdGenerator;
 import com.example.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.example.todocloud.receiver.ReminderSetter;
+import com.github.clans.fab.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -412,24 +411,6 @@ public class TodoListFragment extends Fragment implements
     }
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
     updateAdapterTask.execute(getArguments());
-  }
-
-  @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    inflater.inflate(R.menu.fragment_todolist, menu);
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    int menuItemId = item.getItemId();
-
-    switch (menuItemId) {
-      case R.id.menuitem_todolist_createtodo:
-        listener.onOpenCreateTodoFragment(this);
-        break;
-    }
-
-    return super.onOptionsItemSelected(item);
   }
 
   @Override

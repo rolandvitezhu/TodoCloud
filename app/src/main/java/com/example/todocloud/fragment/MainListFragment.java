@@ -36,6 +36,8 @@ import com.example.todocloud.datastorage.DbLoader;
 import com.example.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.example.todocloud.datasynchronizer.DataSynchronizer;
 import com.example.todocloud.helper.OnlineIdGenerator;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,12 +72,31 @@ public class MainListFragment extends ListFragment implements
   private CoordinatorLayout coordinatorLayout;
   private ScrollView scrollView;
 
+  private FloatingActionMenu fam;
+  private FloatingActionButton fabCreateCategory;
+  private FloatingActionButton fabCreateList;
+
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
 
   private ArrayList<Category> selectedCategories = new ArrayList<>();
   private ArrayList<com.example.todocloud.data.List> selectedListsInCategory = new ArrayList<>();
   private ArrayList<com.example.todocloud.data.List> selectedLists = new ArrayList<>();
+
+  private View.OnClickListener onFabClickListener = new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+      switch (v.getId()) {
+        case R.id.main_fab_create_category:
+          openCreateCategoryDialogFragment();
+          break;
+        case R.id.main_fab_create_list:
+          openCreateListDialogFragment();
+          break;
+      }
+      fam.close(true);
+    }
+  };
 
   @Override
   public void onAttach(Context context) {
@@ -111,8 +132,17 @@ public class MainListFragment extends ListFragment implements
     prepareExpandableListView(combinedListView);
     prepareList(combinedListView);
     prepareSwipeRefreshLayout(combinedListView);
+    prepareFloatingActionButtons(combinedListView);
 
     return combinedListView;
+  }
+
+  private void prepareFloatingActionButtons(View combinedListView) {
+    fam = combinedListView.findViewById(R.id.main_fam);
+    fabCreateCategory = combinedListView.findViewById(R.id.main_fab_create_category);
+    fabCreateList = combinedListView.findViewById(R.id.main_fab_create_list);
+    fabCreateCategory.setOnClickListener(onFabClickListener);
+    fabCreateList.setOnClickListener(onFabClickListener);
   }
 
   private void prepareSwipeRefreshLayout(View combinedListView) {
@@ -422,12 +452,6 @@ public class MainListFragment extends ListFragment implements
     switch (menuItemId) {
       case R.id.menuitem_mainlist_search:
         listener.onSearchActionItemClick();
-        break;
-      case R.id.menuitem_mainlist_createcategory:
-        openCreateCategoryDialogFragment();
-        break;
-      case R.id.menuitem_mainlist_createlist:
-        openCreateListDialogFragment();
         break;
     }
 

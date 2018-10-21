@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,13 +9,15 @@
 
     <include layout="@layout/layout_recyclerview_todolist"/>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.github.clans.fab.FloatingActionButton
         android:id="@+id/floatingactionbutton_todolist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/margin_fab"
-        android:src="@android:drawable/ic_input_add"
-        android:tint="@color/windowBackground"/>
+        android:src="@drawable/baseline_add_white_24"
+        app:fab_colorNormal="@color/colorAccent"
+        app:fab_colorPressed="@color/colorAccent"
+        app:fab_colorRipple="@color/colorAccent"/>
 
 </android.support.design.widget.CoordinatorLayout>

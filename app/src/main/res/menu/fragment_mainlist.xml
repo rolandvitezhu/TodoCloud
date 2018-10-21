@@ -8,16 +8,4 @@
         android:title="@string/all_search"
         app:showAsAction="ifRoom"/>
 
-    <item
-        android:id="@+id/menuitem_mainlist_createcategory"
-        android:title="@string/all_createcategory"
-        android:orderInCategory="0"
-        app:showAsAction="never"/>
-
-    <item
-        android:id="@+id/menuitem_mainlist_createlist"
-        android:title="@string/all_createlist"
-        android:orderInCategory="0"
-        app:showAsAction="never"/>
-
 </menu>

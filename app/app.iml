@@ -154,6 +154,7 @@
     <orderEntry type="library" name="Gradle: com.android.support:support-core-ui-27.0.0" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:preference-v7-27.0.0" level="project" />
     <orderEntry type="library" name="Gradle: android.arch.lifecycle:runtime-1.0.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.clans:fab-1.6.4" level="project" />
     <orderEntry type="library" name="Gradle: android-android-27" level="project" />
   </component>
 </module>
