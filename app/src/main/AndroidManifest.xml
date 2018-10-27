@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.example.todocloud"
+<manifest package="com.rolandvitezhu.todocloud"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:name=".app.AppController"
+        android:name="com.rolandvitezhu.todocloud.app.AppController"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -17,7 +17,7 @@
             android:value=".MainActivity"/>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.rolandvitezhu.todocloud.MainActivity"
             android:configChanges="orientation|screenSize|layoutDirection|locale"
             android:label="@string/app_name">
             <intent-filter>
@@ -31,14 +31,14 @@
                 android:resource="@xml/searchable"/>
         </activity>
 
-        <receiver android:name=".receiver.ReminderReceiver"/>
-        <receiver android:name=".receiver.ReminderSetter">
+        <receiver android:name="com.rolandvitezhu.todocloud.receiver.ReminderReceiver"/>
+        <receiver android:name="com.rolandvitezhu.todocloud.receiver.ReminderSetter">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
 
-        <service android:name=".service.ReminderService"/>
+        <service android:name="com.rolandvitezhu.todocloud.service.ReminderService"/>
     </application>
 
 </manifest>

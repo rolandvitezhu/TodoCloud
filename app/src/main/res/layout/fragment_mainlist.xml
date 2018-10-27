@@ -26,24 +26,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
-                <com.example.todocloud.customcomponent.ExpandableHeightListView
+                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
                     android:id="@+id/expandableheightlistview_mainlist_predefinedlist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
-                <com.example.todocloud.customcomponent.ExpandableHeightExpandableListView
+                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView
                     android:id="@+id/expandableheightexpandablelistview_mainlist_category"
                     android:groupIndicator="@null"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                </com.example.todocloud.customcomponent.ExpandableHeightExpandableListView>
+                </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView>
 
-                <com.example.todocloud.customcomponent.ExpandableHeightListView
+                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
                     android:id="@+id/expandableheightlistview_mainlist_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                </com.example.todocloud.customcomponent.ExpandableHeightListView>
+                </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView>
 
             </LinearLayout>
 

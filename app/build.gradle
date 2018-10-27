@@ -1,26 +1,63 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file("external/todocloud.jks")
+            storePassword "XApqz7kjgh14"
+            keyAlias "todocloud"
+            keyPassword "XApqz7kjgh14"
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+        release {
+            storeFile file("external/todocloud.jks")
+            storePassword "XApqz7kjgh14"
+            keyAlias "todocloud"
+            keyPassword "XApqz7kjgh14"
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
     compileSdkVersion 27
     buildToolsVersion '27.0.0'
 
     defaultConfig {
-        applicationId "com.example.todocloud"
+        applicationId "com.rolandvitezhu.todocloud"
         minSdkVersion 15
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
+        signingConfig signingConfigs.release
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        String appName = "todocloud"
+        android.applicationVariants.all { variant ->
+            variant.outputs.all {
+                outputFileName = appName
+//            outputFileName += "-v" + android.defaultConfig.versionName;
+                if (variant.buildType.name == "release") {
+                    outputFileName += ".apk"
+                } else {
+                    outputFileName += ".apk"
+                }
+            }
+        }
     }
 }
 
