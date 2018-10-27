@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Todo Cloud</string>
+    <string name="all_ok">OK</string>
+    <string name="all_cancel">Mégse</string>
+    <string name="all_createtodo">Tennivaló létrehozása</string>
+    <string name="all_createcategory">Kategória létrehozása</string>
+    <string name="all_createlist">Lista létrehozása</string>
+    <string name="modifytodo_title">Tennivaló módosítása</string>
+    <string name="modifycategory_title">Kategória módosítása</string>
+    <string name="modifylist_title">Lista módosítása</string>
+    <string name="movelist_spinnerlabel">Kategória:</string>
+    <string name="movelist_title">Lista áthelyezése</string>
+    <string name="movelist_spinneritemlistnotincategory">Kategórián kívül</string>
+    <string name="all_today">Mai</string>
+    <string name="all_next7days">Következő 7 nap</string>
+    <string name="all_all">Összes</string>
+    <string name="all_completed">Elvégzettek</string>
+    <string name="all_noreminder">Nincs emlékeztető</string>
+    <string name="all_noduedate">Esedékesség nélkül</string>
+    <string name="reminderdatepicker_positivebuttontext">Időpont</string>
+    <string name="all_delete">Törlés</string>
+    <string name="all_reminder">Emlékeztető</string>
+    <string name="all_emailhint">E-mail</string>
+    <string name="all_passwordhint">Jelszó</string>
+    <string name="all_login">Bejelentkezés</string>
+    <string name="loginuser_linktoregisterbutton">Még nincs fiókja? Regisztráljon most!</string>
+    <string name="registeruser_namehint">Név</string>
+    <string name="all_register">Regisztráció</string>
+    <string name="all_failedtoconnect">
+        Sikertelen kapcsolódás. Kérjük, ellenőrizze a kapcsolatát!
+    </string>
+    <string name="all_anerroroccurred">Hiba történt. Kérjük, próbálja újra!</string>
+    <string name="registeruser_thisemailalreadyexisted">
+        Ezzel az e-mail címmel már regisztráltak.
+    </string>
+    <string name="confirmdelete_deletetodotitle">Tennivaló törlése</string>
+    <string name="confirmdelete_deletelisttitle">Lista törlése</string>
+    <string name="confirmdelete_deletecategorytitle">Kategória törlése</string>
+    <string name="confirmdelete_deletetodoactiontext">"Biztos törli a következő tennivalót: "</string>
+    <string name="confirmdelete_deletelistactiontext">"Biztos törli a következő listát: "</string>
+    <string name="confirmdelete_deletecategoryactiontext">"Biztos törli a következő kategóriát: "</string>
+    <string name="registeruser_confirmpasswordhint">Jelszó megerősítése</string>
+    <string name="registeruser_confirmpassworderrorlabel">A jelszavak nem egyeznek.</string>
+    <string name="logoutuser_title">Kijelentkezés</string>
+    <string name="logoutuser_actiontext">Biztos kijelentkezik?</string>
+    <string name="all_selected">kijelölve</string>
+    <string name="confirmdelete_todostitle">Tennivalók törlése</string>
+    <string name="confirmdelete_todosactiontext">Biztos törli a kijelölt tennivalókat?</string>
+    <string name="confirmdelete_liststitle">Listák törlése</string>
+    <string name="confirmdelete_listsactiontext">Biztos törli a kijelölt listákat?</string>
+    <string name="confirmdelete_categoriestitle">Kategóriák törlése</string>
+    <string name="confirmdelete_categoriesactiontext">Biztos törli a kijelölt kategóriákat?</string>
+    <string name="all_modify">Módosítás</string>
+    <string name="all_move">Áthelyezés</string>
+    <string name="all_create">Cím</string>
+    <string name="all_priority">Prioritás</string>
+    <string name="all_descriptionhint">Leírás</string>
+    <string name="all_duedatetitle">Esedékesség</string>
+    <string name="all_entertitle">Adjon meg címet!</string>
+    <string name="registeruser_enteremailhint">Adjon meg e-mail címet!</string>
+    <string name="registeruser_enterpasswordhint">Adjon meg jelszót!</string>
+    <string name="loginuser_error">Hibás e-mail cím vagy jelszó.</string>
+    <string name="registeruser_nameerrorlabel">Adjon meg nevet!</string>
+    <string name="registeruser_entervalidemailhint">Érvényes e-mail címet adjon meg!</string>
+    <string name="registeruser_enterproperpasswordhint">
+        A jelszó legalább 8 karakter hosszú legyen, tartalmazzon kisbetűt, nagybetűt és számot is!
+    </string>
+    <string name="settings_reminderstitle">Emlékeztetők</string>
+    <string name="settings_remindersoundtitle">Jelzőhang</string>
+    <string name="settings_vibrationtitle">Rezgés</string>
+    <string name="settings_ledlighttitle">Led jelzőfény</string>
+    <string name="all_settings">Beállítások</string>
+    <string name="actionbardrawertoggle_opendrawer">Megnyitás</string>
+    <string name="actionbardrawertoggle_closedrawer">Bezárás</string>
+    <string name="all_search">Keresés</string>
+    <string name="searchview_queryhint">Keresés…</string>
+
+</resources>
