@@ -16,6 +16,7 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.helper.SharedPreferencesHelper;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
@@ -46,6 +47,98 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     });
 
     this.todos.addAll(todos);
+  }
+
+  public void sortByDueDate() {
+    ArrayList<Todo> originalTodos = new ArrayList<>();
+
+    boolean isSortByDueDateAsc = SharedPreferencesHelper.getPreference(
+        SharedPreferencesHelper.PREFERENCE_NAME_SORT,
+        SharedPreferencesHelper.KEY_SORT_BY_DUE_DATE_ASC
+    );
+
+    // Deep copy todos
+    for (int i = 0; i < todos.size(); i++) {
+      originalTodos.add(new Todo(todos.get(i)));
+    }
+
+    if (isSortByDueDateAsc) {
+      // Order todo list items ascending by due date
+      Collections.sort(todos, new Comparator<Todo>() {
+        @Override
+        public int compare(Todo o1, Todo o2) {
+          return o1.getDueDate() > o2.getDueDate() ? 1 : (o1.getDueDate() < o2.getDueDate()) ? -1 : 0;
+        }
+      });
+    } else {
+      // Order todo list items descending by due date
+      Collections.sort(todos, new Comparator<Todo>() {
+        @Override
+        public int compare(Todo o1, Todo o2) {
+          return o1.getDueDate() > o2.getDueDate() ? -1 : (o1.getDueDate() < o2.getDueDate()) ? 1 : 0;
+        }
+      });
+    }
+
+    // Invert pref value
+    SharedPreferencesHelper.setBooleanPreference(
+        SharedPreferencesHelper.PREFERENCE_NAME_SORT,
+        SharedPreferencesHelper.KEY_SORT_BY_DUE_DATE_ASC,
+        !isSortByDueDateAsc
+    );
+
+    // Fix position values
+    for (int i = 0; i < todos.size(); i++) {
+      int rightPosition = originalTodos.get(i).getPosition();
+      todos.get(i).setPosition(rightPosition);
+      dbLoader.updateTodo(todos.get(i));
+    }
+  }
+
+  public void sortByPriority() {
+    ArrayList<Todo> originalTodos = new ArrayList<>();
+
+    boolean isSortByPriority = SharedPreferencesHelper.getPreference(
+        SharedPreferencesHelper.PREFERENCE_NAME_SORT,
+        SharedPreferencesHelper.KEY_SORT_BY_PRIORITY
+    );
+
+    // Deep copy todos
+    for (int i = 0; i < todos.size(); i++) {
+      originalTodos.add(new Todo(todos.get(i)));
+    }
+
+    if (isSortByPriority) {
+      // Order todo list items by priority
+      Collections.sort(todos, new Comparator<Todo>() {
+        @Override
+        public int compare(Todo o1, Todo o2) {
+          return !o1.isPriority() && o2.isPriority() ? 1 : (o1.isPriority() && !o2.isPriority()) ? -1 : 0;
+        }
+      });
+    } else {
+      // Order todo list items by not priority
+      Collections.sort(todos, new Comparator<Todo>() {
+        @Override
+        public int compare(Todo o1, Todo o2) {
+          return o1.isPriority() && !o2.isPriority() ? 1 : (!o1.isPriority() && o2.isPriority()) ? -1 : 0;
+        }
+      });
+    }
+
+    // Invert pref value
+    SharedPreferencesHelper.setBooleanPreference(
+        SharedPreferencesHelper.PREFERENCE_NAME_SORT,
+        SharedPreferencesHelper.KEY_SORT_BY_PRIORITY,
+        !isSortByPriority
+    );
+
+    // Fix position values
+    for (int i = 0; i < todos.size(); i++) {
+      int rightPosition = originalTodos.get(i).getPosition();
+      todos.get(i).setPosition(rightPosition);
+      dbLoader.updateTodo(todos.get(i));
+    }
   }
 
   public void clear() {
@@ -83,7 +176,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
     holder.cbCompleted.setChecked(todo.isCompleted());
     holder.tvTitle.setText(todo.getTitle());
-    holder.tvDueDate.setText(todo.getFormattedDueDate());
+    holder.tvDueDate.setText(todo.getFormattedDueDateForListItem());
     holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.INVISIBLE);
     holder.ivDragHandle.setVisibility(AppController.isActionMode() ? View.VISIBLE : View.GONE);
 

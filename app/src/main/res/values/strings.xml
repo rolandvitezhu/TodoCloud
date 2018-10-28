@@ -75,6 +75,9 @@
     <string name="actionbardrawertoggle_opendrawer">Open</string>
     <string name="actionbardrawertoggle_closedrawer">Close</string>
     <string name="all_search">Search</string>
+    <string name="all_sort">Sort</string>
     <string name="searchview_queryhint">Search…</string>
+    <string name="dialog_sort_by_due_date_title">Sort by due date</string>
+    <string name="dialog_sort_by_priority_title">Sort by priority</string>
 
 </resources>

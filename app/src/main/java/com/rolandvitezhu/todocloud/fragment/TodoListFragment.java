@@ -3,6 +3,7 @@ package com.rolandvitezhu.todocloud.fragment;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,10 +13,12 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.github.clans.fab.FloatingActionButton;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.app.AppController;
@@ -23,11 +26,12 @@ import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.rolandvitezhu.todocloud.dialog.SortTodoListDialog;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
-import com.github.clans.fab.FloatingActionButton;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +39,8 @@ import java.util.List;
 public class TodoListFragment extends Fragment implements
     CreateTodoFragment.ICreateTodoFragment,
     ModifyTodoFragment.IModifyTodoFragment,
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
+    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment,
+    SortTodoListDialog.Presenter {
 
   private DbLoader dbLoader;
   private TodoAdapter todoAdapter;
@@ -133,31 +138,15 @@ public class TodoListFragment extends Fragment implements
           RecyclerView.ViewHolder target
       ) {
         List<Todo> todos = todoAdapter.getTodos();
-
-//        // Change todo position values
-//        Todo todoA = todos.get(viewHolder.getAdapterPosition());
-//        Todo todoB = todos.get(target.getAdapterPosition());
-//        int tempTodoAPosition = todoA.getPosition();
-//        todoA.setPosition(todoB.getPosition());
-//        todoB.setPosition(tempTodoAPosition);
-//        todoA.setDirty(true);
-//        todoB.setDirty(true);
-//        dbLoader.updateTodo(todoA);
-//        dbLoader.updateTodo(todoB);
-
-//        Collections.swap(todos, viewHolder.getAdapterPosition(), target.getAdapterPosition());
-//        todoAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         int fromPosition = viewHolder.getAdapterPosition();
         int toPosition = target.getAdapterPosition();
         if (fromPosition < toPosition) {
           for (int i = fromPosition; i < toPosition; i++) {
             swapItems(todos, i, i + 1);
-//            Collections.swap(todos, i, i + 1);
           }
         } else {
           for (int i = fromPosition; i > toPosition; i--) {
             swapItems(todos, i, i - 1);
-//            Collections.swap(todos, i, i - 1);
           }
         }
         todoAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
@@ -260,6 +249,24 @@ public class TodoListFragment extends Fragment implements
   private void openModifyTodoFragment(int childViewAdapterPosition) {
     Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
     listener.onClickTodo(todo, this);
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.fragment_todolist, menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    int menuItemId = item.getItemId();
+
+    switch (menuItemId) {
+      case R.id.menuitem_todolist_sort:
+        new SortTodoListDialog(this.getActivity(), this);
+        break;
+    }
+
+    return super.onOptionsItemSelected(item);
   }
 
   @Override
@@ -520,6 +527,51 @@ public class TodoListFragment extends Fragment implements
     updateTodoAdapter();
     if (actionMode != null) {
       actionMode.finish();
+    }
+  }
+
+  @Override
+  public void onSortByDueDatePushed() {
+    new SortAsyncTask(todoAdapter).execute(SortAsyncTask.SORT_BY_DUE_DATE);
+  }
+
+  @Override
+  public void onSortByPriorityPushed() {
+    new SortAsyncTask(todoAdapter).execute(SortAsyncTask.SORT_BY_PRIORITY);
+  }
+
+  private static class SortAsyncTask extends AsyncTask<Integer, Long, Void> {
+
+    public static final int SORT_BY_DUE_DATE = 1001;
+    public static final int SORT_BY_PRIORITY = 1002;
+    
+    private WeakReference<TodoAdapter> todoAdapterWeakReference;
+
+    SortAsyncTask(TodoAdapter context) {
+      todoAdapterWeakReference = new WeakReference<>(context);
+    }
+
+    @Override
+    protected Void doInBackground(Integer... params) {
+      switch (params[0]) {
+        case SORT_BY_DUE_DATE:
+          todoAdapterWeakReference.get().sortByDueDate();
+          break;
+        case SORT_BY_PRIORITY:
+          todoAdapterWeakReference.get().sortByPriority();
+          break;
+      }
+
+      return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+      super.onPostExecute(aVoid);
+      TodoAdapter todoAdapter = todoAdapterWeakReference.get();
+      if (todoAdapter == null) return;
+
+      todoAdapter.notifyDataSetChanged();
     }
   }
 

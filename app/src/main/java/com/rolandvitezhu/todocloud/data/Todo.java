@@ -89,6 +89,24 @@ public class Todo implements Parcelable {
     this.isSelected = isSelected;
   }
 
+  public Todo(Todo todo) {
+    _id = todo.get_id();
+    todoOnlineId = todo.getTodoOnlineId();
+    userOnlineId = todo.getUserOnlineId();
+    listOnlineId = todo.getListOnlineId();
+    title = todo.getTitle();
+    priority = todo.isPriority();
+    dueDate = todo.getDueDate();
+    reminderDateTime = todo.getReminderDateTime();
+    description = todo.getDescription();
+    completed = todo.isCompleted();
+    rowVersion = todo.getRowVersion();
+    deleted = todo.getDeleted();
+    dirty = todo.getDirty();
+    position = todo.getPosition();
+    isSelected = todo.isSelected();
+  }
+
   protected Todo(Parcel in) {
     _id = in.readLong();
     todoOnlineId = in.readString();
@@ -186,6 +204,18 @@ public class Todo implements Parcelable {
       );
     } else {
       return AppController.getAppContext().getString(R.string.all_noduedate);
+    }
+  }
+
+  public String getFormattedDueDateForListItem() {
+    if (dueDate != null && dueDate != 0) {
+      return DateUtils.formatDateTime(
+          AppController.getAppContext(),
+          dueDate,
+          DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
+      );
+    } else {
+      return "";
     }
   }
 

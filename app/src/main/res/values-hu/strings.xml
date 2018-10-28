@@ -75,6 +75,9 @@
     <string name="actionbardrawertoggle_opendrawer">Megnyitás</string>
     <string name="actionbardrawertoggle_closedrawer">Bezárás</string>
     <string name="all_search">Keresés</string>
+    <string name="all_sort">Rendezés</string>
     <string name="searchview_queryhint">Keresés…</string>
+    <string name="dialog_sort_by_due_date_title">Rendezés határidő szerint</string>
+    <string name="dialog_sort_by_priority_title">Rendezés prioritás szerint</string>
 
 </resources>

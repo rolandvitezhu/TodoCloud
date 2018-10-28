@@ -181,17 +181,11 @@ public class ModifyTodoFragment extends Fragment implements
   private Todo prepareTodo(Todo todo) {
     String givenTitle = tietTitle.getText().toString().trim();
     boolean priority = switchPriority.isChecked();
-//    String dueDate = simpleDateFormat.format(this.dueDate);
+    todo.setDueDate(dueDateLong);
     todo.setTitle(givenTitle);
     todo.setPriority(priority);
-//    todo.setDueDate(dueDate);
     String description = tietDescription.getText().toString().trim();
-    boolean isNoReminderSet = tvReminderDateTime.getText().equals(getString(R.string.all_noreminder));
-//    if (isNoReminderSet) {
-//      todo.setReminderDateTime("-1");
-//    } else {
-//      todo.setReminderDateTime(reminderDateTimeFormat.format(reminderDateTime));
-//    }
+    todo.setReminderDateTime(reminderDateTimeLong);
     if (!description.equals("")) {
       todo.setDescription(description);
     } else {

@@ -3,9 +3,9 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menuitem_mainlist_search"
-        android:icon="@drawable/ic_search_white_24dp"
-        android:title="@string/all_search"
+        android:id="@+id/menuitem_todolist_sort"
+        android:icon="@drawable/baseline_sort_white_24"
+        android:title="@string/all_sort"
         app:showAsAction="always"/>
 
 </menu>
