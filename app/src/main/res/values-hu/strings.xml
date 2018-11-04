@@ -28,6 +28,7 @@
     <string name="loginuser_linktoregisterbutton">Még nincs fiókja? Regisztráljon most!</string>
     <string name="registeruser_namehint">Név</string>
     <string name="all_register">Regisztráció</string>
+    <string name="all_change_password">Jelszó módosítása</string>
     <string name="all_failedtoconnect">
         Sikertelen kapcsolódás. Kérjük, ellenőrizze a kapcsolatát!
     </string>
@@ -71,6 +72,8 @@
     <string name="settings_remindersoundtitle">Jelzőhang</string>
     <string name="settings_vibrationtitle">Rezgés</string>
     <string name="settings_ledlighttitle">Led jelzőfény</string>
+    <string name="settings_accounttitle">Fiók</string>
+    <string name="settings_modifypasswordtitle">Jelszó módosítása</string>
     <string name="all_settings">Beállítások</string>
     <string name="actionbardrawertoggle_opendrawer">Megnyitás</string>
     <string name="actionbardrawertoggle_closedrawer">Bezárás</string>
@@ -79,5 +82,11 @@
     <string name="searchview_queryhint">Keresés…</string>
     <string name="dialog_sort_by_due_date_title">Rendezés határidő szerint</string>
     <string name="dialog_sort_by_priority_title">Rendezés prioritás szerint</string>
+    <string name="modifypassword_currentpasswordhint">Jelenlegi jelszó</string>
+    <string name="modifypassword_newpasswordhint">Új jelszó</string>
+    <string name="modifypassword_confirmpasswordhint">Jelszó megerősítése</string>
+    <string name="modifypassword_currentpassworderrorlabel">Adja meg a jelenlegi jelszót!</string>
+    <string name="modifypassword_incorrectcurrentpassword">A megadott jelenlegi jelszó helytelen.</string>
+    <string name="modifypassword_passwordchangedsuccessfully">A jelszó módosítása sikeres.</string>
 
 </resources>

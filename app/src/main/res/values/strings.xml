@@ -28,6 +28,7 @@
     <string name="loginuser_linktoregisterbutton">You don\'t have an account yet? Register now!</string>
     <string name="registeruser_namehint">Name</string>
     <string name="all_register">Register</string>
+    <string name="all_change_password">Change password</string>
     <string name="all_failedtoconnect">
         Connection failed. Please check your internet connection.
     </string>
@@ -71,6 +72,8 @@
     <string name="settings_remindersoundtitle">Reminder sound</string>
     <string name="settings_vibrationtitle">Vibration</string>
     <string name="settings_ledlighttitle">Reminder LED</string>
+    <string name="settings_accounttitle">Account</string>
+    <string name="settings_modifypasswordtitle">Modify password</string>
     <string name="all_settings">Settings</string>
     <string name="actionbardrawertoggle_opendrawer">Open</string>
     <string name="actionbardrawertoggle_closedrawer">Close</string>
@@ -79,5 +82,11 @@
     <string name="searchview_queryhint">Search…</string>
     <string name="dialog_sort_by_due_date_title">Sort by due date</string>
     <string name="dialog_sort_by_priority_title">Sort by priority</string>
+    <string name="modifypassword_currentpasswordhint">Current password</string>
+    <string name="modifypassword_newpasswordhint">New password</string>
+    <string name="modifypassword_confirmpasswordhint">Confirm password</string>
+    <string name="modifypassword_currentpassworderrorlabel">Please enter current password.</string>
+    <string name="modifypassword_incorrectcurrentpassword">Your current password is incorrect.</string>
+    <string name="modifypassword_passwordchangedsuccessfully">Password changed successfully.</string>
 
 </resources>

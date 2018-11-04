@@ -4,7 +4,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.data.Todo;
@@ -29,6 +32,7 @@ import com.rolandvitezhu.todocloud.fragment.CreateTodoFragment;
 import com.rolandvitezhu.todocloud.fragment.LoginUserFragment;
 import com.rolandvitezhu.todocloud.fragment.LogoutUserDialogFragment;
 import com.rolandvitezhu.todocloud.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.fragment.ModifyPasswordFragment;
 import com.rolandvitezhu.todocloud.fragment.ModifyTodoFragment;
 import com.rolandvitezhu.todocloud.fragment.RegisterUserFragment;
 import com.rolandvitezhu.todocloud.fragment.SearchFragment;
@@ -43,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements
     MainListFragment.IMainListFragment,
     LoginUserFragment.ILoginUserFragment,
     RegisterUserFragment.IRegisterUserFragment,
+    ModifyPasswordFragment.IModifyPasswordFragment,
     FragmentManager.OnBackStackChangedListener,
     TodoListFragment.ITodoListFragment,
     ModifyTodoFragment.IModifyTodoFragmentActionBar,
@@ -409,6 +414,24 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   @Override
+  public void onClickChangePassword() {
+    openModifyPasswordFragment();
+  }
+
+  private void openModifyPasswordFragment() {
+    ModifyPasswordFragment modifyPasswordFragment = new ModifyPasswordFragment();
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    fragmentTransaction.replace(
+        R.id.framelayout_main,
+        modifyPasswordFragment,
+        "ModifyPasswordFragment"
+    );
+    fragmentTransaction.addToBackStack(null);
+    fragmentTransaction.commit();
+  }
+
+  @Override
   public void onBackStackChanged() {
     shouldDisplayHomeAsUp();
   }
@@ -417,6 +440,19 @@ public class MainActivity extends AppCompatActivity implements
   public boolean onSupportNavigateUp() {
     getSupportFragmentManager().popBackStack();
     return true;
+  }
+
+  @Override
+  public void onFinishModifyPassword() {
+    CoordinatorLayout coordinatorLayout = findViewById(R.id.main_coordinator_layout);
+    if (coordinatorLayout != null) {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.modifypassword_passwordchangedsuccessfully,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    }
   }
 
   @Override

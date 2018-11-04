@@ -2,6 +2,7 @@ package com.rolandvitezhu.todocloud.datasynchronizer;
 
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -16,12 +17,16 @@ import com.rolandvitezhu.todocloud.helper.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class UserDataSynchronizer {
 
   private static final String TAG = UserDataSynchronizer.class.getSimpleName();
 
   private OnRegisterUserListener onRegisterUserListener;
   private OnLoginUserListener onLoginUserListener;
+  private OnModifyPasswordListener onModifyPasswordListener;
   private DbLoader dbLoader;
 
   public UserDataSynchronizer(DbLoader dbLoader) {
@@ -34,6 +39,10 @@ public class UserDataSynchronizer {
 
   public void setOnLoginUserListener(OnLoginUserListener onLoginUserListener) {
     this.onLoginUserListener = onLoginUserListener;
+  }
+
+  public void setOnModifyPasswordListener(OnModifyPasswordListener onModifyPasswordListener) {
+    this.onModifyPasswordListener = onModifyPasswordListener;
   }
 
   public void registerUser(
@@ -60,6 +69,19 @@ public class UserDataSynchronizer {
     String tag_json_object_request = "request_login";
     JsonObjectRequest loginUserRequest = prepareLoginUserRequest(email, password);
     appController.addToRequestQueue(loginUserRequest, tag_json_object_request);
+  }
+
+  public void modifyPassword(
+      final String currentPassword,
+      final String newPassword
+  ) {
+    AppController appController = AppController.getInstance();
+    String tag_json_object_request = "request_modify_password";
+    JsonObjectRequest modifyPasswordRequest = prepareModifyPasswordRequest(
+        currentPassword,
+        newPassword
+    );
+    appController.addToRequestQueue(modifyPasswordRequest, tag_json_object_request);
   }
 
   private JsonObjectRequest prepareRegisterUserRequest(
@@ -235,6 +257,92 @@ public class UserDataSynchronizer {
     jsonRequest.put("password", password);
   }
 
+  private JsonObjectRequest prepareModifyPasswordRequest(
+      final String currentPassword,
+      final String newPassword
+  ) {
+    JSONObject modifyPasswordJsonRequest = prepareModifyPasswordJsonRequest(
+        currentPassword,
+        newPassword
+    );
+    JsonObjectRequest modifyPasswordRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_MODIFY_PASSWORD,
+        modifyPasswordJsonRequest,
+        new Response.Listener<JSONObject>() {
+
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Modify password response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
+
+              if (!error) {
+                onModifyPasswordListener.onFinishModifyPassword();
+              } else {
+                String message = response.getString("message");
+                if (message == null)
+                  message = "Unknown error";
+                else {
+                  onModifyPasswordListener.onSyncError(message);
+                }
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onModifyPasswordListener.onSyncError(errorMessage);
+            }
+          }
+
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Modify password response: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onModifyPasswordListener.onSyncError(errorMessage);
+          }
+
+        }
+    ) {
+
+      @Override
+      public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("authorization", dbLoader.getApiKey());
+        return headers;
+      }
+
+    };
+    return modifyPasswordRequest;
+  }
+
+  private JSONObject prepareModifyPasswordJsonRequest(
+      final String currentPassword,
+      final String newPassword
+  ) {
+    JSONObject modifyPasswordJsonRequest = new JSONObject();
+    try {
+      putModifyPasswordData(currentPassword, newPassword, modifyPasswordJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onModifyPasswordListener.onSyncError(errorMessage);
+    }
+    return modifyPasswordJsonRequest;
+  }
+
+  private void putModifyPasswordData(
+      String currentPassword,
+      String newPassword,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("current_password", currentPassword);
+    jsonRequest.put("new_password", newPassword);
+  }
+
   public interface OnRegisterUserListener {
     void onFinishRegisterUser();
     void onSyncError(String errorMessage);
@@ -242,6 +350,11 @@ public class UserDataSynchronizer {
 
   public interface OnLoginUserListener {
     void onFinishLoginUser();
+    void onSyncError(String errorMessage);
+  }
+
+  public interface OnModifyPasswordListener {
+    void onFinishModifyPassword();
     void onSyncError(String errorMessage);
   }
 

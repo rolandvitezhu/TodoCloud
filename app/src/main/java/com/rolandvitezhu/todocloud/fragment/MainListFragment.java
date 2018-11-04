@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.CategoryAdapter;
 import com.rolandvitezhu.todocloud.adapter.ListAdapter;
@@ -36,8 +38,6 @@ import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
-import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;

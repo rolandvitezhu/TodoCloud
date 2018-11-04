@@ -11,6 +11,7 @@ public class AppConfig {
 
   public static String URL_REGISTER = prefix + "v1/user/register";
   public static String URL_LOGIN = prefix + "v1/user/login";
+  public static String URL_MODIFY_PASSWORD = prefix + "v1/user/modify_password";
   public static String URL_GET_NEXT_ROW_VERSION = prefix + "v1/get_next_row_version/:table";
   public static String URL_GET_TODOS = prefix + "v1/todo/:row_version";
   public static String URL_GET_LISTS = prefix + "v1/list/:row_version";
