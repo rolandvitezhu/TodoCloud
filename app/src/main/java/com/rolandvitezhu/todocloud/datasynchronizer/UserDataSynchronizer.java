@@ -20,17 +20,17 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserDataSynchronizer {
+public class UserDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = UserDataSynchronizer.class.getSimpleName();
 
   private OnRegisterUserListener onRegisterUserListener;
   private OnLoginUserListener onLoginUserListener;
   private OnModifyPasswordListener onModifyPasswordListener;
-  private DbLoader dbLoader;
+  private OnResetPasswordListener onResetPasswordListener;
 
   public UserDataSynchronizer(DbLoader dbLoader) {
-    this.dbLoader = dbLoader;
+    super(dbLoader);
   }
 
   public void setOnRegisterUserListener(OnRegisterUserListener onRegisterUserListener) {
@@ -43,6 +43,10 @@ public class UserDataSynchronizer {
 
   public void setOnModifyPasswordListener(OnModifyPasswordListener onModifyPasswordListener) {
     this.onModifyPasswordListener = onModifyPasswordListener;
+  }
+
+  public void setOnResetPasswordListener(OnResetPasswordListener onResetPasswordListener) {
+    this.onResetPasswordListener = onResetPasswordListener;
   }
 
   public void registerUser(
@@ -82,6 +86,17 @@ public class UserDataSynchronizer {
         newPassword
     );
     appController.addToRequestQueue(modifyPasswordRequest, tag_json_object_request);
+  }
+
+  public void resetPassword(
+      final String email
+  ) {
+    AppController appController = AppController.getInstance();
+    String tag_json_object_request = "request_reset_password";
+    JsonObjectRequest resetPasswordRequest = prepareResetPasswordRequest(
+        email
+    );
+    appController.addToRequestQueue(resetPasswordRequest, tag_json_object_request);
   }
 
   private JsonObjectRequest prepareRegisterUserRequest(
@@ -319,6 +334,57 @@ public class UserDataSynchronizer {
     return modifyPasswordRequest;
   }
 
+  private JsonObjectRequest prepareResetPasswordRequest(
+      final String email
+  ) {
+    JSONObject resetPasswordJsonRequest = prepareResetPasswordJsonRequest(
+        email
+    );
+    JsonObjectRequest resetPasswordRequest = new JsonObjectRequest(
+        JsonObjectRequest.Method.POST,
+        AppConfig.URL_RESET_PASSWORD,
+        resetPasswordJsonRequest,
+        new Response.Listener<JSONObject>() {
+
+          @Override
+          public void onResponse(JSONObject response) {
+            Log.d(TAG, "Reset password response: " + response);
+            try {
+              boolean error = response.getBoolean("error");
+
+              if (!error) {
+                onResetPasswordListener.onFinishResetPassword();
+              } else {
+                String message = response.getString("message");
+                if (message == null)
+                  message = "Unknown error";
+                else {
+                  onResetPasswordListener.onSyncError(message);
+                }
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+              String errorMessage = "Unknown error";
+              onResetPasswordListener.onSyncError(errorMessage);
+            }
+          }
+
+        },
+        new Response.ErrorListener() {
+
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            String errorMessage = error.getMessage();
+            Log.e(TAG, "Reset password response: " + errorMessage);
+            if (errorMessage == null) errorMessage = "Unknown error";
+            onResetPasswordListener.onSyncError(errorMessage);
+          }
+
+        }
+    );
+    return resetPasswordRequest;
+  }
+
   private JSONObject prepareModifyPasswordJsonRequest(
       final String currentPassword,
       final String newPassword
@@ -334,6 +400,20 @@ public class UserDataSynchronizer {
     return modifyPasswordJsonRequest;
   }
 
+  private JSONObject prepareResetPasswordJsonRequest(
+      final String email
+  ) {
+    JSONObject resetPasswordJsonRequest = new JSONObject();
+    try {
+      putResetPasswordData(email, resetPasswordJsonRequest);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      String errorMessage = "Unknown error";
+      onResetPasswordListener.onSyncError(errorMessage);
+    }
+    return resetPasswordJsonRequest;
+  }
+
   private void putModifyPasswordData(
       String currentPassword,
       String newPassword,
@@ -341,6 +421,13 @@ public class UserDataSynchronizer {
   ) throws JSONException {
     jsonRequest.put("current_password", currentPassword);
     jsonRequest.put("new_password", newPassword);
+  }
+
+  private void putResetPasswordData(
+      String email,
+      JSONObject jsonRequest
+  ) throws JSONException {
+    jsonRequest.put("email", email);
   }
 
   public interface OnRegisterUserListener {
@@ -355,6 +442,11 @@ public class UserDataSynchronizer {
 
   public interface OnModifyPasswordListener {
     void onFinishModifyPassword();
+    void onSyncError(String errorMessage);
+  }
+
+  public interface OnResetPasswordListener {
+    void onFinishResetPassword();
     void onSyncError(String errorMessage);
   }
 

@@ -35,6 +35,7 @@ import com.rolandvitezhu.todocloud.fragment.MainListFragment;
 import com.rolandvitezhu.todocloud.fragment.ModifyPasswordFragment;
 import com.rolandvitezhu.todocloud.fragment.ModifyTodoFragment;
 import com.rolandvitezhu.todocloud.fragment.RegisterUserFragment;
+import com.rolandvitezhu.todocloud.fragment.ResetPasswordFragment;
 import com.rolandvitezhu.todocloud.fragment.SearchFragment;
 import com.rolandvitezhu.todocloud.fragment.SettingsPreferenceFragment;
 import com.rolandvitezhu.todocloud.fragment.TodoListFragment;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements
     LoginUserFragment.ILoginUserFragment,
     RegisterUserFragment.IRegisterUserFragment,
     ModifyPasswordFragment.IModifyPasswordFragment,
+    ResetPasswordFragment.IResetPasswordFragment,
     FragmentManager.OnBackStackChangedListener,
     TodoListFragment.ITodoListFragment,
     ModifyTodoFragment.IModifyTodoFragmentActionBar,
@@ -297,6 +299,8 @@ public class MainActivity extends AppCompatActivity implements
       modifyTodoFragment.handleModifyTodo();
     } else if (fragmentManager.findFragmentByTag("RegisterUserFragment") != null) {
       navigateBackToLoginUserFragment();
+    } else if (fragmentManager.findFragmentByTag("ResetPasswordFragment") != null) {
+      navigateBackToLoginUserFragment();
     } else if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
       drawerLayout.closeDrawers();
     } else {
@@ -366,6 +370,24 @@ public class MainActivity extends AppCompatActivity implements
   @Override
   public void onClickLinkToRegisterUser() {
     openRegisterUserFragment();
+  }
+
+  @Override
+  public void onClickLinkToResetPassword() {
+    openResetPasswordFragment();
+  }
+
+  private void openResetPasswordFragment() {
+    ResetPasswordFragment resetPasswordFragment = new ResetPasswordFragment();
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+    fragmentTransaction.replace(
+        R.id.framelayout_main,
+        resetPasswordFragment,
+        "ResetPasswordFragment"
+    );
+    fragmentTransaction.addToBackStack(null);
+    fragmentTransaction.commit();
   }
 
   private void openRegisterUserFragment() {
@@ -449,6 +471,19 @@ public class MainActivity extends AppCompatActivity implements
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
           R.string.modifypassword_passwordchangedsuccessfully,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    }
+  }
+
+  @Override
+  public void onFinishResetPassword() {
+    CoordinatorLayout coordinatorLayout = findViewById(R.id.main_coordinator_layout);
+    if (coordinatorLayout != null) {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.resetpassword_passwordresetsuccessful,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);

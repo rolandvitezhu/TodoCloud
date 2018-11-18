@@ -22,13 +22,15 @@
     <string name="reminderdatepicker_positivebuttontext">Időpont</string>
     <string name="all_delete">Törlés</string>
     <string name="all_reminder">Emlékeztető</string>
-    <string name="all_emailhint">E-mail</string>
+    <string name="all_emailhint">Email</string>
     <string name="all_passwordhint">Jelszó</string>
     <string name="all_login">Bejelentkezés</string>
     <string name="loginuser_linktoregisterbutton">Még nincs fiókja? Regisztráljon most!</string>
     <string name="registeruser_namehint">Név</string>
     <string name="all_register">Regisztráció</string>
     <string name="all_change_password">Jelszó módosítása</string>
+    <string name="all_reset_password">Jelszó alaphelyzetbe</string>
+    <string name="all_submit">Küldés</string>
     <string name="all_failedtoconnect">
         Sikertelen kapcsolódás. Kérjük, ellenőrizze a kapcsolatát!
     </string>
@@ -87,6 +89,10 @@
     <string name="modifypassword_confirmpasswordhint">Jelszó megerősítése</string>
     <string name="modifypassword_currentpassworderrorlabel">Adja meg a jelenlegi jelszót!</string>
     <string name="modifypassword_incorrectcurrentpassword">A megadott jelenlegi jelszó helytelen.</string>
+    <string name="modifypassword_failedtoresetpassword">Jelszó alaphelyzetbe állítása sikertelen. Kérjük próbálja újra!</string>
     <string name="modifypassword_passwordchangedsuccessfully">A jelszó módosítása sikeres.</string>
+    <string name="resetpassword_passwordresetsuccessful">A jelszó alaphelyzetbe állítása sikeres.</string>
+    <string name="loginuser_linktoresetpasswordbutton">Elfelejtette a jelszavát?</string>
+    <string name="resetpassword_resetpasswordlabel">Add meg az email címed és küldjük az új jelszót.</string>
 
 </resources>

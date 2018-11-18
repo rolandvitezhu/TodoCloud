@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,94 +27,93 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
-import com.rolandvitezhu.todocloud.helper.SessionManager;
 
-public class LoginUserFragment extends Fragment
-    implements UserDataSynchronizer.OnLoginUserListener {
+public class ResetPasswordFragment extends Fragment
+    implements UserDataSynchronizer.OnResetPasswordListener {
 
   private CoordinatorLayout coordinatorLayout;
   private TextView tvFormSubmissionErrors;
-  private TextInputLayout tilEmail, tilPassword;
-  private TextInputEditText tietEmail, tietPassword;
+  private TextInputLayout tilEmail;
+  private TextInputEditText tietEmail;
 
-  private SessionManager sessionManager;
   private DbLoader dbLoader;
-  private ILoginUserFragment listener;
+  private IResetPasswordFragment listener;
   private UserDataSynchronizer userDataSynchronizer;
-  private Button btnLogin;
-  private Button btnLinkToRegister;
-  private Button btnLinkToResetPassword;
+  private Button btnSubmit;
 
   @Override
   public void onAttach(Context context) {
     super.onAttach(context);
-    listener = (ILoginUserFragment) context;
+    listener = (IResetPasswordFragment) context;
   }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    sessionManager = SessionManager.getInstance();
-
-    if (sessionManager.isLoggedIn()) {
-      listener.onFinishLoginUser();
-    } else {
-      dbLoader = new DbLoader();
-      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
-      userDataSynchronizer.setOnLoginUserListener(this);
-    }
+    dbLoader = new DbLoader();
+    userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+    userDataSynchronizer.setOnResetPasswordListener(this);
   }
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_loginuser, container, false);
-    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_loginuser);
+  public View onCreateView(
+      LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState
+  ) {
+    View view = inflater.inflate(R.layout.fragment_resetpassword, container, false);
+
+    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_resetpassword);
     tvFormSubmissionErrors = view.findViewById(
-        R.id.textview_loginuser_formsubmissionerrors
+        R.id.textview_resetpassword_formsubmissionerrors
     );
-    tilEmail = view.findViewById(R.id.textinputlayout_loginuser_email);
-    tilPassword = view.findViewById(R.id.textinputlayout_loginuser_password);
-    tietEmail = view.findViewById(R.id.textinputedittext_loginuser_email);
-    tietPassword = view.findViewById(
-        R.id.textinputedittext_loginuser_password
-    );
-    btnLogin = view.findViewById(R.id.button_loginuser_login);
-    btnLinkToRegister = view.findViewById(R.id.button_loginuser_linktoregister);
-    btnLinkToResetPassword = view.findViewById(R.id.button_loginuser_linktoresetpassword);
+    tilEmail = view.findViewById(R.id.textinputlayout_resetpassword_email);
+    tietEmail = view.findViewById(R.id.textinputedittext_resetpassword_email);
+    btnSubmit = view.findViewById(R.id.button_resetpassword);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
     applyClickEvents();
-    preventButtonTextCapitalization();
 
     return view;
   }
 
   private void applyClickEvents() {
-    btnLogin.setOnClickListener(new View.OnClickListener() {
+    btnSubmit.setOnClickListener(new View.OnClickListener() {
 
       @Override
       public void onClick(View v) {
         hideSoftInput();
-        handleLoginUser();
+        handleResetPassword();
       }
 
     });
-    btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
+  }
+
+  private void applyTextChangedEvents() {
+    tietEmail.addTextChangedListener(new MyTextWatcher(tietEmail));
+  }
+
+  private void applyEditorActionEvents() {
+    tietEmail.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
       @Override
-      public void onClick(View v) {
-        listener.onClickLinkToRegisterUser();
+      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        boolean pressDone = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean pressEnter = false;
+        if (event != null) {
+          int keyCode = event.getKeyCode();
+          pressEnter = keyCode == KeyEvent.KEYCODE_ENTER;
+        }
+
+        if (pressEnter || pressDone) {
+          btnSubmit.performClick();
+          return true;
+        }
+        return false;
       }
 
-    });
-    btnLinkToResetPassword.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        listener.onClickLinkToResetPassword();
-      }
     });
   }
 
@@ -132,53 +132,17 @@ public class LoginUserFragment extends Fragment
     }
   }
 
-  private void handleLoginUser() {
-    boolean areFieldsValid = validateEmail() & validatePassword();
-    if (areFieldsValid) {
-      dbLoader.reCreateDb();
+  private void handleResetPassword() {
+    if (validateEmail()) {
       String email = tietEmail.getText().toString().trim();
-      String password = tietPassword.getText().toString().trim();
-      userDataSynchronizer.loginUser(email, password);
+      userDataSynchronizer.resetPassword(email);
     }
-  }
-
-  private void preventButtonTextCapitalization() {
-    btnLinkToRegister.setTransformationMethod(null);
-    btnLinkToResetPassword.setTransformationMethod(null);
-  }
-
-  private void applyEditorActionEvents() {
-    tietPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-
-      @Override
-      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        boolean pressDone = actionId == EditorInfo.IME_ACTION_DONE;
-        boolean pressEnter = false;
-        if (event != null) {
-          int keyCode = event.getKeyCode();
-          pressEnter = keyCode == KeyEvent.KEYCODE_ENTER;
-        }
-
-        if (pressEnter || pressDone) {
-          btnLogin.performClick();
-          return true;
-        }
-        return false;
-      }
-
-    });
-  }
-
-  private void applyTextChangedEvents() {
-    tietEmail.addTextChangedListener(new MyTextWatcher(tietEmail));
-    tietPassword.addTextChangedListener(new MyTextWatcher(tietPassword));
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    if (getActivity() != null)
-    listener.onSetActionBarTitle(getString(R.string.all_login));
+    listener.onSetActionBarTitle(getString(R.string.all_reset_password));
     applyOrientationPortrait();
   }
 
@@ -200,8 +164,9 @@ public class LoginUserFragment extends Fragment
 
   private boolean validateEmail() {
     String givenEmail = tietEmail.getText().toString().trim();
-    if (givenEmail.isEmpty()) {
-      tilEmail.setError(getString(R.string.registeruser_enteremailhint));
+    boolean isGivenEmailValid = !givenEmail.isEmpty() && isValidEmail(givenEmail);
+    if (!isGivenEmailValid) {
+      tilEmail.setError(getString(R.string.registeruser_entervalidemailhint));
       return false;
     } else {
       tilEmail.setErrorEnabled(false);
@@ -209,21 +174,14 @@ public class LoginUserFragment extends Fragment
     }
   }
 
-  private boolean validatePassword() {
-    String givenPassword = tietPassword.getText().toString().trim();
-    if (givenPassword.isEmpty()) {
-      tilPassword.setError(getString(R.string.registeruser_enterpasswordhint));
-      return false;
-    } else {
-      tilPassword.setErrorEnabled(false);
-      return true;
-    }
+  private boolean isValidEmail(String email) {
+    return !email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches();
   }
 
   @Override
-  public void onFinishLoginUser() {
+  public void onFinishResetPassword() {
     hideFormSubmissionErrors();
-    listener.onFinishLoginUser();
+    listener.onFinishResetPassword();
   }
 
   @Override
@@ -235,8 +193,8 @@ public class LoginUserFragment extends Fragment
     if (errorMessage.contains("failed to connect")) {
       hideFormSubmissionErrors();
       showFailedToConnectError();
-    } else if (errorMessage.contains("Login failed. Incorrect credentials")) {
-      showIncorrectCredentialsError();
+    } else if (errorMessage.contains("Failed to reset password. Please try again!")) {
+      showFailedToResetPasswordError();
     } else {
       hideFormSubmissionErrors();
       showAnErrorOccurredError();
@@ -257,8 +215,8 @@ public class LoginUserFragment extends Fragment
     AppController.showWhiteTextSnackbar(snackbar);
   }
 
-  private void showIncorrectCredentialsError() {
-    tvFormSubmissionErrors.setText(R.string.loginuser_error);
+  private void showFailedToResetPasswordError() {
+    tvFormSubmissionErrors.setText(R.string.modifypassword_failedtoresetpassword);
     tvFormSubmissionErrors.setVisibility(View.VISIBLE);
   }
 
@@ -292,22 +250,17 @@ public class LoginUserFragment extends Fragment
     @Override
     public void afterTextChanged(Editable s) {
       switch (view.getId()) {
-        case R.id.textinputedittext_loginuser_email:
+        case R.id.textinputedittext_resetpassword_email:
           validateEmail();
-          break;
-        case R.id.textinputedittext_loginuser_password:
-          validatePassword();
           break;
       }
     }
 
   }
 
-  public interface ILoginUserFragment {
-    void onClickLinkToRegisterUser();
-    void onFinishLoginUser();
+  public interface IResetPasswordFragment {
+    void onFinishResetPassword();
     void onSetActionBarTitle(String title);
-    void onClickLinkToResetPassword();
   }
 
 }

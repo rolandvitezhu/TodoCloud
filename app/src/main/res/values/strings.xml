@@ -29,6 +29,8 @@
     <string name="registeruser_namehint">Name</string>
     <string name="all_register">Register</string>
     <string name="all_change_password">Change password</string>
+    <string name="all_reset_password">Reset password</string>
+    <string name="all_submit">Submit</string>
     <string name="all_failedtoconnect">
         Connection failed. Please check your internet connection.
     </string>
@@ -87,6 +89,10 @@
     <string name="modifypassword_confirmpasswordhint">Confirm password</string>
     <string name="modifypassword_currentpassworderrorlabel">Please enter current password.</string>
     <string name="modifypassword_incorrectcurrentpassword">Your current password is incorrect.</string>
+    <string name="modifypassword_failedtoresetpassword">Failed to reset password. Please try again!</string>
     <string name="modifypassword_passwordchangedsuccessfully">Password changed successfully.</string>
+    <string name="resetpassword_passwordresetsuccessful">Password reset successful.</string>
+    <string name="loginuser_linktoresetpasswordbutton">Forgot password?</string>
+    <string name="resetpassword_resetpasswordlabel">Enter your email address and we will send you a new password.</string>
 
 </resources>
