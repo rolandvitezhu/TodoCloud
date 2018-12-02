@@ -13,7 +13,6 @@ import com.rolandvitezhu.todocloud.app.AppConfig;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
-import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class TodoDataSynchronizer extends BaseDataSynchronizer {
+public class TodoDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = TodoDataSynchronizer.class.getSimpleName();
   private static final String TABLE = DbConstants.Todo.DATABASE_TABLE;
@@ -66,10 +65,6 @@ class TodoDataSynchronizer extends BaseDataSynchronizer {
       Log.e(TAG, "Get Next Row Version Error: " + error);
     }
   };
-
-  TodoDataSynchronizer(DbLoader dbLoader) {
-    super(dbLoader);
-  }
 
   void setOnSyncTodoDataListener(OnSyncTodoDataListener onSyncTodoDataListener) {
     this.onSyncTodoDataListener = onSyncTodoDataListener;

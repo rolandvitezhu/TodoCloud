@@ -1,15 +1,20 @@
 package com.rolandvitezhu.todocloud.datasynchronizer;
 
-import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.app.AppController;
+
+import javax.inject.Inject;
 
 public class DataSynchronizer implements
     TodoDataSynchronizer.OnSyncTodoDataListener,
     ListDataSynchronizer.OnSyncListDataListener,
     CategoryDataSynchronizer.OnSyncCategoryDataListener {
 
-  private TodoDataSynchronizer todoDataSynchronizer;
-  private ListDataSynchronizer listDataSynchronizer;
-  private CategoryDataSynchronizer categoryDataSynchronizer;
+  @Inject
+  TodoDataSynchronizer todoDataSynchronizer;
+  @Inject
+  ListDataSynchronizer listDataSynchronizer;
+  @Inject
+  CategoryDataSynchronizer categoryDataSynchronizer;
 
   private OnSyncDataListener onSyncDataListener;
 
@@ -17,10 +22,8 @@ public class DataSynchronizer implements
   private boolean isLastListRequestProcessed;
   private boolean isLastCategoryRequestProcessed;
 
-  public DataSynchronizer(DbLoader dbLoader) {
-    todoDataSynchronizer = new TodoDataSynchronizer(dbLoader);
-    listDataSynchronizer = new ListDataSynchronizer(dbLoader);
-    categoryDataSynchronizer = new CategoryDataSynchronizer(dbLoader);
+  public DataSynchronizer() {
+    AppController.getInstance().getAppComponent().inject(this);
     todoDataSynchronizer.setOnSyncTodoDataListener(this);
     listDataSynchronizer.setOnSyncListDataListener(this);
     categoryDataSynchronizer.setOnSyncCategoryDataListener(this);

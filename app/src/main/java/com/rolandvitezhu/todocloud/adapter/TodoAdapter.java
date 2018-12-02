@@ -24,15 +24,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder> {
 
+  @Inject
+  DbLoader dbLoader;
+
   private List<Todo> todos;
-  private DbLoader dbLoader;
   private ItemTouchHelper itemTouchHelper;
 
-  public TodoAdapter(DbLoader dbLoader) {
+  public TodoAdapter() {
+    AppController.getInstance().getAppComponent().inject(this);
     todos = new ArrayList<>();
-    this.dbLoader = dbLoader;
   }
 
   public void updateDataSet(ArrayList<Todo> todos) {

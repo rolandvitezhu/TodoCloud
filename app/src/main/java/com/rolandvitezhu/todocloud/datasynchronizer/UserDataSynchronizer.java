@@ -9,7 +9,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.rolandvitezhu.todocloud.app.AppConfig;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.User;
-import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.helper.InstallationIdHelper;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
@@ -20,18 +19,19 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 public class UserDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = UserDataSynchronizer.class.getSimpleName();
+
+  @Inject
+  SessionManager sessionManager;
 
   private OnRegisterUserListener onRegisterUserListener;
   private OnLoginUserListener onLoginUserListener;
   private OnModifyPasswordListener onModifyPasswordListener;
   private OnResetPasswordListener onResetPasswordListener;
-
-  public UserDataSynchronizer(DbLoader dbLoader) {
-    super(dbLoader);
-  }
 
   public void setOnRegisterUserListener(OnRegisterUserListener onRegisterUserListener) {
     this.onRegisterUserListener = onRegisterUserListener;
@@ -47,6 +47,10 @@ public class UserDataSynchronizer extends BaseDataSynchronizer {
 
   public void setOnResetPasswordListener(OnResetPasswordListener onResetPasswordListener) {
     this.onResetPasswordListener = onResetPasswordListener;
+  }
+
+  public UserDataSynchronizer() {
+    AppController.getInstance().getAppComponent().inject(this);
   }
 
   public void registerUser(
@@ -231,7 +235,6 @@ public class UserDataSynchronizer extends BaseDataSynchronizer {
           private void handleLogin(JSONObject response) throws JSONException {
             User user = new User(response);
             dbLoader.createUser(user);
-            SessionManager sessionManager = SessionManager.getInstance();
             sessionManager.setLogin(true);
           }
 

@@ -27,17 +27,22 @@ import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 
+import javax.inject.Inject;
+
 public class ModifyPasswordFragment extends Fragment
     implements UserDataSynchronizer.OnModifyPasswordListener {
+
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  UserDataSynchronizer userDataSynchronizer;
 
   private CoordinatorLayout coordinatorLayout;
   private TextView tvFormSubmissionErrors;
   private TextInputLayout tilCurrentPassword, tilNewPassword, tilConfirmPassword;
   private TextInputEditText tietCurrentPassword, tietNewPassword, tietConfirmPassword;
 
-  private DbLoader dbLoader;
   private IModifyPasswordFragment listener;
-  private UserDataSynchronizer userDataSynchronizer;
   private Button btnChangePassword;
 
   @Override
@@ -49,8 +54,9 @@ public class ModifyPasswordFragment extends Fragment
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    dbLoader = new DbLoader();
-    userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
     userDataSynchronizer.setOnModifyPasswordListener(this);
   }
 

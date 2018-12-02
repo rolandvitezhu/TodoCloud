@@ -16,10 +16,10 @@ import java.util.List;
 
 public class PredefinedListAdapter extends BaseAdapter {
 
-  private final List<PredefinedList> predefinedLists;
+  private List<PredefinedList> predefinedLists;
 
-  public PredefinedListAdapter(final ArrayList<PredefinedList> predefinedLists) {
-    this.predefinedLists = predefinedLists;
+  public PredefinedListAdapter() {
+    predefinedLists = new ArrayList<>();
   }
 
   @Override
@@ -72,6 +72,11 @@ public class PredefinedListAdapter extends BaseAdapter {
 
   public void addItem(PredefinedList predefinedList) {
     predefinedLists.add(predefinedList);
+  }
+
+  public void clear() {
+    predefinedLists.clear();
+    notifyDataSetChanged();
   }
 
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Category;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,12 +20,9 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   private final List<Category> categories;
   private final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories;
 
-  public CategoryAdapter(
-      final List<Category> categories,
-      final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories
-  ) {
-    this.categories = categories;
-    this.hmCategories = hmCategories;
+  public CategoryAdapter() {
+    categories = new ArrayList<>();
+    hmCategories = new HashMap<>();
   }
 
   @Override
@@ -152,6 +150,12 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     this.hmCategories.clear();
     this.categories.addAll(categories);
     this.hmCategories.putAll(hmCategories);
+  }
+
+  public void clear() {
+    categories.clear();
+    hmCategories.clear();
+    notifyDataSetChanged();
   }
 
 }

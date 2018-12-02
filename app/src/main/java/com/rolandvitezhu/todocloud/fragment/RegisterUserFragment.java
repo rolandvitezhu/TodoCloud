@@ -31,18 +31,24 @@ import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
 
+import javax.inject.Inject;
+
 public class RegisterUserFragment extends Fragment
     implements UserDataSynchronizer.OnRegisterUserListener {
+
+  @Inject
+  SessionManager sessionManager;
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  UserDataSynchronizer userDataSynchronizer;
 
   private CoordinatorLayout coordinatorLayout;
   private TextView tvFormSubmissionErrors;
   private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
   private TextInputEditText tietName, tietEmail, tietPassword, tietConfirmPassword;
 
-  private SessionManager sessionManager;
-  private DbLoader dbLoader;
   private IRegisterUserFragment listener;
-  private UserDataSynchronizer userDataSynchronizer;
   private Button btnRegister;
 
   @Override
@@ -54,13 +60,12 @@ public class RegisterUserFragment extends Fragment
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    sessionManager = SessionManager.getInstance();
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
     } else {
-      dbLoader = new DbLoader();
-      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
       userDataSynchronizer.setOnRegisterUserListener(this);
     }
   }

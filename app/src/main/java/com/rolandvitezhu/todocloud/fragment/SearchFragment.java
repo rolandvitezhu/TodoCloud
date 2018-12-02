@@ -35,12 +35,17 @@ import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 public class SearchFragment extends Fragment implements
     ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
-  private DbLoader dbLoader;
-  private TodoAdapter todoAdapter;
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  TodoAdapter todoAdapter;
+
   private RecyclerView recyclerView;
   private SearchView searchView;
   private ISearchFragment listener;
@@ -56,8 +61,9 @@ public class SearchFragment extends Fragment implements
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader();
-    todoAdapter = new TodoAdapter(dbLoader);
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+    todoAdapter.clear();
   }
 
   @Nullable
@@ -313,10 +319,7 @@ public class SearchFragment extends Fragment implements
   }
 
   private void updateTodoAdapter() {
-    if (todoAdapter == null) {
-      todoAdapter = new TodoAdapter(dbLoader);
-    }
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(todoAdapter);
     updateAdapterTask.execute(getArguments());
   }
 

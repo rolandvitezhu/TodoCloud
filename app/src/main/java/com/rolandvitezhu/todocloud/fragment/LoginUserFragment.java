@@ -28,18 +28,24 @@ import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
 
+import javax.inject.Inject;
+
 public class LoginUserFragment extends Fragment
     implements UserDataSynchronizer.OnLoginUserListener {
+
+  @Inject
+  SessionManager sessionManager;
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  UserDataSynchronizer userDataSynchronizer;
 
   private CoordinatorLayout coordinatorLayout;
   private TextView tvFormSubmissionErrors;
   private TextInputLayout tilEmail, tilPassword;
   private TextInputEditText tietEmail, tietPassword;
 
-  private SessionManager sessionManager;
-  private DbLoader dbLoader;
   private ILoginUserFragment listener;
-  private UserDataSynchronizer userDataSynchronizer;
   private Button btnLogin;
   private Button btnLinkToRegister;
   private Button btnLinkToResetPassword;
@@ -53,13 +59,12 @@ public class LoginUserFragment extends Fragment
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    sessionManager = SessionManager.getInstance();
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
     } else {
-      dbLoader = new DbLoader();
-      userDataSynchronizer = new UserDataSynchronizer(dbLoader);
       userDataSynchronizer.setOnLoginUserListener(this);
     }
   }

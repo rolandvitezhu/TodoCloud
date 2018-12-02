@@ -8,12 +8,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.receiver.ReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import javax.inject.Inject;
 
 public class ReminderService extends IntentService {
 
@@ -22,8 +25,10 @@ public class ReminderService extends IntentService {
   public static final String CREATE = "CREATE";
   public static final String CANCEL = "CANCEL";
 
+  @Inject
+  DbLoader dbLoader;
+
   private IntentFilter intentFilter;
-  private DbLoader dbLoader;
 
   public ReminderService() {
     super(TAG);
@@ -35,7 +40,7 @@ public class ReminderService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
-    dbLoader = new DbLoader();
+    AppController.getInstance().getAppComponent().inject(this);
   }
 
   @Override

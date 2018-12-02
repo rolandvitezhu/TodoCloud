@@ -14,13 +14,19 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import com.rolandvitezhu.todocloud.R;
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 public class MoveListDialogFragment extends AppCompatDialogFragment {
+
+  @Inject
+  DbLoader dbLoader;
 
   private Spinner spinnerCategory;
   private Button btnOK;
@@ -38,6 +44,9 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
   }
 
@@ -63,7 +72,6 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   }
 
   private void prepareSpinner() {
-    DbLoader dbLoader = new DbLoader();
     Category categoryForListWithoutCategory = new Category(
         getString(R.string.movelist_spinneritemlistnotincategory)
     );

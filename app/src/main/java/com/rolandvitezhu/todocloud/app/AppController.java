@@ -14,6 +14,9 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.jakewharton.threetenabp.AndroidThreeTen;
+import com.rolandvitezhu.todocloud.di.component.AppComponent;
+import com.rolandvitezhu.todocloud.di.component.DaggerAppComponent;
+import com.rolandvitezhu.todocloud.di.module.AppModule;
 
 public class AppController extends Application {
 
@@ -29,6 +32,8 @@ public class AppController extends Application {
 
   private static Snackbar lastShownSnackbar;
 
+  private AppComponent appComponent;
+
   @Override
   public void onCreate() {
     super.onCreate();
@@ -37,6 +42,14 @@ public class AppController extends Application {
     applicationContext = getApplicationContext();
 
     AndroidThreeTen.init(this);
+
+    appComponent = DaggerAppComponent.builder()
+        .appModule(new AppModule(this))
+        .build();
+  }
+
+  public AppComponent getAppComponent() {
+    return appComponent;
   }
 
   public static synchronized AppController getInstance() {

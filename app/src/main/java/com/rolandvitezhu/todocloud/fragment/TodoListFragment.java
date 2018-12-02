@@ -36,14 +36,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class TodoListFragment extends Fragment implements
     CreateTodoFragment.ICreateTodoFragment,
     ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment,
     SortTodoListDialog.Presenter {
 
-  private DbLoader dbLoader;
-  private TodoAdapter todoAdapter;
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  TodoAdapter todoAdapter;
+
   private RecyclerView recyclerView;
   private ITodoListFragment listener;
   private ActionMode actionMode;
@@ -58,7 +63,9 @@ public class TodoListFragment extends Fragment implements
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader();
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+    todoAdapter.clear();
     updateTodoAdapter();
   }
 
@@ -413,10 +420,7 @@ public class TodoListFragment extends Fragment implements
   };
 
   private void updateTodoAdapter() {
-    if (todoAdapter == null) {
-      todoAdapter = new TodoAdapter(dbLoader);
-    }
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, todoAdapter);
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(todoAdapter);
     updateAdapterTask.execute(getArguments());
   }
 

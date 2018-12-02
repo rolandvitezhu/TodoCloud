@@ -9,14 +9,15 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ListAdapter extends BaseAdapter {
 
   private List<com.rolandvitezhu.todocloud.data.List> lists;
 
-  public ListAdapter(List<com.rolandvitezhu.todocloud.data.List> lists) {
-    this.lists = lists;
+  public ListAdapter() {
+    lists = new ArrayList<>();
   }
 
   @Override
@@ -51,6 +52,11 @@ public class ListAdapter extends BaseAdapter {
   public void update(List<com.rolandvitezhu.todocloud.data.List> lists) {
     this.lists.clear();
     this.lists.addAll(lists);
+  }
+
+  public void clear() {
+    lists.clear();
+    notifyDataSetChanged();
   }
 
 }

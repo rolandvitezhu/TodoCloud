@@ -28,17 +28,22 @@ import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 
+import javax.inject.Inject;
+
 public class ResetPasswordFragment extends Fragment
     implements UserDataSynchronizer.OnResetPasswordListener {
+
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  UserDataSynchronizer userDataSynchronizer;
 
   private CoordinatorLayout coordinatorLayout;
   private TextView tvFormSubmissionErrors;
   private TextInputLayout tilEmail;
   private TextInputEditText tietEmail;
 
-  private DbLoader dbLoader;
   private IResetPasswordFragment listener;
-  private UserDataSynchronizer userDataSynchronizer;
   private Button btnSubmit;
 
   @Override
@@ -50,8 +55,9 @@ public class ResetPasswordFragment extends Fragment
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    dbLoader = new DbLoader();
-    userDataSynchronizer = new UserDataSynchronizer(dbLoader);
+
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
     userDataSynchronizer.setOnResetPasswordListener(this);
   }
 

@@ -40,8 +40,8 @@ import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+
+import javax.inject.Inject;
 
 public class MainListFragment extends ListFragment implements
     CreateCategoryDialogFragment.ICreateCategoryDialogFragment,
@@ -55,15 +55,18 @@ public class MainListFragment extends ListFragment implements
     LogoutUserDialogFragment.ILogoutUserDialogFragment,
     DataSynchronizer.OnSyncDataListener {
 
-  private DbLoader dbLoader;
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  DataSynchronizer dataSynchronizer;
+  @Inject
+  PredefinedListAdapter predefinedListAdapter;
+  @Inject
+  CategoryAdapter categoryAdapter;
+  @Inject
+  ListAdapter listAdapter;
 
   private IMainListFragment listener;
-
-  private DataSynchronizer dataSynchronizer;
-
-  private PredefinedListAdapter predefinedListAdapter;
-  private CategoryAdapter categoryAdapter;
-  private ListAdapter listAdapter;
 
   private ExpandableHeightExpandableListView expandableHeightExpandableListView;
   private ExpandableHeightListView ehlvList;
@@ -108,13 +111,13 @@ public class MainListFragment extends ListFragment implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    dbLoader = new DbLoader();
+    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
     listener.onPrepareNavigationHeader();
     updatePredefinedListAdapter();
     updateCategoryAdapter();
     updateListAdapter();
 
-    dataSynchronizer = new DataSynchronizer(dbLoader);
     dataSynchronizer.setOnSyncDataListener(this);
 
     dataSynchronizer.syncData();
@@ -471,25 +474,18 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void updatePredefinedListAdapter() {
-    predefinedListAdapter = new PredefinedListAdapter(new ArrayList<PredefinedList>());
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, predefinedListAdapter);
+    predefinedListAdapter.clear();
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(predefinedListAdapter);
     updateAdapterTask.execute();
   }
 
   private void updateCategoryAdapter() {
-    if (categoryAdapter == null) {
-      categoryAdapter = new CategoryAdapter(new ArrayList<Category>(),
-          new HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>());
-    }
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, categoryAdapter);
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(categoryAdapter);
     updateAdapterTask.execute();
   }
 
   private void updateListAdapter() {
-    if (listAdapter == null) {
-      listAdapter = new ListAdapter(new ArrayList<com.rolandvitezhu.todocloud.data.List>());
-    }
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(dbLoader, listAdapter);
+    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(listAdapter);
     updateAdapterTask.execute();
   }
 

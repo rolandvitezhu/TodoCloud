@@ -44,6 +44,8 @@ import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 public class MainActivity extends AppCompatActivity implements
     MainListFragment.IMainListFragment,
     LoginUserFragment.ILoginUserFragment,
@@ -58,14 +60,21 @@ public class MainActivity extends AppCompatActivity implements
     LogoutUserDialogFragment.ILogoutUserDialogFragment,
     SearchFragment.ISearchFragment {
 
+  @Inject
+  DbLoader dbLoader;
+  @Inject
+  SessionManager sessionManager;
+
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private SessionManager sessionManager;
   private DrawerLayout drawerLayout;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
+    ((AppController) getApplication()).getAppComponent().inject(this);
+
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
     setSupportActionBar(toolbar);
 
@@ -80,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements
         return;
       }
 
-      sessionManager = SessionManager.getInstance();
       if (sessionManager.isLoggedIn()) {
 
         long id = getIntent().getLongExtra("id", -1);
@@ -108,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openAllPredefinedList(TodoListFragment todoListFragment) {
-    DbLoader dbLoader = new DbLoader();
     String allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere();
     Bundle arguments = new Bundle();
     arguments.putString("selectFromDB", allPredefinedListWhere);
@@ -119,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private Todo getNotificationRelatedTodo(long id) {
-    DbLoader dbLoader = new DbLoader();
     return dbLoader.getTodo(id);
   }
 
@@ -238,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements
     TextView tvEmail = (TextView) navigationHeader.findViewById(
         R.id.textview_navigationdrawerheader_email
     );
-    DbLoader dbLoader = new DbLoader();
     User user = dbLoader.getUser();
     if (user != null) {
       tvName.setText(user.getName());
@@ -355,12 +360,10 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     openLoginUserFragment();
-    DbLoader dbLoader = new DbLoader();
     dbLoader.reCreateDb();
   }
 
   private void cancelReminders() {
-    DbLoader dbLoader = new DbLoader();
     ArrayList<Todo> todosWithReminder = dbLoader.getTodosWithReminder();
     for (Todo todoWithReminder:todosWithReminder) {
       ReminderSetter.cancelReminderService(todoWithReminder);

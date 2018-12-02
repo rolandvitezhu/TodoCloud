@@ -7,6 +7,7 @@ import com.rolandvitezhu.todocloud.adapter.CategoryAdapter;
 import com.rolandvitezhu.todocloud.adapter.ListAdapter;
 import com.rolandvitezhu.todocloud.adapter.PredefinedListAdapter;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.data.Todo;
@@ -16,18 +17,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class UpdateAdapterTask extends AsyncTask<Bundle, Void, Void> {
 
-  private DbLoader dbLoader;
+  @Inject
+  DbLoader dbLoader;
+
   private Object adapter;
   private List<com.rolandvitezhu.todocloud.data.List> lists;
   private ArrayList<Todo> todos;
   private List<Category> categories;
   private HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories;
 
-  public UpdateAdapterTask(DbLoader dbLoader, Object adapter) {
-    this.dbLoader = dbLoader;
+  public UpdateAdapterTask(Object adapter) {
     this.adapter = adapter;
+    AppController.getInstance().getAppComponent().inject(this);
   }
 
   @Override

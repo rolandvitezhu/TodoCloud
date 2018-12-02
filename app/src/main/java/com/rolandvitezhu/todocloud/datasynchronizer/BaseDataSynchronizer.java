@@ -13,13 +13,17 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-class BaseDataSynchronizer {
+import javax.inject.Inject;
 
-  int nextRowVersion;
+public class BaseDataSynchronizer {
+
+  @Inject
   DbLoader dbLoader;
 
-  public BaseDataSynchronizer(DbLoader dbLoader) {
-    this.dbLoader = dbLoader;
+  int nextRowVersion;
+
+  public BaseDataSynchronizer() {
+    AppController.getInstance().getAppComponent().inject(this);
   }
 
   void getNextRowVersion(
