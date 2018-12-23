@@ -26,6 +26,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder> {
 
   @Inject
@@ -97,6 +100,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
       todos.get(i).setPosition(rightPosition);
       dbLoader.updateTodo(todos.get(i));
     }
+    dbLoader.fixTodoPositions();
   }
 
   public void sortByPriority() {
@@ -143,6 +147,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
       todos.get(i).setPosition(rightPosition);
       dbLoader.updateTodo(todos.get(i));
     }
+    dbLoader.fixTodoPositions();
   }
 
   public void clear() {
@@ -220,6 +225,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   private void updateTodo(Todo todo) {
     todo.setDirty(true);
     dbLoader.updateTodo(todo);
+    dbLoader.fixTodoPositions();
   }
 
   public void removeTodoFromAdapter(ItemViewHolder holder) {
@@ -298,22 +304,22 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   public class ItemViewHolder extends RecyclerView.ViewHolder {
 
-    public LinearLayout llTodoTitleAndDueDate;
-
-    public AppCompatCheckBox cbCompleted;
-    public TextView tvTitle;
-    public TextView tvDueDate;
-    public ImageView ivPriority;
-    public ImageView ivDragHandle;
+    @BindView(R.id.linearlayout_todo_title_and_due_date)
+    LinearLayout llTodoTitleAndDueDate;
+    @BindView(R.id.checkbox_todo_completed)
+    AppCompatCheckBox cbCompleted;
+    @BindView(R.id.textview_todo_title)
+    TextView tvTitle;
+    @BindView(R.id.textview_todo_duedate)
+    TextView tvDueDate;
+    @BindView(R.id.imageview_todo_priority)
+    ImageView ivPriority;
+    @BindView(R.id.imageview_todo_draghandle)
+    ImageView ivDragHandle;
 
     public ItemViewHolder(View itemView) {
       super(itemView);
-      llTodoTitleAndDueDate = (LinearLayout) itemView.findViewById(R.id.linearlayout_todo_title_and_due_date);
-      cbCompleted = (AppCompatCheckBox) itemView.findViewById(R.id.checkbox_todo_completed);
-      tvTitle = (TextView) itemView.findViewById(R.id.textview_todo_title);
-      tvDueDate = (TextView) itemView.findViewById(R.id.textview_todo_duedate);
-      ivPriority = (ImageView) itemView.findViewById(R.id.imageview_todo_priority);
-      ivDragHandle = (ImageView) itemView.findViewById(R.id.imageview_todo_draghandle);
+      ButterKnife.bind(this, itemView);
     }
 
   }

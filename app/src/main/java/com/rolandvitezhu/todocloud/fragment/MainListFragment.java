@@ -8,6 +8,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.view.ActionMode;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,7 +23,6 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
-import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.CategoryAdapter;
@@ -43,6 +43,11 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class MainListFragment extends ListFragment implements
     CreateCategoryDialogFragment.ICreateCategoryDialogFragment,
     ModifyCategoryDialogFragment.IModifyCategoryDialogFragment,
@@ -54,6 +59,8 @@ public class MainListFragment extends ListFragment implements
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment,
     LogoutUserDialogFragment.ILogoutUserDialogFragment,
     DataSynchronizer.OnSyncDataListener {
+
+  private final String TAG = getClass().getSimpleName();
 
   @Inject
   DbLoader dbLoader;
@@ -68,16 +75,23 @@ public class MainListFragment extends ListFragment implements
 
   private IMainListFragment listener;
 
-  private ExpandableHeightExpandableListView expandableHeightExpandableListView;
-  private ExpandableHeightListView ehlvList;
+  @BindView(R.id.expandableheightlistview_mainlist_predefinedlist)
+  ExpandableHeightListView ehlvPredefinedList;
+  @BindView(R.id.expandableheightexpandablelistview_mainlist_category)
+  ExpandableHeightExpandableListView expandableHeightExpandableListView;
+  @BindView(R.id.expandableheightlistview_mainlist_list)
+  ExpandableHeightListView ehlvList;
 
-  private SwipeRefreshLayout swipeRefreshLayout;
-  private CoordinatorLayout coordinatorLayout;
-  private ScrollView scrollView;
+  @BindView(R.id.swiperefreshlayout_mainlist)
+  SwipeRefreshLayout swipeRefreshLayout;
+  @BindView(R.id.coordinatorlayout_mainlist)
+  CoordinatorLayout coordinatorLayout;
 
-  private FloatingActionMenu fam;
-  private FloatingActionButton fabCreateCategory;
-  private FloatingActionButton fabCreateList;
+  @BindView(R.id.scrollview_mainlist)
+  ScrollView scrollView;
+
+  @BindView(R.id.main_fam)
+  FloatingActionMenu fam;
 
   private ActionMode actionMode;
   private boolean actionModeStartedWithELV;
@@ -86,20 +100,7 @@ public class MainListFragment extends ListFragment implements
   private ArrayList<com.rolandvitezhu.todocloud.data.List> selectedListsInCategory = new ArrayList<>();
   private ArrayList<com.rolandvitezhu.todocloud.data.List> selectedLists = new ArrayList<>();
 
-  private View.OnClickListener onFabClickListener = new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      switch (v.getId()) {
-        case R.id.main_fab_create_category:
-          openCreateCategoryDialogFragment();
-          break;
-        case R.id.main_fab_create_list:
-          openCreateListDialogFragment();
-          break;
-      }
-      fam.close(true);
-    }
-  };
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -126,48 +127,43 @@ public class MainListFragment extends ListFragment implements
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    View combinedListView = inflater.inflate(R.layout.fragment_mainlist, null);
-    coordinatorLayout = (CoordinatorLayout) combinedListView.findViewById(
-        R.id.coordinatorlayout_mainlist
-    );
+    View view = inflater.inflate(R.layout.fragment_mainlist, null);
+    unbinder = ButterKnife.bind(this, view);
 
-    preparePredefinedList(combinedListView);
-    prepareExpandableListView(combinedListView);
-    prepareList(combinedListView);
-    prepareSwipeRefreshLayout(combinedListView);
-    prepareFloatingActionButtons(combinedListView);
+    preparePredefinedList();
+    prepareExpandableListView();
+    prepareList();
+    prepareSwipeRefreshLayout(view);
 
-    return combinedListView;
+    return view;
   }
 
-  private void prepareFloatingActionButtons(View combinedListView) {
-    fam = combinedListView.findViewById(R.id.main_fam);
-    fabCreateCategory = combinedListView.findViewById(R.id.main_fab_create_category);
-    fabCreateList = combinedListView.findViewById(R.id.main_fab_create_list);
-    fabCreateCategory.setOnClickListener(onFabClickListener);
-    fabCreateList.setOnClickListener(onFabClickListener);
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
-  private void prepareSwipeRefreshLayout(View combinedListView) {
-    swipeRefreshLayout = (SwipeRefreshLayout)
-        combinedListView.findViewById(R.id.swiperefreshlayout_mainlist);
-    setScrollViewSwipeRefreshBehavior(combinedListView);
+  private void prepareSwipeRefreshLayout(View view) {
+    setScrollViewSwipeRefreshBehavior(view);
     swipeRefreshLayout.setOnRefreshListener(this);
   }
 
-  private void setScrollViewSwipeRefreshBehavior(View combinedListView) {
-    scrollView = (ScrollView) combinedListView.findViewById(R.id.scrollview_mainlist);
+  private void setScrollViewSwipeRefreshBehavior(View view) {
     scrollView.getViewTreeObserver().addOnScrollChangedListener(
         new ViewTreeObserver.OnScrollChangedListener() {
 
           @Override
           public void onScrollChanged() {
-            int scrollY = scrollView.getScrollY();
-            if (shouldSwipeRefresh(scrollY))
-              swipeRefreshLayout.setEnabled(true);
-            else {
-              swipeRefreshLayout.setEnabled(false);
-            }
+              try {
+                int scrollY = scrollView.getScrollY();
+                if (shouldSwipeRefresh(scrollY))
+                  swipeRefreshLayout.setEnabled(true);
+                else
+                  swipeRefreshLayout.setEnabled(false);
+              } catch (NullPointerException e) {
+                Log.d(TAG, "ScrollView nor SwipeRefreshLayout doesn't exists already.");
+              }
           }
 
           private boolean shouldSwipeRefresh(int scrollY) {
@@ -177,19 +173,14 @@ public class MainListFragment extends ListFragment implements
         });
   }
 
-  private void prepareList(View combinedListView) {
-    ehlvList = (ExpandableHeightListView) combinedListView.findViewById(
-        R.id.expandableheightlistview_mainlist_list
-    );
+  private void prepareList() {
     ehlvList.setExpanded(true);
     ehlvList.setAdapter(listAdapter);
     ehlvList.setOnItemClickListener(listItemClicked);
     ehlvList.setOnItemLongClickListener(listItemLongClicked);
   }
 
-  private void prepareExpandableListView(View combinedListView) {
-    expandableHeightExpandableListView = (ExpandableHeightExpandableListView)
-        combinedListView.findViewById(R.id.expandableheightexpandablelistview_mainlist_category);
+  private void prepareExpandableListView() {
     expandableHeightExpandableListView.setExpanded(true);
     expandableHeightExpandableListView.setAdapter(categoryAdapter);
     expandableHeightExpandableListView.setOnChildClickListener(expLVChildClicked);
@@ -201,11 +192,7 @@ public class MainListFragment extends ListFragment implements
     expandableHeightExpandableListView.setOnCreateContextMenuListener(expLVCategoryContextMenuListener);
   }
 
-  private void preparePredefinedList(View combinedListView) {
-    final ExpandableHeightListView ehlvPredefinedList =
-        (ExpandableHeightListView) combinedListView.findViewById(
-            R.id.expandableheightlistview_mainlist_predefinedlist
-        );
+  private void preparePredefinedList() {
     ehlvPredefinedList.setExpanded(true);
     ehlvPredefinedList.setAdapter(predefinedListAdapter);
     ehlvPredefinedList.setOnItemClickListener(predefinedListItemClicked);
@@ -535,7 +522,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void openMoveListIntoAnotherCategoryDialog() {
-    Category category = new Category("Kategórián kívül");
+    Category category = new Category(getString(R.string.movelist_spinneritemlistnotincategory));
     com.rolandvitezhu.todocloud.data.List list = selectedLists.get(0);
     Bundle arguments = new Bundle();
     arguments.putParcelable("category", category);
@@ -1076,7 +1063,11 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onFinishSyncData() {
-    swipeRefreshLayout.setRefreshing(false);
+    try {
+      swipeRefreshLayout.setRefreshing(false);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "SwipeRefreshLayout doesn't exists already.");
+    }
   }
 
   @Override
@@ -1094,13 +1085,15 @@ public class MainListFragment extends ListFragment implements
 
   private void showFailedToConnectError() {
     // Android Studio hotswap/coldswap may cause getView == null
-    if (getView() != null) {
+    try {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
           R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "View doesn't exists already.");
     }
   }
 
@@ -1111,6 +1104,18 @@ public class MainListFragment extends ListFragment implements
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);
+  }
+
+  @OnClick(R.id.main_fab_create_category)
+  public void onFabCreateCategoryClick(View view) {
+    openCreateCategoryDialogFragment();
+    fam.close(true);
+  }
+
+  @OnClick(R.id.main_fab_create_list)
+  public void onFabCreateListClick(View view) {
+    openCreateListDialogFragment();
+    fam.close(true);
   }
 
   public interface IMainListFragment {

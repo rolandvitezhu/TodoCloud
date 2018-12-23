@@ -22,14 +22,23 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment {
 
-  private TextInputLayout tilTitle;
-  private TextInputEditText tietTitle;
-  private Button btnOK;
-  private Button btnCancel;
+  @BindView(R.id.textinputlayout_createlistincategory_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_createlistincategory_title)
+  TextInputEditText tietTitle;
+  @BindView(R.id.button_createlistincategory_ok)
+  Button btnOK;
 
   private ICreateListInCategoryDialogFragment listener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -50,24 +59,22 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
       Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.dialog_createlistincategory, container);
+    unbinder = ButterKnife.bind(this, view);
+
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.all_createlist);
     setSoftInputMode();
 
-    tilTitle = view.findViewById(
-        R.id.textinputlayout_createlistincategory_title
-    );
-    tietTitle = view.findViewById(
-        R.id.textinputedittext_createlistincategory_title
-    );
-    btnOK = view.findViewById(R.id.button_createlistincategory_ok);
-    btnCancel = view.findViewById(R.id.button_createlistincategory_cancel);
-
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents();
 
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void setSoftInputMode() {
@@ -123,40 +130,6 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
     });
   }
 
-  private void applyClickEvents() {
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        String givenTitle = tietTitle.getText().toString().trim();
-
-        if (validateTitle()) {
-          List listToCreate = prepareListToCreate(givenTitle);
-          String categoryOnlineId = getArguments().getString("categoryOnlineId");
-          listener.onCreateListInCategory(listToCreate, categoryOnlineId);
-          dismiss();
-        }
-      }
-
-      @NonNull
-      private List prepareListToCreate(String givenTitle) {
-        List listToCreate = new List();
-        listToCreate.setTitle(givenTitle);
-        listToCreate.setRowVersion(0);
-        listToCreate.setDeleted(false);
-        listToCreate.setDirty(true);
-        return listToCreate;
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-    });
-  }
-
   private boolean validateTitle() {
     String givenTitle = tietTitle.getText().toString().trim();
     if (givenTitle.isEmpty()) {
@@ -166,6 +139,33 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
       tilTitle.setErrorEnabled(false);
       return true;
     }
+  }
+
+  @NonNull
+  private List prepareListToCreate(String givenTitle) {
+    List listToCreate = new List();
+    listToCreate.setTitle(givenTitle);
+    listToCreate.setRowVersion(0);
+    listToCreate.setDeleted(false);
+    listToCreate.setDirty(true);
+    return listToCreate;
+  }
+
+  @OnClick(R.id.button_createlistincategory_ok)
+  public void onBtnOkClick(View view) {
+    String givenTitle = tietTitle.getText().toString().trim();
+
+    if (validateTitle()) {
+      List listToCreate = prepareListToCreate(givenTitle);
+      String categoryOnlineId = getArguments().getString("categoryOnlineId");
+      listener.onCreateListInCategory(listToCreate, categoryOnlineId);
+      dismiss();
+    }
+  }
+
+  @OnClick(R.id.button_createlistincategory_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface ICreateListInCategoryDialogFragment {

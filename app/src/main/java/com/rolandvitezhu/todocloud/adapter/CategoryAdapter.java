@@ -15,10 +15,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class CategoryAdapter extends BaseExpandableListAdapter {
 
   private final List<Category> categories;
   private final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories;
+
+  @BindView(R.id.textview_itemcategory_actiontext)
+  TextView tvTitle;
 
   public CategoryAdapter() {
     categories = new ArrayList<>();
@@ -80,7 +86,8 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_category, null);
-    TextView tvTitle = (TextView) convertView.findViewById(R.id.textview_itemcategory_actiontext);
+    ButterKnife.bind(this, convertView);
+
     tvTitle.setText(category.getTitle());
     handleCategoryIndicator(groupPosition, isExpanded, convertView);
 

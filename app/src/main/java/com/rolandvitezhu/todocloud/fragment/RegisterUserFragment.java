@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -33,8 +34,15 @@ import com.rolandvitezhu.todocloud.helper.SessionManager;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class RegisterUserFragment extends Fragment
     implements UserDataSynchronizer.OnRegisterUserListener {
+
+  private final String TAG = getClass().getSimpleName();
 
   @Inject
   SessionManager sessionManager;
@@ -43,13 +51,35 @@ public class RegisterUserFragment extends Fragment
   @Inject
   UserDataSynchronizer userDataSynchronizer;
 
-  private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
-  private TextInputLayout tilName, tilEmail, tilPassword, tilConfirmPassword;
-  private TextInputEditText tietName, tietEmail, tietPassword, tietConfirmPassword;
+  @BindView(R.id.coordinatorlayout_registeruser)
+  CoordinatorLayout coordinatorLayout;
+  @BindView(R.id.textview_registeruser_formsubmissionerrors)
+  TextView tvFormSubmissionErrors;
+
+  @BindView(R.id.textinputlayout_registeruser_name)
+  TextInputLayout tilName;
+  @BindView(R.id.textinputlayout_registeruser_email)
+  TextInputLayout tilEmail;
+  @BindView(R.id.textinputlayout_registeruser_password)
+  TextInputLayout tilPassword;
+  @BindView(R.id.textinputlayout_registeruser_confirmpassword)
+  TextInputLayout tilConfirmPassword;
+
+  @BindView(R.id.textinputedittext_registeruser_name)
+  TextInputEditText tietName;
+  @BindView(R.id.textinputedittext_registeruser_email)
+  TextInputEditText tietEmail;
+  @BindView(R.id.textinputedittext_registeruser_password)
+  TextInputEditText tietPassword;
+  @BindView(R.id.textinputedittext_registeruser_confirmpassword)
+  TextInputEditText tietConfirmPassword;
+
+  @BindView(R.id.button_registeruser)
+  Button btnRegister;
 
   private IRegisterUserFragment listener;
-  private Button btnRegister;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -78,44 +108,25 @@ public class RegisterUserFragment extends Fragment
       @Nullable Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.fragment_registeruser, container, false);
-
-    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_registeruser);
-    tvFormSubmissionErrors = view.findViewById(
-        R.id.textview_registeruser_formsubmissionerrors
-    );
-    tilName = view.findViewById(R.id.textinputlayout_registeruser_name);
-    tilEmail = view.findViewById(R.id.textinputlayout_registeruser_email);
-    tilPassword = view.findViewById(R.id.textinputlayout_registeruser_password);
-    tilConfirmPassword = view.findViewById(
-        R.id.textinputlayout_registeruser_confirmpassword
-    );
-    tietName = view.findViewById(R.id.textinputedittext_registeruser_name);
-    tietEmail = view.findViewById(R.id.textinputedittext_registeruser_email);
-    tietPassword = view.findViewById(
-        R.id.textinputedittext_registeruser_password
-    );
-    tietConfirmPassword = view.findViewById(
-        R.id.textinputedittext_registeruser_confirmpassword
-    );
-    btnRegister = view.findViewById(R.id.button_registeruser);
+    unbinder = ButterKnife.bind(this, view);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents();
 
     return view;
   }
 
-  private void applyClickEvents() {
-    btnRegister.setOnClickListener(new View.OnClickListener() {
+  @Override
+  public void onResume() {
+    super.onResume();
+    listener.onSetActionBarTitle(getString(R.string.all_register));
+    applyOrientationPortrait();
+  }
 
-      @Override
-      public void onClick(View v) {
-        hideSoftInput();
-        handleRegisterUser();
-      }
-
-    });
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void applyTextChangedEvents() {
@@ -177,13 +188,6 @@ public class RegisterUserFragment extends Fragment
       String password = tietPassword.getText().toString().trim();
       userDataSynchronizer.registerUser(user_online_id, name, email, password, _id);
     }
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_register));
-    applyOrientationPortrait();
   }
 
   private void applyOrientationPortrait() {
@@ -302,8 +306,12 @@ public class RegisterUserFragment extends Fragment
   }
 
   private void showThisEmailAlreadyExistedError() {
-    tvFormSubmissionErrors.setText(R.string.registeruser_thisemailalreadyexisted);
-    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    try {
+      tvFormSubmissionErrors.setText(R.string.registeruser_thisemailalreadyexisted);
+      tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "TextView doesn't exists already.");
+    }
   }
 
   private void showAnErrorOccurredError() {
@@ -313,6 +321,12 @@ public class RegisterUserFragment extends Fragment
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);
+  }
+
+  @OnClick(R.id.button_registeruser)
+  public void onBtnRegisterClick(View view) {
+    hideSoftInput();
+    handleRegisterUser();
   }
 
   private class MyTextWatcher implements TextWatcher {

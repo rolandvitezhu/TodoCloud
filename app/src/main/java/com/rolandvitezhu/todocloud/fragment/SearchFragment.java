@@ -37,6 +37,10 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
 public class SearchFragment extends Fragment implements
     ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
@@ -46,10 +50,15 @@ public class SearchFragment extends Fragment implements
   @Inject
   TodoAdapter todoAdapter;
 
-  private RecyclerView recyclerView;
+  @BindView(R.id.recyclerview_search)
+  RecyclerView recyclerView;
+
   private SearchView searchView;
+
   private ISearchFragment listener;
   private ActionMode actionMode;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -72,14 +81,29 @@ public class SearchFragment extends Fragment implements
       LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.fragment_search, container, false);
+    unbinder = ButterKnife.bind(this, view);
+
     prepareRecyclerView(view);
     applyClickEvents();
     applySwipeToDismiss();
+
     return view;
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+    listener.onSetActionBarTitle("");
+    prepareSearchViewAfterModifyTodo();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
+  }
+
   private void prepareRecyclerView(View view) {
-    recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_search);
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
         getContext().getApplicationContext()
     );
@@ -173,13 +197,6 @@ public class SearchFragment extends Fragment implements
   private void openModifyTodoFragment(int childViewAdapterPosition) {
     Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
     listener.onClickTodo(todo, this);
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    listener.onSetActionBarTitle("");
-    prepareSearchViewAfterModifyTodo();
   }
 
   private void prepareSearchViewAfterModifyTodo() {
@@ -457,6 +474,7 @@ public class SearchFragment extends Fragment implements
   @Override
   public void onModifyTodo(Todo todo) {
     dbLoader.updateTodo(todo);
+    dbLoader.fixTodoPositions();
     updateTodoAdapter();
 
     if (isSetReminder(todo)) {

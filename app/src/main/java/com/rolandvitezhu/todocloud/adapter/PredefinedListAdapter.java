@@ -14,9 +14,17 @@ import com.rolandvitezhu.todocloud.data.PredefinedList;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class PredefinedListAdapter extends BaseAdapter {
 
   private List<PredefinedList> predefinedLists;
+
+  @BindView(R.id.textview_predefinedlist_actiontext)
+  TextView tvTitle;
+  @BindView(R.id.imageview_predefinedlist)
+  ImageView ivPredefinedList;
 
   public PredefinedListAdapter() {
     predefinedLists = new ArrayList<>();
@@ -44,8 +52,7 @@ public class PredefinedListAdapter extends BaseAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     View itemView = layoutInflater.inflate(R.layout.item_predefinedlist, null);
-    TextView tvTitle = (TextView) itemView.findViewById(R.id.textview_predefinedlist_actiontext);
-    ImageView ivPredefinedList = (ImageView) itemView.findViewById(R.id.imageview_predefinedlist);
+    ButterKnife.bind(this, itemView);
 
     String title = predefinedList.getTitle();
     switch (title) {

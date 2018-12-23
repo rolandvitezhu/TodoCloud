@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,8 +31,15 @@ import com.rolandvitezhu.todocloud.helper.SessionManager;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class LoginUserFragment extends Fragment
     implements UserDataSynchronizer.OnLoginUserListener {
+
+  private final String TAG = getClass().getSimpleName();
 
   @Inject
   SessionManager sessionManager;
@@ -40,15 +48,31 @@ public class LoginUserFragment extends Fragment
   @Inject
   UserDataSynchronizer userDataSynchronizer;
 
-  private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
-  private TextInputLayout tilEmail, tilPassword;
-  private TextInputEditText tietEmail, tietPassword;
+  @BindView(R.id.coordinatorlayout_loginuser)
+  CoordinatorLayout coordinatorLayout;
+  @BindView(R.id.textview_loginuser_formsubmissionerrors)
+  TextView tvFormSubmissionErrors;
+
+  @BindView(R.id.textinputlayout_loginuser_email)
+  TextInputLayout tilEmail;
+  @BindView(R.id.textinputlayout_loginuser_password)
+  TextInputLayout tilPassword;
+
+  @BindView(R.id.textinputedittext_loginuser_email)
+  TextInputEditText tietEmail;
+  @BindView(R.id.textinputedittext_loginuser_password)
+  TextInputEditText tietPassword;
+
+  @BindView(R.id.button_loginuser_login)
+  Button btnLogin;
+  @BindView(R.id.button_loginuser_linktoregister)
+  Button btnLinkToRegister;
+  @BindView(R.id.button_loginuser_linktoresetpassword)
+  Button btnLinkToResetPassword;
 
   private ILoginUserFragment listener;
-  private Button btnLogin;
-  private Button btnLinkToRegister;
-  private Button btnLinkToResetPassword;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -74,52 +98,36 @@ public class LoginUserFragment extends Fragment
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_loginuser, container, false);
-    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_loginuser);
-    tvFormSubmissionErrors = view.findViewById(
-        R.id.textview_loginuser_formsubmissionerrors
-    );
-    tilEmail = view.findViewById(R.id.textinputlayout_loginuser_email);
-    tilPassword = view.findViewById(R.id.textinputlayout_loginuser_password);
-    tietEmail = view.findViewById(R.id.textinputedittext_loginuser_email);
-    tietPassword = view.findViewById(
-        R.id.textinputedittext_loginuser_password
-    );
-    btnLogin = view.findViewById(R.id.button_loginuser_login);
-    btnLinkToRegister = view.findViewById(R.id.button_loginuser_linktoregister);
-    btnLinkToResetPassword = view.findViewById(R.id.button_loginuser_linktoresetpassword);
+    unbinder = ButterKnife.bind(this, view);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents();
     preventButtonTextCapitalization();
 
     return view;
   }
 
-  private void applyClickEvents() {
-    btnLogin.setOnClickListener(new View.OnClickListener() {
+  @Override
+  public void onResume() {
+    super.onResume();
+    try {
+      listener.onSetActionBarTitle(getString(R.string.all_login));
+    } catch (NullPointerException e) {
+      Log.d(TAG, "Activity doesn't exists already.");
+    }
+    applyOrientationPortrait();
+  }
 
-      @Override
-      public void onClick(View v) {
-        hideSoftInput();
-        handleLoginUser();
-      }
+  @Override
+  public void onPause() {
+    super.onPause();
+    applyOrientationFullSensor();
+  }
 
-    });
-    btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        listener.onClickLinkToRegisterUser();
-      }
-
-    });
-    btnLinkToResetPassword.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        listener.onClickLinkToResetPassword();
-      }
-    });
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void hideSoftInput() {
@@ -179,23 +187,9 @@ public class LoginUserFragment extends Fragment
     tietPassword.addTextChangedListener(new MyTextWatcher(tietPassword));
   }
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    if (getActivity() != null)
-    listener.onSetActionBarTitle(getString(R.string.all_login));
-    applyOrientationPortrait();
-  }
-
   private void applyOrientationPortrait() {
     if (getActivity() != null)
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    applyOrientationFullSensor();
   }
 
   private void applyOrientationFullSensor() {
@@ -249,8 +243,12 @@ public class LoginUserFragment extends Fragment
   }
 
   private void hideFormSubmissionErrors() {
-    tvFormSubmissionErrors.setText("");
-    tvFormSubmissionErrors.setVisibility(View.GONE);
+    try {
+      tvFormSubmissionErrors.setText("");
+      tvFormSubmissionErrors.setVisibility(View.GONE);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "TextView doesn't exists already.");
+    }
   }
 
   private void showFailedToConnectError() {
@@ -268,12 +266,32 @@ public class LoginUserFragment extends Fragment
   }
 
   private void showAnErrorOccurredError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_anerroroccurred,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_anerroroccurred,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "Snackbar doesn't exists already.");
+    }
+  }
+
+  @OnClick(R.id.button_loginuser_login)
+  public void onBtnLoginClick(View view) {
+    hideSoftInput();
+    handleLoginUser();
+  }
+
+  @OnClick(R.id.button_loginuser_linktoregister)
+  public void onBtnLinkToRegisterClick(View view) {
+    listener.onClickLinkToRegisterUser();
+  }
+
+  @OnClick(R.id.button_loginuser_linktoresetpassword)
+  public void onBtnLinkToResetPasswordClick(View view) {
+    listener.onClickLinkToResetPassword();
   }
 
   private class MyTextWatcher implements TextWatcher {

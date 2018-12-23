@@ -22,12 +22,21 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class CreateListDialogFragment extends AppCompatDialogFragment {
 
-  private TextInputLayout tilTitle;
-  private TextInputEditText tietTitle;
-  private Button btnOK;
-  private Button btnCancel;
+  @BindView(R.id.textinputlayout_createlist_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_createlist_title)
+  TextInputEditText tietTitle;
+  @BindView(R.id.button_createlist_ok)
+  Button btnOK;
+
+  Unbinder unbinder;
 
   private ICreateListDialogFragment listener;
 
@@ -50,20 +59,22 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
       Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.dialog_createlist, container);
+    unbinder = ButterKnife.bind(this, view);
+
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.all_createlist);
     setSoftInputMode();
 
-    tilTitle = view.findViewById(R.id.textinputlayout_createlist_title);
-    tietTitle = view.findViewById(R.id.textinputedittext_createlist_title);
-    btnOK = view.findViewById(R.id.button_createlist_ok);
-    btnCancel = view.findViewById(R.id.button_createlist_cancel);
-
     applyTextChangedEvents();
     applyEditorEvents();
-    applyClickEvents();
 
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void setSoftInputMode() {
@@ -119,39 +130,6 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
     });
   }
 
-  private void applyClickEvents() {
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        String givenTitle = tietTitle.getText().toString().trim();
-
-        if (validateTitle()) {
-          List listToCreate = prepareListToCreate(givenTitle);
-          listener.onCreateList(listToCreate);
-          dismiss();
-        }
-      }
-
-      @NonNull
-      private List prepareListToCreate(String givenTitle) {
-        List listToCreate = new List();
-        listToCreate.setTitle(givenTitle);
-        listToCreate.setRowVersion(0);
-        listToCreate.setDeleted(false);
-        listToCreate.setDirty(true);
-        return listToCreate;
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-    });
-  }
-
   private boolean validateTitle() {
     String givenTitle = tietTitle.getText().toString().trim();
     if (givenTitle.isEmpty()) {
@@ -161,6 +139,32 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
       tilTitle.setErrorEnabled(false);
       return true;
     }
+  }
+
+  @NonNull
+  private List prepareListToCreate(String givenTitle) {
+    List listToCreate = new List();
+    listToCreate.setTitle(givenTitle);
+    listToCreate.setRowVersion(0);
+    listToCreate.setDeleted(false);
+    listToCreate.setDirty(true);
+    return listToCreate;
+  }
+
+  @OnClick(R.id.button_createlist_ok)
+  public void onBtnOkClick(View view) {
+    String givenTitle = tietTitle.getText().toString().trim();
+
+    if (validateTitle()) {
+      List listToCreate = prepareListToCreate(givenTitle);
+      listener.onCreateList(listToCreate);
+      dismiss();
+    }
+  }
+
+  @OnClick(R.id.button_createlist_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface ICreateListDialogFragment {

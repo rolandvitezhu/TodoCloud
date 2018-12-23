@@ -17,17 +17,43 @@ import com.rolandvitezhu.todocloud.data.Todo;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
   private String itemType;
   private ArrayList itemsToDelete;
   private boolean isManyItems = false;
 
-  private TextView tvActionText;
-  private Button btnOK;
+  @BindView(R.id.textview_confirmdelete_actiontext)
+  TextView tvActionText;
+  @BindView(R.id.button_confirmdelete_ok)
+  Button btnOK;
 
-  private Button btnCancel;
+  @OnClick(R.id.button_confirmdelete_ok)
+  public void onBtnOkClick(View view) {
+    if (itemType.equals("todo")) {
+      listener.onSoftDelete(itemsToDelete, itemType);
+    } else if (!isManyItems) {
+      String onlineId = getArguments().getString("onlineId");
+      listener.onSoftDelete(onlineId, itemType);
+    } else {
+      listener.onSoftDelete(itemsToDelete, itemType);
+    }
+    dismiss();
+  }
+
+  @OnClick(R.id.button_confirmdelete_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
+  }
+
   private IConfirmDeleteDialogFragment listener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -42,6 +68,27 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     prepareItemVariables();
   }
 
+  @Nullable
+  @Override
+  public View onCreateView(
+      LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState
+  ) {
+    View view = inflater.inflate(R.layout.dialog_confirmdelete, container);
+    unbinder = ButterKnife.bind(this, view);
+
+    prepareDialogTexts();
+
+    return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
+  }
+
   private void prepareItemVariables() {
     Bundle arguments = getArguments();
     itemType = arguments.getString("itemType");
@@ -53,25 +100,6 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     if (itemsToDelete != null && itemsToDelete.size() > 1) {
       isManyItems = true;
     }
-  }
-
-  @Nullable
-  @Override
-  public View onCreateView(
-      LayoutInflater inflater,
-      @Nullable ViewGroup container,
-      @Nullable Bundle savedInstanceState
-  ) {
-    View view = inflater.inflate(R.layout.dialog_confirmdelete, container);
-
-    tvActionText = (TextView) view.findViewById(R.id.textview_confirmdelete_actiontext);
-    btnOK = (Button) view.findViewById(R.id.button_confirmdelete_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_confirmdelete_cancel);
-
-    prepareDialogTexts();
-    applyClickEvents();
-
-    return view;
   }
 
   private void prepareDialogTexts() {
@@ -171,33 +199,6 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
 
   private void setActionText(String actionText) {
     tvActionText.setText(actionText);
-  }
-
-  private void applyClickEvents() {
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        if (itemType.equals("todo")) {
-          listener.onSoftDelete(itemsToDelete, itemType);
-        } else if (!isManyItems) {
-          String onlineId = getArguments().getString("onlineId");
-          listener.onSoftDelete(onlineId, itemType);
-        } else {
-          listener.onSoftDelete(itemsToDelete, itemType);
-        }
-        dismiss();
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-
-    });
   }
 
   public interface IConfirmDeleteDialogFragment {

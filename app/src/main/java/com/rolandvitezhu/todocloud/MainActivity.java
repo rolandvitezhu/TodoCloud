@@ -20,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.app.AppController;
@@ -46,6 +47,9 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements
     MainListFragment.IMainListFragment,
     LoginUserFragment.ILoginUserFragment,
@@ -65,25 +69,32 @@ public class MainActivity extends AppCompatActivity implements
   @Inject
   SessionManager sessionManager;
 
+  @BindView(R.id.toolbar_main)
+  Toolbar toolbar;
+  @BindView(R.id.mainlist_drawerlayout)
+  DrawerLayout drawerLayout;
+  @BindView(R.id.mainlist_navigationview)
+  NavigationView navigationView;
+  @BindView(R.id.framelayout_main)
+  FrameLayout container;
+  @BindView(R.id.main_coordinator_layout)
+  CoordinatorLayout coordinatorLayout;
+
   private ActionBarDrawerToggle actionBarDrawerToggle;
-  private DrawerLayout drawerLayout;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    ButterKnife.bind(this);
 
     ((AppController) getApplication()).getAppComponent().inject(this);
 
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
     setSupportActionBar(toolbar);
-
-    drawerLayout = (DrawerLayout) findViewById(R.id.mainlist_drawerlayout);
-    NavigationView navigationView = (NavigationView) findViewById(R.id.mainlist_navigationview);
 
     prepareNavigationView(navigationView, toolbar);
 
-    if (findViewById(R.id.framelayout_main) != null) {
+    if (container != null) {
       if (savedInstanceState != null) {
         // Prevent Fragment overlapping
         return;
@@ -236,14 +247,9 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onPrepareNavigationHeader() {
-    NavigationView navigationView = (NavigationView) findViewById(R.id.mainlist_navigationview);
     View navigationHeader = navigationView.getHeaderView(0);
-    TextView tvName = (TextView) navigationHeader.findViewById(
-        R.id.textview_navigationdrawerheader_name
-    );
-    TextView tvEmail = (TextView) navigationHeader.findViewById(
-        R.id.textview_navigationdrawerheader_email
-    );
+    TextView tvName = navigationHeader.findViewById(R.id.textview_navigationdrawerheader_name);
+    TextView tvEmail = navigationHeader.findViewById(R.id.textview_navigationdrawerheader_email);
     User user = dbLoader.getUser();
     if (user != null) {
       tvName.setText(user.getName());
@@ -262,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements
     searchFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, searchFragment);
+    fragmentTransaction.replace(container.getId(), searchFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -340,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements
     todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, todoListFragment);
+    fragmentTransaction.replace(container.getId(), todoListFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -348,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements
   private void openTodoListFragment(TodoListFragment todoListFragment) {
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, todoListFragment);
+    fragmentTransaction.replace(container.getId(), todoListFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -385,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.framelayout_main,
+        container.getId(),
         resetPasswordFragment,
         "ResetPasswordFragment"
     );
@@ -398,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.framelayout_main,
+        container.getId(),
         registerUserFragment,
         "RegisterUserFragment"
     );
@@ -418,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements
     LoginUserFragment loginUserFragment = new LoginUserFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, loginUserFragment);
+    fragmentTransaction.replace(container.getId(), loginUserFragment);
     fragmentTransaction.commit();
   }
 
@@ -434,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements
     MainListFragment mainListFragment = new MainListFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, mainListFragment);
+    fragmentTransaction.replace(container.getId(), mainListFragment);
     fragmentTransaction.commit();
   }
 
@@ -448,7 +454,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.framelayout_main,
+        container.getId(),
         modifyPasswordFragment,
         "ModifyPasswordFragment"
     );
@@ -469,7 +475,6 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onFinishModifyPassword() {
-    CoordinatorLayout coordinatorLayout = findViewById(R.id.main_coordinator_layout);
     if (coordinatorLayout != null) {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
@@ -482,7 +487,6 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onFinishResetPassword() {
-    CoordinatorLayout coordinatorLayout = findViewById(R.id.main_coordinator_layout);
     if (coordinatorLayout != null) {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
@@ -519,7 +523,7 @@ public class MainActivity extends AppCompatActivity implements
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
-        R.id.framelayout_main,
+        container.getId(),
         modifyTodoFragment,
         "ModifyTodoFragment"
     );
@@ -533,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements
     createTodoFragment.setTargetFragment(targetFragment, 0);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, createTodoFragment);
+    fragmentTransaction.replace(container.getId(), createTodoFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }
@@ -542,7 +546,7 @@ public class MainActivity extends AppCompatActivity implements
     SettingsPreferenceFragment settingsPreferenceFragment = new SettingsPreferenceFragment();
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-    fragmentTransaction.replace(R.id.framelayout_main, settingsPreferenceFragment);
+    fragmentTransaction.replace(container.getId(), settingsPreferenceFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
   }

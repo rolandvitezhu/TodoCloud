@@ -30,6 +30,11 @@ import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ResetPasswordFragment extends Fragment
     implements UserDataSynchronizer.OnResetPasswordListener {
 
@@ -38,13 +43,22 @@ public class ResetPasswordFragment extends Fragment
   @Inject
   UserDataSynchronizer userDataSynchronizer;
 
-  private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
-  private TextInputLayout tilEmail;
-  private TextInputEditText tietEmail;
+  @BindView(R.id.coordinatorlayout_resetpassword)
+  CoordinatorLayout coordinatorLayout;
+  @BindView(R.id.textview_resetpassword_formsubmissionerrors)
+  TextView tvFormSubmissionErrors;
+
+  @BindView(R.id.textinputlayout_resetpassword_email)
+  TextInputLayout tilEmail;
+  @BindView(R.id.textinputedittext_resetpassword_email)
+  TextInputEditText tietEmail;
+
+  @BindView(R.id.button_resetpassword)
+  Button btnSubmit;
 
   private IResetPasswordFragment listener;
-  private Button btnSubmit;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -69,32 +83,25 @@ public class ResetPasswordFragment extends Fragment
       @Nullable Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.fragment_resetpassword, container, false);
-
-    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_resetpassword);
-    tvFormSubmissionErrors = view.findViewById(
-        R.id.textview_resetpassword_formsubmissionerrors
-    );
-    tilEmail = view.findViewById(R.id.textinputlayout_resetpassword_email);
-    tietEmail = view.findViewById(R.id.textinputedittext_resetpassword_email);
-    btnSubmit = view.findViewById(R.id.button_resetpassword);
+    unbinder = ButterKnife.bind(this, view);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents();
 
     return view;
   }
 
-  private void applyClickEvents() {
-    btnSubmit.setOnClickListener(new View.OnClickListener() {
+  @Override
+  public void onResume() {
+    super.onResume();
+    listener.onSetActionBarTitle(getString(R.string.all_reset_password));
+    applyOrientationPortrait();
+  }
 
-      @Override
-      public void onClick(View v) {
-        hideSoftInput();
-        handleResetPassword();
-      }
-
-    });
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void applyTextChangedEvents() {
@@ -143,13 +150,6 @@ public class ResetPasswordFragment extends Fragment
       String email = tietEmail.getText().toString().trim();
       userDataSynchronizer.resetPassword(email);
     }
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_reset_password));
-    applyOrientationPortrait();
   }
 
   private void applyOrientationPortrait() {
@@ -233,6 +233,12 @@ public class ResetPasswordFragment extends Fragment
         Snackbar.LENGTH_LONG
     );
     AppController.showWhiteTextSnackbar(snackbar);
+  }
+
+  @OnClick(R.id.button_resetpassword)
+  public void onBtnSubmitClick(View view) {
+    hideSoftInput();
+    handleResetPassword();
   }
 
   private class MyTextWatcher implements TextWatcher {

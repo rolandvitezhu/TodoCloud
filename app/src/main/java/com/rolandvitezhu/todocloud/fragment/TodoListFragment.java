@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.github.clans.fab.FloatingActionButton;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.app.AppController;
@@ -38,6 +37,11 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class TodoListFragment extends Fragment implements
     CreateTodoFragment.ICreateTodoFragment,
     ModifyTodoFragment.IModifyTodoFragment,
@@ -49,9 +53,13 @@ public class TodoListFragment extends Fragment implements
   @Inject
   TodoAdapter todoAdapter;
 
-  private RecyclerView recyclerView;
+  @BindView(R.id.recyclerview_todolist)
+  RecyclerView recyclerView;
+
   private ITodoListFragment listener;
   private ActionMode actionMode;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -76,21 +84,28 @@ public class TodoListFragment extends Fragment implements
                            @Nullable Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.fragment_todolist, container, false);
+    unbinder = ButterKnife.bind(this, view);
+
     prepareRecyclerView(view);
     applyClickEvents();
-    applySwipeToDismiss();
-    prepareFloatingActionButton(view);
+    applySwipeToDismissAndDragToReorder();
+
     return view;
   }
 
-  private void prepareFloatingActionButton(View view) {
-    FloatingActionButton floatingActionButton =
-        (FloatingActionButton) view.findViewById(R.id.floatingactionbutton_todolist);
-    floatingActionButton.setOnClickListener(floatingActionButtonClicked);
+  @Override
+  public void onResume() {
+    super.onResume();
+    setActionBarTitle();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void prepareRecyclerView(View view) {
-    recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_todolist);
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
         getContext().getApplicationContext()
     );
@@ -133,7 +148,7 @@ public class TodoListFragment extends Fragment implements
     );
   }
 
-  private void applySwipeToDismiss() {
+  private void applySwipeToDismissAndDragToReorder() {
     ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(
         0, ItemTouchHelper.START
     ) {
@@ -237,6 +252,7 @@ public class TodoListFragment extends Fragment implements
     todoTo.setDirty(true);
     dbLoader.updateTodo(todoFrom);
     dbLoader.updateTodo(todoTo);
+    dbLoader.fixTodoPositions();
     Collections.swap(todos, fromPosition, toPosition);
   }
 
@@ -274,12 +290,6 @@ public class TodoListFragment extends Fragment implements
     }
 
     return super.onOptionsItemSelected(item);
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    setActionBarTitle();
   }
 
   private void setActionBarTitle() {
@@ -409,16 +419,6 @@ public class TodoListFragment extends Fragment implements
     );
   }
 
-  private View.OnClickListener floatingActionButtonClicked = new View.OnClickListener() {
-
-    @Override
-    public void onClick(View v) {
-      if (isActionMode()) actionMode.finish();
-      listener.onOpenCreateTodoFragment(TodoListFragment.this);
-    }
-
-  };
-
   private void updateTodoAdapter() {
     UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(todoAdapter);
     updateAdapterTask.execute(getArguments());
@@ -455,6 +455,7 @@ public class TodoListFragment extends Fragment implements
     );
     todoToCreate.setTodoOnlineId(todoOnlineId);
     dbLoader.updateTodo(todoToCreate);
+    dbLoader.fixTodoPositions();
   }
 
   private boolean isPredefinedListCompleted(Bundle arguments) {
@@ -491,6 +492,7 @@ public class TodoListFragment extends Fragment implements
   @Override
   public void onModifyTodo(Todo todo) {
     dbLoader.updateTodo(todo);
+    dbLoader.fixTodoPositions();
     updateTodoAdapter();
 
     if (isSetReminder(todo)) {
@@ -542,6 +544,12 @@ public class TodoListFragment extends Fragment implements
   @Override
   public void onSortByPriorityPushed() {
     new SortAsyncTask(todoAdapter).execute(SortAsyncTask.SORT_BY_PRIORITY);
+  }
+
+  @OnClick(R.id.floatingactionbutton_todolist)
+  public void onFABClick(View view) {
+    if (isActionMode()) actionMode.finish();
+    listener.onOpenCreateTodoFragment(TodoListFragment.this);
   }
 
   private static class SortAsyncTask extends AsyncTask<Integer, Long, Void> {

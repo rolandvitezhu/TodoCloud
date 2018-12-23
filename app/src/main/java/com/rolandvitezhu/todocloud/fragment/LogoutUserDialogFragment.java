@@ -7,13 +7,18 @@ import android.support.v7.app.AppCompatDialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.rolandvitezhu.todocloud.R;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 
 public class LogoutUserDialogFragment extends AppCompatDialogFragment {
 
   public ILogoutUserDialogFragment listener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -27,7 +32,6 @@ public class LogoutUserDialogFragment extends AppCompatDialogFragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    // Beállítja az erőforrásban definiált stílust.
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
   }
 
@@ -36,29 +40,28 @@ public class LogoutUserDialogFragment extends AppCompatDialogFragment {
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.dialog_logoutuser, container);
+    unbinder = ButterKnife.bind(this, view);
+
     getDialog().setTitle(R.string.logoutuser_title);
 
-    Button btnOK = (Button) view.findViewById(R.id.button_logoutuser_ok);
-    Button btnCancel = (Button) view.findViewById(R.id.button_logoutuser_cancel);
-
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        listener.onLogout();
-        dismiss();
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-
-    });
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
+  }
+
+  @OnClick(R.id.button_logoutuser_ok)
+  public void onBtnOkClick(View view) {
+    listener.onLogout();
+    dismiss();
+  }
+
+  @OnClick(R.id.button_logoutuser_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface ILogoutUserDialogFragment {

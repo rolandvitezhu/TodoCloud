@@ -29,6 +29,11 @@ import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ModifyPasswordFragment extends Fragment
     implements UserDataSynchronizer.OnModifyPasswordListener {
 
@@ -37,13 +42,32 @@ public class ModifyPasswordFragment extends Fragment
   @Inject
   UserDataSynchronizer userDataSynchronizer;
 
-  private CoordinatorLayout coordinatorLayout;
-  private TextView tvFormSubmissionErrors;
-  private TextInputLayout tilCurrentPassword, tilNewPassword, tilConfirmPassword;
-  private TextInputEditText tietCurrentPassword, tietNewPassword, tietConfirmPassword;
+  @BindView(R.id.coordinatorlayout_modifypassword)
+  CoordinatorLayout coordinatorLayout;
+
+  @BindView(R.id.textview_modifypassword_formsubmissionerrors)
+  TextView tvFormSubmissionErrors;
+
+  @BindView(R.id.textinputlayout_modifypassword_currentpassword)
+  TextInputLayout tilCurrentPassword;
+  @BindView(R.id.textinputlayout_modifypassword_newpassword)
+  TextInputLayout tilNewPassword;
+  @BindView(R.id.textinputlayout_modifypassword_confirmpassword)
+  TextInputLayout tilConfirmPassword;
+
+  @BindView(R.id.textinputedittext_modifypassword_currentpassword)
+  TextInputEditText tietCurrentPassword;
+  @BindView(R.id.textinputedittext_modifypassword_newpassword)
+  TextInputEditText tietNewPassword;
+  @BindView(R.id.textinputedittext_modifypassword_confirmpassword)
+  TextInputEditText tietConfirmPassword;
+
+  @BindView(R.id.button_changepassword)
+  Button btnChangePassword;
 
   private IModifyPasswordFragment listener;
-  private Button btnChangePassword;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -68,36 +92,31 @@ public class ModifyPasswordFragment extends Fragment
       @Nullable Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.fragment_modifypassword, container, false);
-
-    coordinatorLayout = view.findViewById(R.id.coordinatorlayout_modifypassword);
-    tvFormSubmissionErrors = view.findViewById(
-        R.id.textview_modifypassword_formsubmissionerrors
-    );
-    tilCurrentPassword = view.findViewById(R.id.textinputlayout_modifypassword_currentpassword);
-    tilNewPassword = view.findViewById(R.id.textinputlayout_modifypassword_newpassword);
-    tilConfirmPassword = view.findViewById(R.id.textinputlayout_modifypassword_confirmpassword);
-    tietCurrentPassword = view.findViewById(R.id.textinputedittext_modifypassword_currentpassword);
-    tietNewPassword = view.findViewById(R.id.textinputedittext_modifypassword_newpassword);
-    tietConfirmPassword = view.findViewById(R.id.textinputedittext_modifypassword_confirmpassword);
-    btnChangePassword = view.findViewById(R.id.button_changepassword);
+    unbinder = ButterKnife.bind(this, view);
 
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents();
 
     return view;
   }
 
-  private void applyClickEvents() {
-    btnChangePassword.setOnClickListener(new View.OnClickListener() {
+  @Override
+  public void onResume() {
+    super.onResume();
+    listener.onSetActionBarTitle(getString(R.string.all_change_password));
+    applyOrientationPortrait();
+  }
 
-      @Override
-      public void onClick(View v) {
-        hideSoftInput();
-        handleChangePassword();
-      }
+  @Override
+  public void onPause() {
+    super.onPause();
+    applyOrientationFullSensor();
+  }
 
-    });
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void applyTextChangedEvents() {
@@ -154,22 +173,9 @@ public class ModifyPasswordFragment extends Fragment
     }
   }
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_change_password));
-    applyOrientationPortrait();
-  }
-
   private void applyOrientationPortrait() {
     if (getActivity() != null)
       getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    applyOrientationFullSensor();
   }
 
   private void applyOrientationFullSensor() {
@@ -306,6 +312,12 @@ public class ModifyPasswordFragment extends Fragment
       }
     }
 
+  }
+
+  @OnClick(R.id.button_changepassword)
+  public void onBtnChangePasswordClick(View view) {
+    hideSoftInput();
+    handleChangePassword();
   }
 
   public interface IModifyPasswordFragment {

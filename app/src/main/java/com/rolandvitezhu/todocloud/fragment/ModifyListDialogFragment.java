@@ -22,14 +22,25 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
-  private TextInputLayout tilTitle;
-  private TextInputEditText tietTitle;
-  private Button btnOK;
-  private Button btnCancel;
+  @BindView(R.id.textinputlayout_modifylist_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_modifylist_title)
+  TextInputEditText tietTitle;
+  @BindView(R.id.button_modifylist_ok)
+  Button btnOK;
+
+  private List list;
 
   private IModifyListDialogFragment listener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -41,6 +52,7 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    list = (List) getArguments().get("list");
   }
 
   @Override
@@ -50,23 +62,23 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
       Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.dialog_modifylist, container);
+    unbinder = ButterKnife.bind(this, view);
+
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.modifylist_title);
     setSoftInputMode();
 
-    final List list = (List) getArguments().get("list");
-
-    tilTitle = view.findViewById(R.id.textinputlayout_modifylist_title);
-    tietTitle = view.findViewById(R.id.textinputedittext_modifylist_title);
-    btnOK = view.findViewById(R.id.button_modifylist_ok);
-    btnCancel = view.findViewById(R.id.button_modifylist_cancel);
-
     AppController.setText(list.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorActionEvents();
-    applyClickEvents(list);
 
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void setSoftInputMode() {
@@ -122,30 +134,6 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
     });
   }
 
-  private void applyClickEvents(final List list) {
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        String givenTitle = tietTitle.getText().toString().trim();
-
-        if (validateTitle()) {
-          list.setTitle(givenTitle);
-          boolean isInCategory = getArguments().getBoolean("isInCategory");
-          listener.onModifyList(list, isInCategory);
-          dismiss();
-        }
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-    });
-  }
-
   private boolean validateTitle() {
     String givenTitle = tietTitle.getText().toString().trim();
     if (givenTitle.isEmpty()) {
@@ -155,6 +143,23 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
       tilTitle.setErrorEnabled(false);
       return true;
     }
+  }
+
+  @OnClick(R.id.button_modifylist_ok)
+  public void onBtnOkClick(View view) {
+    String givenTitle = tietTitle.getText().toString().trim();
+
+    if (validateTitle()) {
+      list.setTitle(givenTitle);
+      boolean isInCategory = getArguments().getBoolean("isInCategory");
+      listener.onModifyList(list, isInCategory);
+      dismiss();
+    }
+  }
+
+  @OnClick(R.id.button_modifylist_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface IModifyListDialogFragment {

@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 
 import com.rolandvitezhu.todocloud.R;
@@ -23,17 +22,23 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class MoveListDialogFragment extends AppCompatDialogFragment {
 
   @Inject
   DbLoader dbLoader;
 
-  private Spinner spinnerCategory;
-  private Button btnOK;
-  private Button btnCancel;
+  @BindView(R.id.spinner_movelist_category)
+  Spinner spinnerCategory;
 
   private IMoveListDialogFragment listener;
   private ArrayList<Category> categoriesFor;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -57,18 +62,21 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
       Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.dialog_movelist, container);
+    unbinder = ButterKnife.bind(this, view);
+
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.movelist_title);
     setSoftInputMode();
 
-    spinnerCategory = (Spinner) view.findViewById(R.id.spinner_movelist_category);
-    btnOK = (Button) view.findViewById(R.id.button_movelist_ok);
-    btnCancel = (Button) view.findViewById(R.id.button_movelist_cancel);
-
     prepareSpinner();
-    applyClickEvents();
 
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void prepareSpinner() {
@@ -101,29 +109,20 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
     }
   }
 
-  private void applyClickEvents() {
-    btnOK.setOnClickListener(new View.OnClickListener() {
+  @OnClick(R.id.button_movelist_ok)
+  public void onBtnOkClick(View view) {
+    Category category = (Category) getArguments().get("category");
+    boolean isListNotInCategoryBeforeMove = category.getCategoryOnlineId() == null;
+    List list = getArguments().getParcelable("list");
+    Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
+    String categoryOnlineId = selectedCategory.getCategoryOnlineId();
+    listener.onMoveList(list, categoryOnlineId, isListNotInCategoryBeforeMove);
+    dismiss();
+  }
 
-      @Override
-      public void onClick(View v) {
-        Category category = (Category) getArguments().get("category");
-        boolean isListNotInCategoryBeforeMove = category.getCategoryOnlineId() == null;
-        List list = getArguments().getParcelable("list");
-        Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
-        String categoryOnlineId = selectedCategory.getCategoryOnlineId();
-        listener.onMoveList(list, categoryOnlineId, isListNotInCategoryBeforeMove);
-        dismiss();
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-
-    });
+  @OnClick(R.id.button_movelist_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface IMoveListDialogFragment {

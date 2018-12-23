@@ -22,14 +22,25 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Category;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
 
-  private TextInputLayout tilTitle;
-  private TextInputEditText tietTitle;
-  private Button btnOK;
-  private Button btnCancel;
+  @BindView(R.id.textinputlayout_modifycategory_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_modifycategory_title)
+  TextInputEditText tietTitle;
+  @BindView(R.id.button_modifycategory_ok)
+  Button btnOK;
+
+  private Category category;
 
   private IModifyCategoryDialogFragment listener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -41,6 +52,7 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    category = (Category) getArguments().get("category");
   }
 
   @Override
@@ -50,23 +62,23 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
       Bundle savedInstanceState
   ) {
     View view = inflater.inflate(R.layout.dialog_modifycategory, container);
+    unbinder = ButterKnife.bind(this, view);
+
     Dialog dialog = getDialog();
     dialog.setTitle(R.string.modifycategory_title);
     setSoftInputMode();
 
-    final Category category = (Category) getArguments().get("category");
-
-    tilTitle = view.findViewById(R.id.textinputlayout_modifycategory_title);
-    tietTitle = view.findViewById(R.id.textinputedittext_modifycategory_title);
-    btnOK = view.findViewById(R.id.button_modifycategory_ok);
-    btnCancel = view.findViewById(R.id.button_modifycategory_cancel);
-
     AppController.setText(category.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorEvents(btnOK);
-    applyClickEvents(category, btnOK, btnCancel);
 
     return view;
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void setSoftInputMode() {
@@ -122,31 +134,6 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
     });
   }
 
-  private void applyClickEvents(final Category category, Button btnOK, Button btnCancel) {
-    btnOK.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        String givenTitle = tietTitle.getText().toString().trim();
-
-        if (validateTitle()) {
-          category.setTitle(givenTitle);
-          listener.onModifyCategory(category);
-          dismiss();
-        }
-      }
-
-    });
-    btnCancel.setOnClickListener(new View.OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        dismiss();
-      }
-
-    });
-  }
-
   private boolean validateTitle() {
     String givenTitle = tietTitle.getText().toString().trim();
     if (givenTitle.isEmpty()) {
@@ -156,6 +143,22 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
       tilTitle.setErrorEnabled(false);
       return true;
     }
+  }
+
+  @OnClick(R.id.button_modifycategory_ok)
+  public void onBtnOkClick(View view) {
+    String givenTitle = tietTitle.getText().toString().trim();
+
+    if (validateTitle()) {
+      category.setTitle(givenTitle);
+      listener.onModifyCategory(category);
+      dismiss();
+    }
+  }
+
+  @OnClick(R.id.button_modifycategory_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
   public interface IModifyCategoryDialogFragment {

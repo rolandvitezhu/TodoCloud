@@ -230,7 +230,7 @@ public class DbLoader {
           whereClause,
           null
       ) > 0;
-      fixTodoPositions();
+//      fixTodoPositions();
       return successful;
     } else {
       // The Todo has been modified online, therefore _id is unknown yet
@@ -244,7 +244,7 @@ public class DbLoader {
           whereClause,
           null
       ) > 0;
-      fixTodoPositions();
+//      fixTodoPositions();
       return successful;
     }
   }
@@ -376,7 +376,7 @@ public class DbLoader {
     return _IdForDuplicatePositionValues;
   }
 
-  private void fixTodoPositions() {
+  public void fixTodoPositions() {
     HashMap<Integer, ArrayList<Integer>> _IdForDuplicatePositionValues = get_IdForDuplicatePositionValues();
 	  open();
     for (Map.Entry<Integer, ArrayList<Integer>> duplicatePosition : _IdForDuplicatePositionValues.entrySet()) {

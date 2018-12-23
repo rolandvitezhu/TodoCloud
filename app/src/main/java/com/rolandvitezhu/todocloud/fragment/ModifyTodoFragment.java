@@ -12,7 +12,6 @@ import android.support.v7.widget.SwitchCompat;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -30,20 +29,38 @@ import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class ModifyTodoFragment extends Fragment implements
     IDatePickerDialogFragment,
     ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
     ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
 
-  private TextInputLayout tilTitle;
-  private TextInputEditText tietTitle;
-	private SwitchCompat switchPriority;
-	private TextView tvDueDate;
-  private TextView tvReminderDateTime;
-  private Button btnClearDueDate;
-  private Button btnClearReminder;
-  private TextInputLayout tilDescription;
-  private TextInputEditText tietDescription;
+  @BindView(R.id.textinputlayout_modifytodo_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_modifytodo_title)
+  TextInputEditText tietTitle;
+
+  @BindView(R.id.switch_modifytodo_priority)
+	SwitchCompat switchPriority;
+
+	@BindView(R.id.textview_modifytodo_duedate)
+  TextView tvDueDate;
+  @BindView(R.id.textview_modifytodo_reminderdatetime)
+	TextView tvReminderDateTime;
+
+  @BindView(R.id.button_modifytodo_clearduedate)
+  Button btnClearDueDate;
+  @BindView(R.id.button_modifytodo_clearreminder)
+  Button btnClearReminder;
+
+  @BindView(R.id.textinputlayout_modifytodo_description)
+  TextInputLayout tilDescription;
+  @BindView(R.id.textinputedittext_modifytodo_description)
+  TextInputEditText tietDescription;
 
   private Todo todo;
 
@@ -61,6 +78,8 @@ public class ModifyTodoFragment extends Fragment implements
   private IModifyTodoFragmentActionBar actionBarListener;
 
   private boolean shouldNavigateBack;
+
+  Unbinder unbinder;
 
   public boolean isShouldNavigateBack() {
     return shouldNavigateBack;
@@ -90,18 +109,7 @@ public class ModifyTodoFragment extends Fragment implements
       Bundle savedInstanceState
   ) {
 		View view = inflater.inflate(R.layout.fragment_modifytodo, container, false);
-
-    tilTitle = view.findViewById(R.id.textinputlayout_modifytodo_title);
-    tietTitle = view.findViewById(R.id.textinputedittext_modifytodo_title);
-    switchPriority = view.findViewById(R.id.switch_modifytodo_priority);
-    tvDueDate = view.findViewById(R.id.textview_modifytodo_duedate);
-    btnClearDueDate = view.findViewById(R.id.button_modifytodo_clearduedate);
-    btnClearReminder = view.findViewById(R.id.button_modifytodo_clearreminder);
-    tvReminderDateTime = view.findViewById(R.id.textview_modifytodo_reminderdatetime);
-    tilDescription = view.findViewById(R.id.textinputlayout_modifytodo_description);
-    tietDescription = view.findViewById(
-        R.id.textinputedittext_modifytodo_description
-    );
+		unbinder = ButterKnife.bind(this, view);
 
     setTvDueDateText(dueDate);
     setTvReminderDateTimeText(reminderDateTime);
@@ -115,30 +123,6 @@ public class ModifyTodoFragment extends Fragment implements
 //      tvReminderDateTime.setText(reminderDateTimeFormat.format(reminderDateTime));
 //    }
     AppController.setText(todo.getDescription(), tietDescription, tilDescription);
-    tvDueDate.setOnClickListener(new OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        openDatePickerDialogFragment();
-      }
-
-    });
-    tvReminderDateTime.setOnClickListener(onReminderDateTimeClick);
-
-    btnClearDueDate.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        clearDueDate();
-        setClearDueDateVisibility();
-      }
-    });
-    btnClearReminder.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        clearReminder();
-        setClearReminderDateTimeVisibility();
-      }
-    });
 
 	  return view;
   }
@@ -149,6 +133,12 @@ public class ModifyTodoFragment extends Fragment implements
     actionBarListener.onSetActionBarTitle(getString(R.string.modifytodo_title));
     setClearDueDateVisibility();
     setClearReminderDateTimeVisibility();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void setClearDueDateVisibility() {
@@ -214,15 +204,6 @@ public class ModifyTodoFragment extends Fragment implements
 	  datePickerDialogFragment.setArguments(arguments);
 	  datePickerDialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
   }
-
-  private OnClickListener onReminderDateTimeClick = new OnClickListener() {
-
-    @Override
-    public void onClick(View v) {
-      openReminderDatePickerDialogFragment();
-    }
-
-  };
 
   private void openReminderDatePickerDialogFragment() {
     Bundle arguments = new Bundle();
@@ -387,6 +368,28 @@ public class ModifyTodoFragment extends Fragment implements
     zdtReminderDateTime = null;
     reminderDateTimeLong = 0;
     reminderDateTimeDisp = null;
+  }
+
+  @OnClick(R.id.textview_modifytodo_duedate)
+  public void onDueDateClick(View view) {
+    openDatePickerDialogFragment();
+  }
+
+  @OnClick(R.id.textview_modifytodo_reminderdatetime)
+  public void onReminderDateTimeClick(View view) {
+    openReminderDatePickerDialogFragment();
+  }
+
+  @OnClick(R.id.button_modifytodo_clearduedate)
+  public void onBtnClearDueDateClick(View view) {
+    clearDueDate();
+    setClearDueDateVisibility();
+  }
+
+  @OnClick(R.id.button_modifytodo_clearreminder)
+  public void onBtnClearReminderClick(View view) {
+    clearReminder();
+    setClearReminderDateTimeVisibility();
   }
 
   public interface IModifyTodoFragment {

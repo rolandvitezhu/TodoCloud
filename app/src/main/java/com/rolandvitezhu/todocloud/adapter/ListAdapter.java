@@ -12,9 +12,15 @@ import com.rolandvitezhu.todocloud.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class ListAdapter extends BaseAdapter {
 
   private List<com.rolandvitezhu.todocloud.data.List> lists;
+
+  @BindView(R.id.textview_itemlist_actiontext)
+  TextView tvTitle;
 
   public ListAdapter() {
     lists = new ArrayList<>();
@@ -43,7 +49,8 @@ public class ListAdapter extends BaseAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_list, null);
-    TextView tvTitle = (TextView) convertView.findViewById(R.id.textview_itemlist_actiontext);
+    ButterKnife.bind(this, convertView);
+
     tvTitle.setText(list.getTitle());
 
     return convertView;

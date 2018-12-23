@@ -18,10 +18,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
@@ -35,19 +33,32 @@ import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class CreateTodoFragment extends Fragment implements
     IDatePickerDialogFragment,
     ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
     ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
 
-  private TextInputLayout tilTitle;
-	private TextInputEditText tietTitle;
-	private SwitchCompat switchPriority;
-	private TextView tvDueDate;
-  private TextView tvReminderDateTime;
-  private Button btnClearDueDate;
-  private Button btnClearReminder;
-  private TextInputEditText tietDescription;
+  @BindView(R.id.textinputlayout_createtodo_title)
+  TextInputLayout tilTitle;
+  @BindView(R.id.textinputedittext_createtodo_title)
+  TextInputEditText tietTitle;
+  @BindView(R.id.switch_createtodo_priority)
+  SwitchCompat switchPriority;
+  @BindView(R.id.textview_createtodo_duedate)
+  TextView tvDueDate;
+  @BindView(R.id.textview_createtodo_reminderdatetime)
+  TextView tvReminderDateTime;
+  @BindView(R.id.button_createtodo_clearduedate)
+  TextView btnClearDueDate;
+  @BindView(R.id.button_createtodo_clearreminder)
+  TextView btnClearReminder;
+  @BindView(R.id.textinputedittext_createtodo_description)
+  TextInputEditText tietDescription;
 
   private LocalDate dueDate;
   private ZonedDateTime zdtDueDate;
@@ -61,6 +72,8 @@ public class CreateTodoFragment extends Fragment implements
 
 	private ICreateTodoFragment listener;
   private ICreateTodoFragmentActionBar actionBarListener;
+
+  Unbinder unbinder;
 
   @Override
   public void onAttach(Context context) {
@@ -83,17 +96,7 @@ public class CreateTodoFragment extends Fragment implements
       Bundle savedInstanceState
   ) {
 		View view = inflater.inflate(R.layout.fragment_createtodo, container, false);
-
-    tilTitle = view.findViewById(R.id.textinputlayout_createtodo_title);
-    tietTitle = view.findViewById(R.id.textinputedittext_createtodo_title);
-    switchPriority = view.findViewById(R.id.switch_createtodo_priority);
-    tvDueDate = view.findViewById(R.id.textview_createtodo_duedate);
-    btnClearDueDate = view.findViewById(R.id.button_createtodo_clearduedate);
-    btnClearReminder = view.findViewById(R.id.button_createtodo_clearreminder);
-    tvReminderDateTime = view.findViewById(R.id.textview_createtodo_reminderdatetime);
-    tietDescription = view.findViewById(
-        R.id.textinputedittext_createtodo_description
-    );
+		unbinder = ButterKnife.bind(this, view);
 
     tietTitle.addTextChangedListener(new TextWatcher() {
 
@@ -116,32 +119,22 @@ public class CreateTodoFragment extends Fragment implements
 
     setTvDueDateText(dueDate);
     setTvReminderDateTimeText(null);
-    tvDueDate.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				openDatePickerDialogFragment();
-			}
-
-		});
-    tvReminderDateTime.setOnClickListener(onReminderDateTimeClick);
-
-    btnClearDueDate.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        clearDueDate();
-        setClearDueDateVisibility();
-      }
-    });
-    btnClearReminder.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        clearReminder();
-        setClearReminderDateTimeVisibility();
-      }
-    });
 
 	  return view;
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    actionBarListener.onSetActionBarTitle(getString(R.string.all_createtodo));
+    setClearDueDateVisibility();
+    setClearReminderDateTimeVisibility();
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    unbinder.unbind();
   }
 
   private void initDueDate() {
@@ -168,14 +161,6 @@ public class CreateTodoFragment extends Fragment implements
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_TIME
       );
     }
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    actionBarListener.onSetActionBarTitle(getString(R.string.all_createtodo));
-    setClearDueDateVisibility();
-    setClearReminderDateTimeVisibility();
   }
 
   private void setClearDueDateVisibility() {
@@ -267,15 +252,6 @@ public class CreateTodoFragment extends Fragment implements
     datePickerDialogFragment.setArguments(arguments);
 	  datePickerDialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
   }
-
-  private OnClickListener onReminderDateTimeClick = new OnClickListener() {
-
-    @Override
-    public void onClick(View v) {
-      openReminderDatePickerDialogFragment();
-    }
-
-  };
 
   private void openReminderDatePickerDialogFragment() {
     Bundle arguments = new Bundle();
@@ -379,6 +355,28 @@ public class CreateTodoFragment extends Fragment implements
     zdtReminderDateTime = null;
     reminderDateTimeLong = 0;
     reminderDateTimeDisp = null;
+  }
+
+  @OnClick(R.id.textview_createtodo_duedate)
+  public void onTvDueDateClick(View view) {
+    openDatePickerDialogFragment();
+  }
+
+  @OnClick(R.id.button_createtodo_clearduedate)
+  public void onBtnClearDueDateClick(View view) {
+    clearDueDate();
+    setClearDueDateVisibility();
+  }
+
+  @OnClick(R.id.button_createtodo_clearreminder)
+  public void onBtnClearReminderClick(View view) {
+    clearReminder();
+    setClearReminderDateTimeVisibility();
+  }
+
+  @OnClick(R.id.textview_createtodo_reminderdatetime)
+  public void onTvReminderDateTimeClick(View view) {
+    openReminderDatePickerDialogFragment();
   }
 
   public interface ICreateTodoFragment {

@@ -189,6 +189,7 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
                 dbLoader.createTodo(todo);
               } else {
                 dbLoader.updateTodo(todo);
+                dbLoader.fixTodoPositions();
               }
             }
           }
@@ -269,6 +270,7 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
           private void makeTodoUpToDate() {
             todoToUpdate.setDirty(false);
             dbLoader.updateTodo(todoToUpdate);
+            dbLoader.fixTodoPositions();
           }
 
         },
@@ -371,6 +373,7 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
           private void makeTodoUpToDate() {
             todoToInsert.setDirty(false);
             dbLoader.updateTodo(todoToInsert);
+            dbLoader.fixTodoPositions();
           }
 
         },
