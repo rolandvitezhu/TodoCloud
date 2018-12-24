@@ -1098,12 +1098,16 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void showAnErrorOccurredError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_anerroroccurred,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_anerroroccurred,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      Log.d(TAG, "CoordinatorLayout doesn't exists already.");
+    }
   }
 
   @OnClick(R.id.main_fab_create_category)
