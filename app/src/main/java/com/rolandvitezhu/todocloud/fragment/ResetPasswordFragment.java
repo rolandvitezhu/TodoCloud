@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,7 +27,10 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
+import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordRequest;
+import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordResponse;
+import com.rolandvitezhu.todocloud.network.api.user.service.ResetPasswordService;
+import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -34,14 +38,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class ResetPasswordFragment extends Fragment
-    implements UserDataSynchronizer.OnResetPasswordListener {
+public class ResetPasswordFragment extends Fragment {
+
+  private final String TAG = getClass().getSimpleName();
 
   @Inject
   DbLoader dbLoader;
   @Inject
-  UserDataSynchronizer userDataSynchronizer;
+  Retrofit retrofit;
 
   @BindView(R.id.coordinatorlayout_resetpassword)
   CoordinatorLayout coordinatorLayout;
@@ -71,8 +80,6 @@ public class ResetPasswordFragment extends Fragment
     super.onCreate(savedInstanceState);
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
-
-    userDataSynchronizer.setOnResetPasswordListener(this);
   }
 
   @Nullable
@@ -148,7 +155,37 @@ public class ResetPasswordFragment extends Fragment
   private void handleResetPassword() {
     if (validateEmail()) {
       String email = tietEmail.getText().toString().trim();
-      userDataSynchronizer.resetPassword(email);
+
+//      userDataSynchronizer.resetPassword(email);
+
+      ResetPasswordService resetPasswordService = retrofit.create(ResetPasswordService.class);
+
+      ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
+
+      resetPasswordRequest.setEmail(email);
+
+      Call<ResetPasswordResponse> call = resetPasswordService.resetPassword(resetPasswordRequest);
+
+      call.enqueue(new Callback<ResetPasswordResponse>() {
+        @Override
+        public void onResponse(Call<ResetPasswordResponse> call, Response<ResetPasswordResponse> response) {
+          Log.d(TAG, "Reset Password Response: " + RetrofitResponseHelper.ResponseToJson(response));
+
+          if (RetrofitResponseHelper.IsNoError(response)) {
+            onFinishResetPassword();
+          } else if (response.body() != null) {
+            String message = response.body().getMessage();
+
+            if (message == null) message = "Unknown error";
+            onSyncError(message);
+          }
+        }
+
+        @Override
+        public void onFailure(Call<ResetPasswordResponse> call, Throwable t) {
+          Log.d(TAG, "Reset Password Response - onFailure: " + t.toString());
+        }
+      });
     }
   }
 
@@ -184,13 +221,11 @@ public class ResetPasswordFragment extends Fragment
     return !email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches();
   }
 
-  @Override
   public void onFinishResetPassword() {
     hideFormSubmissionErrors();
     listener.onFinishResetPassword();
   }
 
-  @Override
   public void onSyncError(String errorMessage) {
     showErrorMessage(errorMessage);
   }
@@ -208,31 +243,47 @@ public class ResetPasswordFragment extends Fragment
   }
 
   private void hideFormSubmissionErrors() {
-    tvFormSubmissionErrors.setText("");
-    tvFormSubmissionErrors.setVisibility(View.GONE);
+    try {
+      tvFormSubmissionErrors.setText("");
+      tvFormSubmissionErrors.setVisibility(View.GONE);
+    } catch (NullPointerException e) {
+      // TextView doesn't exists already.
+    }
   }
 
   private void showFailedToConnectError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_failedtoconnect,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_failedtoconnect,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
+    }
   }
 
   private void showFailedToResetPasswordError() {
-    tvFormSubmissionErrors.setText(R.string.modifypassword_failedtoresetpassword);
-    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    try {
+      tvFormSubmissionErrors.setText(R.string.modifypassword_failedtoresetpassword);
+      tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    } catch (NullPointerException e) {
+      // TextView doesn't exists already.
+    }
   }
 
   private void showAnErrorOccurredError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_anerroroccurred,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_anerroroccurred,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
+    }
   }
 
   @OnClick(R.id.button_resetpassword)

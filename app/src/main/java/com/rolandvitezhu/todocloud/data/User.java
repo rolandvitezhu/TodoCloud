@@ -4,6 +4,8 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,6 +26,13 @@ public class User implements Parcelable {
     this.name = name;
     this.email = email;
     this.apiKey = apiKey;
+  }
+
+  public User(LoginUserResponse loginUserResponse) {
+    userOnlineId = loginUserResponse.userOnlineId;
+    name = loginUserResponse.name;
+    email = loginUserResponse.email;
+    apiKey = loginUserResponse.apiKey;
   }
 
   protected User(Parcel in) {

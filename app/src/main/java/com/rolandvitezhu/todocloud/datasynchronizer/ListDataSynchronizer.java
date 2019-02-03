@@ -1,31 +1,29 @@
 package com.rolandvitezhu.todocloud.datasynchronizer;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.rolandvitezhu.todocloud.app.AppConfig;
-import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rolandvitezhu.todocloud.network.api.list.dto.GetListsResponse;
+import com.rolandvitezhu.todocloud.network.api.list.dto.InsertListRequest;
+import com.rolandvitezhu.todocloud.network.api.list.dto.InsertListResponse;
+import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListRequest;
+import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListResponse;
+import com.rolandvitezhu.todocloud.network.api.list.service.GetListsService;
+import com.rolandvitezhu.todocloud.network.api.list.service.InsertListService;
+import com.rolandvitezhu.todocloud.network.api.list.service.UpdateListService;
+import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
+import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
+import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class ListDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
-  private static final String TABLE = DbConstants.List.DATABASE_TABLE;
 
   private OnSyncListDataListener onSyncListDataListener;
   private boolean isUpdateListRequestsFinished;
@@ -38,41 +36,105 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
   private ArrayList<List> listsToUpdate;
   private ArrayList<List> listsToInsert;
 
-  private Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
-    @Override
-    public void onResponse(JSONObject response) {
-      try {
-        boolean error = response.getBoolean("error");
-
-        if (!error) {
-          nextRowVersion = response.getInt("next_row_version");
-          setRowVersionsForLists(listsToUpdate);
-          setRowVersionsForLists(listsToInsert);
-          updateLists();
-        } else {
-          String message = response.getString("message");
-          Log.d(TAG, "Error Message: " + message);
-        }
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
-    }
-  };
-
-  private Response.ErrorListener responseErrorListener = new Response.ErrorListener() {
-    @Override
-    public void onErrorResponse(VolleyError error) {
-      Log.e(TAG, "Get Next Row Version Error: " + error);
-    }
-  };
-
   void setOnSyncListDataListener(OnSyncListDataListener onSyncListDataListener) {
     this.onSyncListDataListener = onSyncListDataListener;
   }
 
   void syncListData() {
     initListRequestsStates();
-    getLists();
+
+    GetListsService getListsService = retrofit.create(GetListsService.class);
+
+    Call<GetListsResponse> call = getListsService.
+        getLists(dbLoader.getLastTodoRowVersion(), dbLoader.getApiKey());
+
+    call.enqueue(new Callback<GetListsResponse>() {
+      @Override
+      public void onResponse(Call<GetListsResponse> call, retrofit2.Response<GetListsResponse> response) {
+        Log.d(TAG, "Get Lists Response: " + RetrofitResponseHelper.ResponseToJson(response));
+
+        if (RetrofitResponseHelper.IsNoError(response)) {
+          ArrayList<List> lists = null;
+
+          if (response.body() != null) {
+            lists = response.body().getLists();
+          }
+          if (lists != null && !lists.isEmpty()) {
+            updateListsInLocalDatabase(lists);
+          }
+
+          boolean shouldUpdateOrInsertLists = !listsToUpdate.isEmpty() || !listsToInsert.isEmpty();
+
+          if (shouldUpdateOrInsertLists)
+            updateOrInsertLists();
+          else onSyncListDataListener.onFinishSyncListData();
+        } else if (response.body() != null) {
+          // Handle error, if any
+          String message = response.body().getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncListDataListener.onSyncError(message);
+        }
+      }
+
+      @Override
+      public void onFailure(Call<GetListsResponse> call, Throwable t) {
+        Log.d(TAG, "Get Next Row Version Response - onFailure: " + t.toString());
+      }
+    });
+  }
+
+  private void updateOrInsertLists() {
+    GetNextRowVersionService getNextRowVersionService = retrofit.create(GetNextRowVersionService.class);
+
+    Call<GetNextRowVersionResponse> call = getNextRowVersionService.getNextRowVersion(
+        DbConstants.List.DATABASE_TABLE, dbLoader.getApiKey()
+    );
+
+    call.enqueue(new Callback<GetNextRowVersionResponse>() {
+      @Override
+      public void onResponse(
+          Call<GetNextRowVersionResponse> call,
+          retrofit2.Response<GetNextRowVersionResponse> response
+      ) {
+        Log.d(
+            TAG,
+            "Get Next Row Version Response: "
+                + RetrofitResponseHelper.ResponseToJson(response)
+        );
+
+        if (RetrofitResponseHelper.IsNoError(response)) {
+          nextRowVersion = response.body() != null ? response.body().getNextRowVersion() : 0;
+
+          setRowVersionsForLists(listsToUpdate);
+          setRowVersionsForLists(listsToInsert);
+
+          updateLists();
+          insertLists();
+        } else if (response.body() != null) {
+          String message = response.body().getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncListDataListener.onSyncError(message);
+        }
+      }
+
+      @Override
+      public void onFailure(Call<GetNextRowVersionResponse> call, Throwable t) {
+        Log.d(TAG, "Get Next Row Version Response - onFailure: " + t.toString());
+      }
+    });
+  }
+
+  private void updateListsInLocalDatabase(ArrayList<List> lists) {
+    for (List list : lists) {
+      boolean exists = dbLoader.isListExists(list.getListOnlineId());
+      if (!exists) {
+        dbLoader.createList(list);
+      } else {
+        dbLoader.updateList(list);
+      }
+    }
   }
 
   private void initListRequestsStates() {
@@ -89,175 +151,49 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
     }
   }
 
-  private void getLists() {
-    String tag_string_request = "request_get_lists";
-    StringRequest getListsRequest = prepareGetListsRequest();
-    AppController.getInstance().addToRequestQueue(getListsRequest, tag_string_request);
-  }
-
   private void updateLists() {
+    // Process list
     if (!listsToUpdate.isEmpty()) {
-      AppController appController = AppController.getInstance();
-      String tag_json_object_request = "request_update_list";
       updateListRequestCount = listsToUpdate.size();
       currentUpdateListRequest = 1;
-      for (final List listToUpdate : listsToUpdate) {
-        JsonObjectRequest updateListRequest = prepareUpdateListRequest(listToUpdate);
-        appController.addToRequestQueue(updateListRequest, tag_json_object_request);
-      }
-    } else {
-      isUpdateListRequestsFinished = true;
-      if (isAllListRequestsFinished()) {
-        onSyncListDataListener.onFinishSyncListData();
-      }
-    }
-    insertLists();
-  }
 
-  private void insertLists() {
-    if (!listsToInsert.isEmpty()) {
-      AppController appController = AppController.getInstance();
-      String tag_json_object_request = "request_insert_list";
-      insertListRequestCount = listsToInsert.size();
-      currentInsertListRequest = 1;
-      for (final List listToInsert : listsToInsert) {
-        JsonObjectRequest insertListRequest = prepareInsertListRequest(listToInsert);
-        appController.addToRequestQueue(insertListRequest, tag_json_object_request);
-      }
-    } else {
-      isInsertListRequestsFinished = true;
-      if (isAllListRequestsFinished()) {
-        onSyncListDataListener.onFinishSyncListData();
-      }
-    }
-  }
+      // Process list item
+      for (List listToUpdate : listsToUpdate) {
+        UpdateListService updateListService = retrofit.create(UpdateListService.class);
 
-  private StringRequest prepareGetListsRequest() {
-    String url = prepareGetListsUrl();
-    StringRequest getListsRequest = new StringRequest(
-        Request.Method.GET,
-        url,
-        new Response.Listener<String>() {
+        UpdateListRequest updateListRequest = new UpdateListRequest();
 
+        updateListRequest.setListOnlineId(listToUpdate.getListOnlineId());
+        updateListRequest.setCategoryOnlineId(listToUpdate.getCategoryOnlineId());
+        updateListRequest.setTitle(listToUpdate.getTitle());
+        updateListRequest.setRowVersion(listToUpdate.getRowVersion());
+        updateListRequest.setDeleted(listToUpdate.getDeleted());
+        updateListRequest.setPosition(listToUpdate.getPosition());
+
+        Call<UpdateListResponse> call = updateListService.updateList(
+            dbLoader.getApiKey(),
+            updateListRequest
+        );
+
+        call.enqueue(new Callback<UpdateListResponse>() {
           @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Get Lists Response: " + response);
-            try {
-              JSONObject jsonResponse = new JSONObject(response);
-              boolean error = jsonResponse.getBoolean("error");
+          public void onResponse(Call<UpdateListResponse> call, retrofit2.Response<UpdateListResponse> response) {
+            Log.d(TAG, "Update List Response: " + RetrofitResponseHelper.ResponseToJson(response));
 
-              if (!error) {
-                ArrayList<List> lists = getLists(jsonResponse);
-                if (!lists.isEmpty()) {
-                  updateListsInLocalDatabase(lists);
-                }
-
-                boolean shouldUpdateOrInsertLists = !listsToUpdate.isEmpty() || !listsToInsert.isEmpty();
-                if (shouldUpdateOrInsertLists)
-                  getNextRowVersion(TABLE, responseListener, responseErrorListener);
-                else onSyncListDataListener.onFinishSyncListData();
-              } else {
-                String message = jsonResponse.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-                if (message == null) message = "Unknown error";
-                onSyncListDataListener.onSyncError(message);
-              }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              String errorMessage = "Unknown error";
-              onSyncListDataListener.onSyncError(errorMessage);
-            }
-          }
-
-          @NonNull
-          private ArrayList<List> getLists(JSONObject jsonResponse) throws JSONException {
-            JSONArray jsonLists = jsonResponse.getJSONArray("lists");
-            ArrayList<List> lists = new ArrayList<>();
-
-            for (int i = 0; i < jsonLists.length(); i++) {
-              JSONObject jsonList = jsonLists.getJSONObject(i);
-              List list = new List(jsonList);
-              lists.add(list);
-            }
-            return lists;
-          }
-
-          private void updateListsInLocalDatabase(ArrayList<List> lists) {
-            for (List list : lists) {
-              boolean exists = dbLoader.isListExists(list.getListOnlineId());
-              if (!exists) {
-                dbLoader.createList(list);
-              } else {
-                dbLoader.updateList(list);
-              }
-            }
-          }
-
-        },
-        new Response.ErrorListener() {
-
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Get Lists Error: " + errorMessage);
-            if (errorMessage == null) errorMessage = "Unknown error";
-            onSyncListDataListener.onSyncError(errorMessage);
-          }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
-      }
-
-    };
-    return getListsRequest;
-  }
-
-  // 000webhost.com don't allow PUT and DELETE requests for free accounts
-  private JsonObjectRequest prepareUpdateListRequest(final List listToUpdate) {
-    JSONObject updateListJsonRequest = prepareUpdateListJsonRequest(listToUpdate);
-    JsonObjectRequest updateListRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.POST,
-        AppConfig.URL_UPDATE_LIST,
-        updateListJsonRequest,
-        new Response.Listener<JSONObject>() {
-
-          @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Update List Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
-
-              if (!error) {
-                makeListUpToDate();
-                if (isLastUpdateListRequest()) {
-                  isUpdateListRequestsFinished = true;
-                  if (isAllListRequestsFinished()) {
-                    onSyncListDataListener.onFinishSyncListData();
-                  }
-                }
-              } else {
-                String message = response.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-                if (message == null) message = "Unknown error";
-                onSyncListDataListener.onSyncError(message);
-                if (isLastUpdateListRequest()) {
-                  isUpdateListRequestsFinished = true;
-                  if (isAllListRequestsFinished()) {
-                    onSyncListDataListener.onFinishSyncListData();
-                  }
+            if (RetrofitResponseHelper.IsNoError(response)) {
+              makeListUpToDate(listToUpdate);
+              if (isLastUpdateListRequest()) {
+                isUpdateListRequestsFinished = true;
+                if (isAllListRequestsFinished()) {
+                  onSyncListDataListener.onFinishSyncListData();
                 }
               }
+            } else if (response.body() != null) {
+              String message = response.body().getMessage();
 
-            } catch (JSONException e) {
-              e.printStackTrace();
-              String errorMessage = "Unknown error";
-              onSyncListDataListener.onSyncError(errorMessage);
+              if (message == null) message = "Unknown error";
+              onSyncListDataListener.onSyncError(message);
+
               if (isLastUpdateListRequest()) {
                 isUpdateListRequestsFinished = true;
                 if (isAllListRequestsFinished()) {
@@ -267,20 +203,12 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
             }
           }
 
-          private void makeListUpToDate() {
-            listToUpdate.setDirty(false);
-            dbLoader.updateList(listToUpdate);
-          }
-
-        },
-        new Response.ErrorListener() {
-
           @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Update List Error: " + errorMessage);
-            if (errorMessage == null) errorMessage = "Unknown error";
-            onSyncListDataListener.onSyncError(errorMessage);
+          public void onFailure(Call<UpdateListResponse> call, Throwable t) {
+            Log.d(TAG, "Update List Response - onFailure: " + t.toString());
+
+            onSyncListDataListener.onSyncError(t.toString());
+
             if (isLastUpdateListRequest()) {
               isUpdateListRequestsFinished = true;
               if (isAllListRequestsFinished()) {
@@ -288,77 +216,64 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
               }
             }
           }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
+        });
       }
-
-    };
-    return updateListRequest;
-  }
-
-  private JSONObject prepareUpdateListJsonRequest(final List listToUpdate) {
-    JSONObject updateListJsonRequest = new JSONObject();
-    try {
-      putListData(listToUpdate, updateListJsonRequest);
-    } catch (JSONException e) {
-      e.printStackTrace();
-      String errorMessage = "Unknown error";
-      onSyncListDataListener.onSyncError(errorMessage);
-      if (isLastUpdateListRequest()) {
-        isUpdateListRequestsFinished = true;
-        if (isAllListRequestsFinished()) {
-          onSyncListDataListener.onFinishSyncListData();
-        }
+      // Sync finished - there are no list items
+    } else {
+      isUpdateListRequestsFinished = true;
+      if (isAllListRequestsFinished()) {
+        onSyncListDataListener.onFinishSyncListData();
       }
     }
-    return updateListJsonRequest;
   }
 
-  private JsonObjectRequest prepareInsertListRequest(final List listToInsert) {
-    JSONObject insertListJsonRequest = prepareInsertListJsonRequest(listToInsert);
-    JsonObjectRequest insertListRequest = new JsonObjectRequest(
-        JsonObjectRequest.Method.POST,
-        AppConfig.URL_INSERT_LIST,
-        insertListJsonRequest,
-        new Response.Listener<JSONObject>() {
+  private void makeListUpToDate(List listToUpdate) {
+    listToUpdate.setDirty(false);
+    dbLoader.updateList(listToUpdate);
+  }
 
+  private void insertLists() {
+    // Process list
+    if (!listsToInsert.isEmpty()) {
+      insertListRequestCount = listsToInsert.size();
+      currentInsertListRequest = 1;
+
+      // Process list item
+      for (List listToInsert : listsToInsert) {
+        InsertListService insertListService = retrofit.create(InsertListService.class);
+
+        InsertListRequest insertListRequest = new InsertListRequest();
+
+        insertListRequest.setListOnlineId(listToInsert.getListOnlineId());
+        insertListRequest.setCategoryOnlineId(listToInsert.getCategoryOnlineId());
+        insertListRequest.setTitle(listToInsert.getTitle());
+        insertListRequest.setRowVersion(listToInsert.getRowVersion());
+        insertListRequest.setDeleted(listToInsert.getDeleted());
+        insertListRequest.setPosition(listToInsert.getPosition());
+
+        Call<InsertListResponse> call = insertListService.insertList(
+            dbLoader.getApiKey(), insertListRequest
+        );
+
+        call.enqueue(new Callback<InsertListResponse>() {
           @Override
-          public void onResponse(JSONObject response) {
-            Log.d(TAG, "Insert List Response: " + response);
-            try {
-              boolean error = response.getBoolean("error");
+          public void onResponse(Call<InsertListResponse> call, retrofit2.Response<InsertListResponse> response) {
+            Log.d(TAG, "Insert List Response: " + RetrofitResponseHelper.ResponseToJson(response));
 
-              if (!error) {
-                makeListUpToDate();
-                if (isLastInsertListRequest()) {
-                  isInsertListRequestsFinished = true;
-                  if (isAllListRequestsFinished()) {
-                    onSyncListDataListener.onFinishSyncListData();
-                  }
-                }
-              } else {
-                String message = response.getString("message");
-                Log.d(TAG, "Error Message: " + message);
-                if (message == null) message = "Unknown error";
-                onSyncListDataListener.onSyncError(message);
-                if (isLastInsertListRequest()) {
-                  isInsertListRequestsFinished = true;
-                  if (isAllListRequestsFinished()) {
-                    onSyncListDataListener.onFinishSyncListData();
-                  }
+            if (RetrofitResponseHelper.IsNoError(response)) {
+              makeListUpToDate(listToInsert);
+              if (isLastInsertListRequest()) {
+                isInsertListRequestsFinished = true;
+                if (isAllListRequestsFinished()) {
+                  onSyncListDataListener.onFinishSyncListData();
                 }
               }
-            } catch (JSONException e) {
-              e.printStackTrace();
-              String errorMessage = "Unknown error";
-              onSyncListDataListener.onSyncError(errorMessage);
+            } else if (response.body() != null) {
+              String message = response.body().getMessage();
+
+              if (message == null) message = "Unknown error";
+              onSyncListDataListener.onSyncError(message);
+
               if (isLastInsertListRequest()) {
                 isInsertListRequestsFinished = true;
                 if (isAllListRequestsFinished()) {
@@ -368,20 +283,12 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
             }
           }
 
-          private void makeListUpToDate() {
-            listToInsert.setDirty(false);
-            dbLoader.updateList(listToInsert);
-          }
-
-        },
-        new Response.ErrorListener() {
-
           @Override
-          public void onErrorResponse(VolleyError error) {
-            String errorMessage = error.getMessage();
-            Log.e(TAG, "Insert List Error: " + errorMessage);
-            if (errorMessage == null) errorMessage = "Unknown error";
-            onSyncListDataListener.onSyncError(errorMessage);
+          public void onFailure(Call<InsertListResponse> call, Throwable t) {
+            Log.d(TAG, "Insert List Response - onFailure: " + t.toString());
+
+            onSyncListDataListener.onSyncError(t.toString());
+
             if (isLastInsertListRequest()) {
               isInsertListRequestsFinished = true;
               if (isAllListRequestsFinished()) {
@@ -389,19 +296,15 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
               }
             }
           }
-
-        }
-    ) {
-
-      @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("authorization", dbLoader.getApiKey());
-        return headers;
+        });
       }
-
-    };
-    return insertListRequest;
+      // Sync finished - there are no list items
+    } else {
+      isInsertListRequestsFinished = true;
+      if (isAllListRequestsFinished()) {
+        onSyncListDataListener.onFinishSyncListData();
+      }
+    }
   }
 
   private boolean isLastInsertListRequest() {
@@ -418,45 +321,6 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
     } else {
       return false;
     }
-  }
-
-  @NonNull
-  private String prepareGetListsUrl() {
-    int end = AppConfig.URL_GET_LISTS.lastIndexOf(":");
-    return AppConfig.URL_GET_LISTS.substring(0, end)
-        + dbLoader.getLastListRowVersion();
-  }
-
-  private JSONObject prepareInsertListJsonRequest(final List listToInsert) {
-    JSONObject insertListJsonRequest = new JSONObject();
-    try {
-      putListData(listToInsert, insertListJsonRequest);
-    } catch (JSONException e) {
-      e.printStackTrace();
-      String errorMessage = "Unknown error";
-      onSyncListDataListener.onSyncError(errorMessage);
-      if (isLastInsertListRequest()) {
-        isInsertListRequestsFinished = true;
-        if (isAllListRequestsFinished()) {
-          onSyncListDataListener.onFinishSyncListData();
-        }
-      }
-    }
-    return insertListJsonRequest;
-  }
-
-  private void putListData(List listData, JSONObject jsonRequest) throws JSONException {
-    jsonRequest.put("list_online_id", listData.getListOnlineId().trim());
-    if (listData.getCategoryOnlineId() != null) {
-      jsonRequest.put("category_online_id", listData.getCategoryOnlineId().trim());
-    } else {
-      jsonRequest.put("category_online_id", "");
-    }
-    jsonRequest.put("title", listData.getTitle().trim());
-    jsonRequest.put(DbConstants.List.KEY_ROW_VERSION, listData.getRowVersion());
-    jsonRequest.put("deleted", listData.getDeleted() ? 1 : 0);
-    // TODO: Swap dummy value with real data
-    jsonRequest.put(DbConstants.List.KEY_POSITION, 0);
   }
 
   private boolean isAllListRequestsFinished() {

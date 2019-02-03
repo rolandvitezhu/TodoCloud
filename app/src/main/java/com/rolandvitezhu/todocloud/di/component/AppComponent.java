@@ -5,7 +5,6 @@ import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateAdapterTask;
 import com.rolandvitezhu.todocloud.datasynchronizer.BaseDataSynchronizer;
 import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer;
-import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.rolandvitezhu.todocloud.di.module.AppModule;
 import com.rolandvitezhu.todocloud.di.module.NetworkModule;
 import com.rolandvitezhu.todocloud.fragment.LoginUserFragment;
@@ -38,6 +37,5 @@ public interface AppComponent {
   void inject(UpdateAdapterTask updateAdapterTask);
   void inject(BaseDataSynchronizer baseDataSynchronizer);
   void inject(ReminderService reminderService);
-  void inject(UserDataSynchronizer userDataSynchronizer);
   void inject(DataSynchronizer dataSynchronizer);
 }

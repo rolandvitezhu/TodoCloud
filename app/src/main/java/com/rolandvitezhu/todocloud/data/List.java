@@ -4,6 +4,8 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,13 +20,20 @@ import static com.rolandvitezhu.todocloud.datastorage.DbConstants.List.KEY_USER_
 public class List implements Parcelable {
 
   private long _id;
+  @SerializedName("list_online_id")
   private String listOnlineId;
+  @SerializedName("user_online_id")
   private String userOnlineId;
+  @SerializedName("category_online_id")
   private String categoryOnlineId;
+  @SerializedName("title")
   private String title;
+  @SerializedName("row_version")
   private int rowVersion;
+  @SerializedName("deleted")
   private Boolean deleted;
   private Boolean dirty;
+  @SerializedName("position")
   private int position;
 
 //  private int numberOfTodos;
@@ -151,7 +160,7 @@ public class List implements Parcelable {
   }
 
   public Boolean getDirty() {
-    return dirty;
+    return dirty != null ? dirty : false;
   }
 
   public void setDirty(Boolean dirty) {

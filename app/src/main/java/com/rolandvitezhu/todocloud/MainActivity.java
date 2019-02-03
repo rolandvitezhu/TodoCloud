@@ -475,25 +475,29 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void onFinishModifyPassword() {
-    if (coordinatorLayout != null) {
+    try {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
           R.string.modifypassword_passwordchangedsuccessfully,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
     }
   }
 
   @Override
   public void onFinishResetPassword() {
-    if (coordinatorLayout != null) {
+    try {
       Snackbar snackbar = Snackbar.make(
           coordinatorLayout,
           R.string.resetpassword_passwordresetsuccessful,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
     }
   }
 

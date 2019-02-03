@@ -25,9 +25,13 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
+import com.rolandvitezhu.todocloud.data.User;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
+import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserRequest;
+import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse;
+import com.rolandvitezhu.todocloud.network.api.user.service.LoginUserService;
+import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -35,9 +39,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class LoginUserFragment extends Fragment
-    implements UserDataSynchronizer.OnLoginUserListener {
+public class LoginUserFragment extends Fragment {
 
   private final String TAG = getClass().getSimpleName();
 
@@ -46,7 +53,7 @@ public class LoginUserFragment extends Fragment
   @Inject
   DbLoader dbLoader;
   @Inject
-  UserDataSynchronizer userDataSynchronizer;
+  Retrofit retrofit;
 
   @BindView(R.id.coordinatorlayout_loginuser)
   CoordinatorLayout coordinatorLayout;
@@ -88,8 +95,6 @@ public class LoginUserFragment extends Fragment
 
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
-    } else {
-      userDataSynchronizer.setOnLoginUserListener(this);
     }
   }
 
@@ -113,7 +118,7 @@ public class LoginUserFragment extends Fragment
     try {
       listener.onSetActionBarTitle(getString(R.string.all_login));
     } catch (NullPointerException e) {
-      Log.d(TAG, "Activity doesn't exists already.");
+      // Activity doesn't exists already.
     }
     applyOrientationPortrait();
   }
@@ -149,10 +154,50 @@ public class LoginUserFragment extends Fragment
     boolean areFieldsValid = validateEmail() & validatePassword();
     if (areFieldsValid) {
       dbLoader.reCreateDb();
+
       String email = tietEmail.getText().toString().trim();
       String password = tietPassword.getText().toString().trim();
-      userDataSynchronizer.loginUser(email, password);
+
+//      userDataSynchronizer.loginUser(email, password);
+      LoginUserService loginUserService = retrofit.create(LoginUserService.class);
+
+      LoginUserRequest loginUserRequest = new LoginUserRequest();
+
+      loginUserRequest.setEmail(email);
+      loginUserRequest.setPassword(password);
+
+      Call<LoginUserResponse> call = loginUserService.loginUser(loginUserRequest);
+
+      call.enqueue(new Callback<LoginUserResponse>() {
+        @Override
+        public void onResponse(Call<LoginUserResponse> call, Response<LoginUserResponse> response) {
+          Log.d(TAG, "Login Response: " + RetrofitResponseHelper.ResponseToJson(response));
+
+          if (RetrofitResponseHelper.IsNoError(response)) {
+            handleLogin(response);
+            onFinishLoginUser();
+          } else if (response.body() != null) {
+            String message = response.body().getMessage();
+
+            if (message == null) message = "Unknown error";
+            onSyncError(message);
+          }
+        }
+
+        @Override
+        public void onFailure(Call<LoginUserResponse> call, Throwable t) {
+          Log.d(TAG, "Login Response - onFailure: " + t.toString());
+        }
+      });
     }
+  }
+
+  private void handleLogin(Response<LoginUserResponse> response) {
+    LoginUserResponse loginUserResponse = response.body();
+    User user = new User(loginUserResponse);
+
+    dbLoader.createUser(user);
+    sessionManager.setLogin(true);
   }
 
   private void preventButtonTextCapitalization() {
@@ -219,13 +264,11 @@ public class LoginUserFragment extends Fragment
     }
   }
 
-  @Override
   public void onFinishLoginUser() {
     hideFormSubmissionErrors();
     listener.onFinishLoginUser();
   }
 
-  @Override
   public void onSyncError(String errorMessage) {
     showErrorMessage(errorMessage);
   }
@@ -247,22 +290,30 @@ public class LoginUserFragment extends Fragment
       tvFormSubmissionErrors.setText("");
       tvFormSubmissionErrors.setVisibility(View.GONE);
     } catch (NullPointerException e) {
-      Log.d(TAG, "TextView doesn't exists already.");
+      // TextView doesn't exists already.
     }
   }
 
   private void showFailedToConnectError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_failedtoconnect,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_failedtoconnect,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
+    }
   }
 
   private void showIncorrectCredentialsError() {
-    tvFormSubmissionErrors.setText(R.string.loginuser_error);
-    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    try {
+      tvFormSubmissionErrors.setText(R.string.loginuser_error);
+      tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    } catch (NullPointerException e) {
+      // TextView doesn't exists already.
+    }
   }
 
   private void showAnErrorOccurredError() {
@@ -274,7 +325,7 @@ public class LoginUserFragment extends Fragment
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      Log.d(TAG, "Snackbar doesn't exists already.");
+      // Snackbar or coordinatorLayout doesn't exists already.
     }
   }
 

@@ -8,7 +8,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.view.ActionMode;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -162,7 +161,7 @@ public class MainListFragment extends ListFragment implements
                 else
                   swipeRefreshLayout.setEnabled(false);
               } catch (NullPointerException e) {
-                Log.d(TAG, "ScrollView nor SwipeRefreshLayout doesn't exists already.");
+                // ScrollView nor SwipeRefreshLayout doesn't exists already.
               }
           }
 
@@ -1066,7 +1065,7 @@ public class MainListFragment extends ListFragment implements
     try {
       swipeRefreshLayout.setRefreshing(false);
     } catch (NullPointerException e) {
-      Log.d(TAG, "SwipeRefreshLayout doesn't exists already.");
+      // SwipeRefreshLayout doesn't exists already.
     }
   }
 
@@ -1093,7 +1092,7 @@ public class MainListFragment extends ListFragment implements
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      Log.d(TAG, "View doesn't exists already.");
+      // Snackbar or coordinatorLayout doesn't exists already.
     }
   }
 
@@ -1106,7 +1105,7 @@ public class MainListFragment extends ListFragment implements
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      Log.d(TAG, "CoordinatorLayout doesn't exists already.");
+      // Snackbar or coordinatorLayout doesn't exists already.
     }
   }
 

@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.format.DateUtils;
 
+import com.google.gson.annotations.SerializedName;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 
@@ -27,20 +28,31 @@ import static com.rolandvitezhu.todocloud.datastorage.DbConstants.Todo.KEY_USER_
 public class Todo implements Parcelable {
 
   private long _id;
+  @SerializedName("todo_online_id")
   private String todoOnlineId;
+  @SerializedName("user_online_id")
   private String userOnlineId;
+  @SerializedName("list_online_id")
   private String listOnlineId;
+  @SerializedName("title")
 	private String title;
+  @SerializedName("priority")
 	private Boolean priority;
+  @SerializedName("due_date")
 	private Long dueDate;
+  @SerializedName("reminder_date_time")
   private Long reminderDateTime;
+  @SerializedName("description")
 	private String description;
+  @SerializedName("completed")
   private Boolean completed;
+  @SerializedName("row_version")
   private int rowVersion;
+  @SerializedName("deleted")
   private Boolean deleted;
   private Boolean dirty;
+  @SerializedName("position")
   private int position;
-
   private boolean isSelected;
 
   public Todo() {
@@ -284,7 +296,7 @@ public class Todo implements Parcelable {
   }
 
   public Boolean getDirty() {
-    return dirty;
+    return dirty != null ? dirty : false;
   }
 
   public void setDirty(Boolean dirty) {

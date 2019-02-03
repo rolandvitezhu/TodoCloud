@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +26,10 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.datasynchronizer.UserDataSynchronizer;
+import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest;
+import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordResponse;
+import com.rolandvitezhu.todocloud.network.api.user.service.ModifyPasswordService;
+import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -33,14 +37,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class ModifyPasswordFragment extends Fragment
-    implements UserDataSynchronizer.OnModifyPasswordListener {
+public class ModifyPasswordFragment extends Fragment {
+
+  private final String TAG = getClass().getSimpleName();
 
   @Inject
   DbLoader dbLoader;
   @Inject
-  UserDataSynchronizer userDataSynchronizer;
+  Retrofit retrofit;
 
   @BindView(R.id.coordinatorlayout_modifypassword)
   CoordinatorLayout coordinatorLayout;
@@ -80,8 +89,6 @@ public class ModifyPasswordFragment extends Fragment
     super.onCreate(savedInstanceState);
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
-
-    userDataSynchronizer.setOnModifyPasswordListener(this);
   }
 
   @Nullable
@@ -169,7 +176,38 @@ public class ModifyPasswordFragment extends Fragment
     if (areFieldsValid) {
       String currentPassword = tietCurrentPassword.getText().toString().trim();
       String newPassword = tietNewPassword.getText().toString().trim();
-      userDataSynchronizer.modifyPassword(currentPassword, newPassword);
+
+//      userDataSynchronizer.modifyPassword(currentPassword, newPassword);
+
+      ModifyPasswordService modifyPasswordService = retrofit.create(ModifyPasswordService.class);
+
+      ModifyPasswordRequest modifyPasswordRequest = new ModifyPasswordRequest();
+
+      modifyPasswordRequest.setCurrentPassword(currentPassword);
+      modifyPasswordRequest.setNewPassword(newPassword);
+
+      Call<ModifyPasswordResponse> call = modifyPasswordService.modifyPassword(dbLoader.getApiKey(), modifyPasswordRequest);
+
+      call.enqueue(new Callback<ModifyPasswordResponse>() {
+        @Override
+        public void onResponse(Call<ModifyPasswordResponse> call, Response<ModifyPasswordResponse> response) {
+          Log.d(TAG, "Modify Password Response: " + RetrofitResponseHelper.ResponseToJson(response));
+
+          if (RetrofitResponseHelper.IsNoError(response)) {
+            onFinishModifyPassword();
+          } else if (response.body() != null) {
+            String message = response.body().getMessage();
+
+            if (message == null) message = "Unknown error";
+            onSyncError(message);
+          }
+        }
+
+        @Override
+        public void onFailure(Call<ModifyPasswordResponse> call, Throwable t) {
+          Log.d(TAG, "Modify Password Response - onFailure: " + t.toString());
+        }
+      });
     }
   }
 
@@ -229,13 +267,11 @@ public class ModifyPasswordFragment extends Fragment
     return password.matches(passwordRegex);
   }
 
-  @Override
   public void onFinishModifyPassword() {
     hideFormSubmissionErrors();
     listener.onFinishModifyPassword();
   }
 
-  @Override
   public void onSyncError(String errorMessage) {
     showErrorMessage(errorMessage);
   }
@@ -253,31 +289,47 @@ public class ModifyPasswordFragment extends Fragment
   }
 
   private void hideFormSubmissionErrors() {
-    tvFormSubmissionErrors.setText("");
-    tvFormSubmissionErrors.setVisibility(View.GONE);
+    try {
+      tvFormSubmissionErrors.setText("");
+      tvFormSubmissionErrors.setVisibility(View.GONE);
+    } catch (NullPointerException e) {
+      // TextView doesn't exists already.
+    }
   }
 
   private void showFailedToConnectError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_failedtoconnect,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_failedtoconnect,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
+    }
   }
 
   private void showIncorrectCurrentPasswordError() {
-    tvFormSubmissionErrors.setText(R.string.modifypassword_incorrectcurrentpassword);
-    tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    try {
+      tvFormSubmissionErrors.setText(R.string.modifypassword_incorrectcurrentpassword);
+      tvFormSubmissionErrors.setVisibility(View.VISIBLE);
+    } catch (NullPointerException e) {
+      // TextView doesn't exists already.
+    }
   }
 
   private void showAnErrorOccurredError() {
-    Snackbar snackbar = Snackbar.make(
-        coordinatorLayout,
-        R.string.all_anerroroccurred,
-        Snackbar.LENGTH_LONG
-    );
-    AppController.showWhiteTextSnackbar(snackbar);
+    try {
+      Snackbar snackbar = Snackbar.make(
+          coordinatorLayout,
+          R.string.all_anerroroccurred,
+          Snackbar.LENGTH_LONG
+      );
+      AppController.showWhiteTextSnackbar(snackbar);
+    } catch (NullPointerException e) {
+      // Snackbar or coordinatorLayout doesn't exists already.
+    }
   }
 
   private class MyTextWatcher implements TextWatcher {
