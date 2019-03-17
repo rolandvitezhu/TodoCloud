@@ -32,7 +32,7 @@ public class ReminderReceiver extends BroadcastReceiver {
     );
     NotificationCompat.Builder notificationBuilder = setDefaultNotificationOptions(context);
     Notification notification = notificationBuilder
-        .setSmallIcon(R.drawable.ic_launcher)
+        .setSmallIcon(R.mipmap.ic_launcher)
         .setTicker(notificationText)
         .setWhen(System.currentTimeMillis())
         .setContentIntent(pendingIntent)
