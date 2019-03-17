@@ -7,22 +7,14 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.view.ActionMode;
-import android.text.TextUtils;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.rolandvitezhu.todocloud.di.component.AppComponent;
 import com.rolandvitezhu.todocloud.di.component.DaggerAppComponent;
 import com.rolandvitezhu.todocloud.di.module.AppModule;
 
 public class AppController extends Application {
-
-  public static final String TAG = AppController.class.getSimpleName();
-
-  private RequestQueue requestQueue;
 
   private static AppController instance;
 
@@ -74,29 +66,6 @@ public class AppController extends Application {
 
   public static boolean isActionMode() {
     return actionMode != null;
-  }
-
-  public RequestQueue getRequestQueue() {
-    if (requestQueue == null) {
-      requestQueue = Volley.newRequestQueue(applicationContext);
-    }
-    return requestQueue;
-  }
-
-  public <T> void addToRequestQueue(Request<T> request, String tag) {
-    request.setTag(TextUtils.isEmpty(tag) ? TAG : tag);
-    getRequestQueue().add(request);
-  }
-
-  public <T> void addToRequestQueue(Request<T> request) {
-    request.setTag(TAG);
-    getRequestQueue().add(request);
-  }
-
-  public void cancelPendingRequest(Object tag) {
-    if (requestQueue != null) {
-      requestQueue.cancelAll(tag);
-    }
   }
 
   public static void showWhiteTextSnackbar(Snackbar snackbar) {
