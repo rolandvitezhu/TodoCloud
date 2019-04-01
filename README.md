@@ -6,6 +6,8 @@ Todo Cloud is an advanced to do list application inspired by Wunderlist.
 The project's purpose is to gain experience in the android application 
 development, improve coding style, practice clean code and version control.
 
+You can download the application from Google Play Store: https://play.google.com/store/apps/details?id=com.rolandvitezhu.todocloud.
+
 ![](header.gif)
 
 ## Author
