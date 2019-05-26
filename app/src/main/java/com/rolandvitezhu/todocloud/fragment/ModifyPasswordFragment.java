@@ -26,10 +26,9 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordResponse;
-import com.rolandvitezhu.todocloud.network.api.user.service.ModifyPasswordService;
-import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -37,14 +36,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 public class ModifyPasswordFragment extends Fragment {
 
   private final String TAG = getClass().getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   DbLoader dbLoader;
@@ -89,6 +93,8 @@ public class ModifyPasswordFragment extends Fragment {
     super.onCreate(savedInstanceState);
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
+    apiService = retrofit.create(ApiService.class);
   }
 
   @Nullable
@@ -124,6 +130,7 @@ public class ModifyPasswordFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     unbinder.unbind();
+    disposable.clear();
   }
 
   private void applyTextChangedEvents() {
@@ -177,38 +184,44 @@ public class ModifyPasswordFragment extends Fragment {
       String currentPassword = tietCurrentPassword.getText().toString().trim();
       String newPassword = tietNewPassword.getText().toString().trim();
 
-//      userDataSynchronizer.modifyPassword(currentPassword, newPassword);
-
-      ModifyPasswordService modifyPasswordService = retrofit.create(ModifyPasswordService.class);
-
       ModifyPasswordRequest modifyPasswordRequest = new ModifyPasswordRequest();
 
       modifyPasswordRequest.setCurrentPassword(currentPassword);
       modifyPasswordRequest.setNewPassword(newPassword);
 
-      Call<ModifyPasswordResponse> call = modifyPasswordService.modifyPassword(dbLoader.getApiKey(), modifyPasswordRequest);
+      disposable.add(
+          apiService
+          .modifyPassword(modifyPasswordRequest)
+          .subscribeOn(Schedulers.io())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribeWith(createModifyPasswordDisposableSingleObserver())
+      );
+    }
+  }
 
-      call.enqueue(new Callback<ModifyPasswordResponse>() {
-        @Override
-        public void onResponse(Call<ModifyPasswordResponse> call, Response<ModifyPasswordResponse> response) {
-          Log.d(TAG, "Modify Password Response: " + RetrofitResponseHelper.ResponseToJson(response));
+  private DisposableSingleObserver<ModifyPasswordResponse>
+  createModifyPasswordDisposableSingleObserver() {
+    return new DisposableSingleObserver<ModifyPasswordResponse>() {
 
-          if (RetrofitResponseHelper.IsNoError(response)) {
+      @Override
+      public void onSuccess(ModifyPasswordResponse modifyPasswordResponse) {
+          Log.d(TAG, "Modify Password Response: " + modifyPasswordResponse);
+
+          if (modifyPasswordResponse != null && modifyPasswordResponse.error.equals("false")) {
             onFinishModifyPassword();
-          } else if (response.body() != null) {
-            String message = response.body().getMessage();
+          } else if (modifyPasswordResponse != null) {
+            String message = modifyPasswordResponse.getMessage();
 
             if (message == null) message = "Unknown error";
             onSyncError(message);
           }
-        }
+      }
 
-        @Override
-        public void onFailure(Call<ModifyPasswordResponse> call, Throwable t) {
-          Log.d(TAG, "Modify Password Response - onFailure: " + t.toString());
-        }
-      });
-    }
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Modify Password Response - onFailure: " + throwable.toString());
+      }
+    };
   }
 
   private void applyOrientationPortrait() {

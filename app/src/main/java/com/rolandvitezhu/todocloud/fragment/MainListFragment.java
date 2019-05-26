@@ -46,6 +46,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import io.reactivex.disposables.CompositeDisposable;
 
 public class MainListFragment extends ListFragment implements
     CreateCategoryDialogFragment.ICreateCategoryDialogFragment,
@@ -60,6 +61,8 @@ public class MainListFragment extends ListFragment implements
     DataSynchronizer.OnSyncDataListener {
 
   private final String TAG = getClass().getSimpleName();
+
+  private CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   DbLoader dbLoader;
@@ -120,7 +123,7 @@ public class MainListFragment extends ListFragment implements
 
     dataSynchronizer.setOnSyncDataListener(this);
 
-    dataSynchronizer.syncData();
+    dataSynchronizer.syncData(disposable);
   }
 
   @Override
@@ -141,6 +144,7 @@ public class MainListFragment extends ListFragment implements
   public void onDestroyView() {
     super.onDestroyView();
     unbinder.unbind();
+    disposable.clear();
   }
 
   private void prepareSwipeRefreshLayout(View view) {
@@ -604,7 +608,7 @@ public class MainListFragment extends ListFragment implements
   }
 
   private void syncData() {
-    dataSynchronizer.syncData();
+    dataSynchronizer.syncData(disposable);
   }
 
   private AdapterView.OnItemClickListener predefinedListItemClicked =

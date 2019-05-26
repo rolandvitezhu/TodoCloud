@@ -28,10 +28,9 @@ import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.User;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse;
-import com.rolandvitezhu.todocloud.network.api.user.service.LoginUserService;
-import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -39,14 +38,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 public class LoginUserFragment extends Fragment {
 
   private final String TAG = getClass().getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   SessionManager sessionManager;
@@ -93,6 +97,8 @@ public class LoginUserFragment extends Fragment {
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
+    apiService = retrofit.create(ApiService.class);
+
     if (sessionManager.isLoggedIn()) {
       listener.onFinishLoginUser();
     }
@@ -133,6 +139,7 @@ public class LoginUserFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     unbinder.unbind();
+    disposable.clear();
   }
 
   private void hideSoftInput() {
@@ -158,42 +165,48 @@ public class LoginUserFragment extends Fragment {
       String email = tietEmail.getText().toString().trim();
       String password = tietPassword.getText().toString().trim();
 
-//      userDataSynchronizer.loginUser(email, password);
-      LoginUserService loginUserService = retrofit.create(LoginUserService.class);
-
       LoginUserRequest loginUserRequest = new LoginUserRequest();
 
       loginUserRequest.setEmail(email);
       loginUserRequest.setPassword(password);
 
-      Call<LoginUserResponse> call = loginUserService.loginUser(loginUserRequest);
-
-      call.enqueue(new Callback<LoginUserResponse>() {
-        @Override
-        public void onResponse(Call<LoginUserResponse> call, Response<LoginUserResponse> response) {
-          Log.d(TAG, "Login Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-          if (RetrofitResponseHelper.IsNoError(response)) {
-            handleLogin(response);
-            onFinishLoginUser();
-          } else if (response.body() != null) {
-            String message = response.body().getMessage();
-
-            if (message == null) message = "Unknown error";
-            onSyncError(message);
-          }
-        }
-
-        @Override
-        public void onFailure(Call<LoginUserResponse> call, Throwable t) {
-          Log.d(TAG, "Login Response - onFailure: " + t.toString());
-        }
-      });
+      disposable.add(
+          apiService
+          .loginUser(loginUserRequest)
+          .subscribeOn(Schedulers.io())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribeWith(createLoginUserDisposableSingleObserver())
+      );
     }
   }
 
-  private void handleLogin(Response<LoginUserResponse> response) {
-    LoginUserResponse loginUserResponse = response.body();
+  private DisposableSingleObserver<LoginUserResponse>
+  createLoginUserDisposableSingleObserver() {
+    return new DisposableSingleObserver<LoginUserResponse>() {
+
+      @Override
+      public void onSuccess(LoginUserResponse loginUserResponse) {
+        Log.d(TAG, "Login Response: " + loginUserResponse);
+
+        if (loginUserResponse != null && loginUserResponse.error.equals("false")) {
+          handleLogin(loginUserResponse);
+          onFinishLoginUser();
+        } else if (loginUserResponse != null) {
+          String message = loginUserResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncError(message);
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Login Response - onFailure: " + throwable.toString());
+      }
+    };
+  }
+
+  private void handleLogin(LoginUserResponse loginUserResponse) {
     User user = new User(loginUserResponse);
 
     dbLoader.createUser(user);

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.List;
@@ -22,7 +23,11 @@ import java.util.Map;
 
 public class DbLoader {
 
-	private SQLiteDatabase sqLiteDatabase;
+  private static final String TAG = DbLoader.class.getSimpleName();
+
+	private static DbLoader instance;
+
+  private SQLiteDatabase sqLiteDatabase;
 
   private final String[] todoColumns = new String[]{
       DbConstants.Todo.KEY_ROW_ID,
@@ -70,6 +75,13 @@ public class DbLoader {
 
   public DbLoader() {
 	}
+
+	public static synchronized DbLoader getInstance() {
+    if (instance == null)
+      instance = new DbLoader();
+
+    return instance;
+  }
 
   private void open() {
     DbHelper dbHelper = DbHelper.getInstance();
@@ -191,15 +203,27 @@ public class DbLoader {
 
   public String getApiKey() {
     open();
+
+    String apiKey = null;
+
     String[] columns = {DbConstants.User.KEY_API_KEY};
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.User.DATABASE_TABLE,
         columns,
         null, null, null, null, null);
     cursor.moveToFirst();
-    String apiKey = cursor.getString(0);
-    cursor.close();
-    return apiKey;
+
+    try {
+      apiKey = cursor.getString(0);
+    }
+    catch (Exception e) {
+      Log.d(TAG, "There is no API KEY in the database.");
+    }
+    finally {
+      cursor.close();
+
+      return apiKey;
+    }
   }
 
   // ----------------- Todo table methods ------------------------------------------------- //

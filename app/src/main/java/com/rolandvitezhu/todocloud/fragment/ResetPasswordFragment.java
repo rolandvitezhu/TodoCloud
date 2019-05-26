@@ -27,10 +27,9 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordResponse;
-import com.rolandvitezhu.todocloud.network.api.user.service.ResetPasswordService;
-import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import javax.inject.Inject;
 
@@ -38,14 +37,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 public class ResetPasswordFragment extends Fragment {
 
   private final String TAG = getClass().getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   DbLoader dbLoader;
@@ -80,6 +84,8 @@ public class ResetPasswordFragment extends Fragment {
     super.onCreate(savedInstanceState);
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
+
+    apiService = retrofit.create(ApiService.class);
   }
 
   @Nullable
@@ -109,6 +115,7 @@ public class ResetPasswordFragment extends Fragment {
   public void onDestroyView() {
     super.onDestroyView();
     unbinder.unbind();
+    disposable.clear();
   }
 
   private void applyTextChangedEvents() {
@@ -156,37 +163,43 @@ public class ResetPasswordFragment extends Fragment {
     if (validateEmail()) {
       String email = tietEmail.getText().toString().trim();
 
-//      userDataSynchronizer.resetPassword(email);
-
-      ResetPasswordService resetPasswordService = retrofit.create(ResetPasswordService.class);
-
       ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
 
       resetPasswordRequest.setEmail(email);
 
-      Call<ResetPasswordResponse> call = resetPasswordService.resetPassword(resetPasswordRequest);
+      disposable.add(
+          apiService
+          .resetPassword(resetPasswordRequest)
+          .subscribeOn(Schedulers.io())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribeWith(createResetPasswordDisposableSingleObserver())
+      );
+    }
+  }
 
-      call.enqueue(new Callback<ResetPasswordResponse>() {
-        @Override
-        public void onResponse(Call<ResetPasswordResponse> call, Response<ResetPasswordResponse> response) {
-          Log.d(TAG, "Reset Password Response: " + RetrofitResponseHelper.ResponseToJson(response));
+  private DisposableSingleObserver<ResetPasswordResponse>
+  createResetPasswordDisposableSingleObserver() {
+    return new DisposableSingleObserver<ResetPasswordResponse>() {
 
-          if (RetrofitResponseHelper.IsNoError(response)) {
+      @Override
+      public void onSuccess(ResetPasswordResponse resetPasswordResponse) {
+        Log.d(TAG, "Reset Password Response: " + resetPasswordResponse);
+
+          if (resetPasswordResponse != null && resetPasswordResponse.error.equals(("false"))) {
             onFinishResetPassword();
-          } else if (response.body() != null) {
-            String message = response.body().getMessage();
+          } else if (resetPasswordResponse != null) {
+            String message = resetPasswordResponse.getMessage();
 
             if (message == null) message = "Unknown error";
             onSyncError(message);
           }
-        }
+      }
 
-        @Override
-        public void onFailure(Call<ResetPasswordResponse> call, Throwable t) {
-          Log.d(TAG, "Reset Password Response - onFailure: " + t.toString());
-        }
-      });
-    }
+      @Override
+      public void onError(Throwable throwable) {
+          Log.d(TAG, "Reset Password Response - onFailure: " + throwable.toString());
+      }
+    };
   }
 
   private void applyOrientationPortrait() {

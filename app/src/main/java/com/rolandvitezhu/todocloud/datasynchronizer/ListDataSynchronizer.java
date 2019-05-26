@@ -2,28 +2,35 @@ package com.rolandvitezhu.todocloud.datasynchronizer;
 
 import android.util.Log;
 
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.list.dto.GetListsResponse;
 import com.rolandvitezhu.todocloud.network.api.list.dto.InsertListRequest;
 import com.rolandvitezhu.todocloud.network.api.list.dto.InsertListResponse;
 import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListRequest;
 import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListResponse;
-import com.rolandvitezhu.todocloud.network.api.list.service.GetListsService;
-import com.rolandvitezhu.todocloud.network.api.list.service.InsertListService;
-import com.rolandvitezhu.todocloud.network.api.list.service.UpdateListService;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
 import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
 public class ListDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable;
 
   private OnSyncListDataListener onSyncListDataListener;
   private boolean isUpdateListRequestsFinished;
@@ -36,41 +43,53 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
   private ArrayList<List> listsToUpdate;
   private ArrayList<List> listsToInsert;
 
+  public ListDataSynchronizer() {
+    AppController.getInstance().getAppComponent().inject(this);
+
+    apiService = retrofit.create(ApiService.class);
+  }
+
   void setOnSyncListDataListener(OnSyncListDataListener onSyncListDataListener) {
     this.onSyncListDataListener = onSyncListDataListener;
   }
 
-  void syncListData() {
+  void syncListData(CompositeDisposable disposable) {
+    this.disposable = disposable;
     initListRequestsStates();
 
-    GetListsService getListsService = retrofit.create(GetListsService.class);
+    this.disposable.add(
+        apiService
+            .getLists(dbLoader.getLastListRowVersion())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeWith(createGetListsDisposableSingleObserver())
+    );
+  }
 
-    Call<GetListsResponse> call = getListsService.
-        getLists(dbLoader.getLastTodoRowVersion(), dbLoader.getApiKey());
+  private DisposableSingleObserver<GetListsResponse>
+  createGetListsDisposableSingleObserver() {
+    return new DisposableSingleObserver<GetListsResponse>() {
 
-    call.enqueue(new Callback<GetListsResponse>() {
       @Override
-      public void onResponse(Call<GetListsResponse> call, retrofit2.Response<GetListsResponse> response) {
-        Log.d(TAG, "Get Lists Response: " + RetrofitResponseHelper.ResponseToJson(response));
+      public void onSuccess(GetListsResponse getListsResponse) {
+        Log.d(TAG, "Get Lists Response: " + getListsResponse);
 
-        if (RetrofitResponseHelper.IsNoError(response)) {
+        if (getListsResponse != null && getListsResponse.error.equals("false")) {
           ArrayList<List> lists = null;
 
-          if (response.body() != null) {
-            lists = response.body().getLists();
-          }
-          if (lists != null && !lists.isEmpty()) {
+          lists = getListsResponse.getLists();
+
+          if (!lists.isEmpty())
             updateListsInLocalDatabase(lists);
-          }
 
           boolean shouldUpdateOrInsertLists = !listsToUpdate.isEmpty() || !listsToInsert.isEmpty();
 
           if (shouldUpdateOrInsertLists)
             updateOrInsertLists();
           else onSyncListDataListener.onFinishSyncListData();
-        } else if (response.body() != null) {
+        } else if (getListsResponse != null) {
           // Handle error, if any
-          String message = response.body().getMessage();
+          String message = getListsResponse.getMessage();
 
           if (message == null) message = "Unknown error";
           onSyncListDataListener.onSyncError(message);
@@ -78,10 +97,10 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
       }
 
       @Override
-      public void onFailure(Call<GetListsResponse> call, Throwable t) {
-        Log.d(TAG, "Get Next Row Version Response - onFailure: " + t.toString());
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Get Next Row Version Response - onFailure: " + throwable.toString());
       }
-    });
+    };
   }
 
   private void updateOrInsertLists() {
@@ -159,8 +178,6 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (List listToUpdate : listsToUpdate) {
-        UpdateListService updateListService = retrofit.create(UpdateListService.class);
-
         UpdateListRequest updateListRequest = new UpdateListRequest();
 
         updateListRequest.setListOnlineId(listToUpdate.getListOnlineId());
@@ -170,53 +187,13 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
         updateListRequest.setDeleted(listToUpdate.getDeleted());
         updateListRequest.setPosition(listToUpdate.getPosition());
 
-        Call<UpdateListResponse> call = updateListService.updateList(
-            dbLoader.getApiKey(),
-            updateListRequest
+        disposable.add(
+            apiService
+                .updateList(updateListRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(createUpdateListDisposableSingleObserver(listToUpdate))
         );
-
-        call.enqueue(new Callback<UpdateListResponse>() {
-          @Override
-          public void onResponse(Call<UpdateListResponse> call, retrofit2.Response<UpdateListResponse> response) {
-            Log.d(TAG, "Update List Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeListUpToDate(listToUpdate);
-              if (isLastUpdateListRequest()) {
-                isUpdateListRequestsFinished = true;
-                if (isAllListRequestsFinished()) {
-                  onSyncListDataListener.onFinishSyncListData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncListDataListener.onSyncError(message);
-
-              if (isLastUpdateListRequest()) {
-                isUpdateListRequestsFinished = true;
-                if (isAllListRequestsFinished()) {
-                  onSyncListDataListener.onFinishSyncListData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<UpdateListResponse> call, Throwable t) {
-            Log.d(TAG, "Update List Response - onFailure: " + t.toString());
-
-            onSyncListDataListener.onSyncError(t.toString());
-
-            if (isLastUpdateListRequest()) {
-              isUpdateListRequestsFinished = true;
-              if (isAllListRequestsFinished()) {
-                onSyncListDataListener.onFinishSyncListData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -225,6 +202,53 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
         onSyncListDataListener.onFinishSyncListData();
       }
     }
+  }
+
+  private DisposableSingleObserver<UpdateListResponse>
+  createUpdateListDisposableSingleObserver(List listToUpdate) {
+    return new DisposableSingleObserver<UpdateListResponse>() {
+
+      @Override
+      public void onSuccess(UpdateListResponse updateListResponse) {
+        Log.d(TAG, "Update List Response: " + updateListResponse);
+
+        if (updateListResponse != null && updateListResponse.error.equals("false")) {
+          makeListUpToDate(listToUpdate);
+          if (isLastUpdateListRequest()) {
+            isUpdateListRequestsFinished = true;
+            if (isAllListRequestsFinished()) {
+              onSyncListDataListener.onFinishSyncListData();
+            }
+          }
+        } else if (updateListResponse != null) {
+          String message = updateListResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncListDataListener.onSyncError(message);
+
+          if (isLastUpdateListRequest()) {
+            isUpdateListRequestsFinished = true;
+            if (isAllListRequestsFinished()) {
+              onSyncListDataListener.onFinishSyncListData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Update List Response - onFailure: " + throwable.toString());
+
+        onSyncListDataListener.onSyncError(throwable.toString());
+
+        if (isLastUpdateListRequest()) {
+          isUpdateListRequestsFinished = true;
+          if (isAllListRequestsFinished()) {
+            onSyncListDataListener.onFinishSyncListData();
+          }
+        }
+      }
+    };
   }
 
   private void makeListUpToDate(List listToUpdate) {
@@ -240,8 +264,6 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (List listToInsert : listsToInsert) {
-        InsertListService insertListService = retrofit.create(InsertListService.class);
-
         InsertListRequest insertListRequest = new InsertListRequest();
 
         insertListRequest.setListOnlineId(listToInsert.getListOnlineId());
@@ -251,52 +273,13 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
         insertListRequest.setDeleted(listToInsert.getDeleted());
         insertListRequest.setPosition(listToInsert.getPosition());
 
-        Call<InsertListResponse> call = insertListService.insertList(
-            dbLoader.getApiKey(), insertListRequest
+        disposable.add(
+            apiService
+                .insertList(insertListRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(createInsertListDisposableSingleObserver(listToInsert))
         );
-
-        call.enqueue(new Callback<InsertListResponse>() {
-          @Override
-          public void onResponse(Call<InsertListResponse> call, retrofit2.Response<InsertListResponse> response) {
-            Log.d(TAG, "Insert List Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeListUpToDate(listToInsert);
-              if (isLastInsertListRequest()) {
-                isInsertListRequestsFinished = true;
-                if (isAllListRequestsFinished()) {
-                  onSyncListDataListener.onFinishSyncListData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncListDataListener.onSyncError(message);
-
-              if (isLastInsertListRequest()) {
-                isInsertListRequestsFinished = true;
-                if (isAllListRequestsFinished()) {
-                  onSyncListDataListener.onFinishSyncListData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<InsertListResponse> call, Throwable t) {
-            Log.d(TAG, "Insert List Response - onFailure: " + t.toString());
-
-            onSyncListDataListener.onSyncError(t.toString());
-
-            if (isLastInsertListRequest()) {
-              isInsertListRequestsFinished = true;
-              if (isAllListRequestsFinished()) {
-                onSyncListDataListener.onFinishSyncListData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -305,6 +288,52 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
         onSyncListDataListener.onFinishSyncListData();
       }
     }
+  }
+
+  private DisposableSingleObserver<InsertListResponse>
+  createInsertListDisposableSingleObserver(List listToInsert) {
+    return new DisposableSingleObserver<InsertListResponse>() {
+      @Override
+      public void onSuccess(InsertListResponse insertListResponse) {
+        Log.d(TAG, "Insert List Response: " + insertListResponse);
+
+        if (insertListResponse != null && insertListResponse.error.equals("false")) {
+          makeListUpToDate(listToInsert);
+          if (isLastInsertListRequest()) {
+            isInsertListRequestsFinished = true;
+            if (isAllListRequestsFinished()) {
+              onSyncListDataListener.onFinishSyncListData();
+            }
+          }
+        } else if (insertListResponse != null) {
+          String message = insertListResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncListDataListener.onSyncError(message);
+
+          if (isLastInsertListRequest()) {
+            isInsertListRequestsFinished = true;
+            if (isAllListRequestsFinished()) {
+              onSyncListDataListener.onFinishSyncListData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Insert List Response - onFailure: " + throwable.toString());
+
+        onSyncListDataListener.onSyncError(throwable.toString());
+
+        if (isLastInsertListRequest()) {
+          isInsertListRequestsFinished = true;
+          if (isAllListRequestsFinished()) {
+            onSyncListDataListener.onFinishSyncListData();
+          }
+        }
+      }
+    };
   }
 
   private boolean isLastInsertListRequest() {

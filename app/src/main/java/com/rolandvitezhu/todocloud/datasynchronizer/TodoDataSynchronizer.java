@@ -5,6 +5,7 @@ import android.util.Log;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
 import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.GetTodosResponse;
@@ -12,19 +13,24 @@ import com.rolandvitezhu.todocloud.network.api.todo.dto.InsertTodoRequest;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.InsertTodoResponse;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.UpdateTodoRequest;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.UpdateTodoResponse;
-import com.rolandvitezhu.todocloud.network.api.todo.service.GetTodosService;
-import com.rolandvitezhu.todocloud.network.api.todo.service.InsertTodoService;
-import com.rolandvitezhu.todocloud.network.api.todo.service.UpdateTodoService;
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
 public class TodoDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = TodoDataSynchronizer.class.getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable;
 
   private OnSyncTodoDataListener onSyncTodoDataListener;
   private boolean isUpdateTodoRequestsFinished;
@@ -39,35 +45,40 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
 
   public TodoDataSynchronizer() {
     AppController.getInstance().getAppComponent().inject(this);
+
+    apiService = retrofit.create(ApiService.class);
   }
 
   void setOnSyncTodoDataListener(OnSyncTodoDataListener onSyncTodoDataListener) {
     this.onSyncTodoDataListener = onSyncTodoDataListener;
   }
 
-  void syncTodoData() {
+  void syncTodoData(CompositeDisposable disposable) {
+    this.disposable = disposable;
     initTodoRequestsStates();
 
-    GetTodosService getTodosService = retrofit.create(GetTodosService.class);
+    this.disposable.add(
+        apiService
+        .getTodos(dbLoader.getLastTodoRowVersion())
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribeWith(createGetTodosDisposableSingleObserver())
+    );
+  }
 
-    Call<GetTodosResponse> call = getTodosService.
-        getTodos(dbLoader.getLastTodoRowVersion(), dbLoader.getApiKey());
+  private DisposableSingleObserver<GetTodosResponse>
+  createGetTodosDisposableSingleObserver() {
+    return new DisposableSingleObserver<GetTodosResponse>() {
 
-    call.enqueue(new Callback<GetTodosResponse>() {
       @Override
-      public void onResponse(Call<GetTodosResponse> call, retrofit2.Response<GetTodosResponse> response) {
-        Log.d(TAG, "Get Todos Response: " + RetrofitResponseHelper.ResponseToJson(response));
+      public void onSuccess(GetTodosResponse getTodosResponse) {
+        Log.d(TAG, "Get Todos Response: " + getTodosResponse);
 
-        if (RetrofitResponseHelper.IsNoError(response)) {
-          ArrayList<Todo> todos = null;
+        if (getTodosResponse != null && getTodosResponse.error.equals("false")) {
+          ArrayList<Todo> todos = getTodosResponse.getTodos();
 
-          // Get todos
-          if (response.body() != null) {
-            todos = response.body().getTodos();
-          }
-          if (todos != null && !todos.isEmpty()) {
+          if (!todos.isEmpty())
             updateTodosInLocalDatabase(todos);
-          }
 
           // Insert nor update todos if any
           boolean shouldUpdateOrInsertTodos = !todosToUpdate.isEmpty() || !todosToInsert.isEmpty();
@@ -75,9 +86,9 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
           if (shouldUpdateOrInsertTodos)
             updateOrInsertTodos();
           else onSyncTodoDataListener.onFinishSyncTodoData();
-        } else if (response.body() != null) {
+        } else if (getTodosResponse != null) {
           // Handle error, if any
-          String message = response.body().getMessage();
+          String message = getTodosResponse.getMessage();
 
           if (message == null) message = "Unknown error";
           onSyncTodoDataListener.onSyncError(message);
@@ -85,12 +96,12 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
       }
 
       @Override
-      public void onFailure(Call<GetTodosResponse> call, Throwable t) {
-        Log.d(TAG, "Get Todos Response - onFailure: " + t.toString());
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Get Todos Response - onFailure: " + throwable.toString());
 
-        onSyncTodoDataListener.onSyncError(t.toString());
+        onSyncTodoDataListener.onSyncError(throwable.toString());
       }
-    });
+    };
   }
 
   private void initTodoRequestsStates() {
@@ -115,8 +126,6 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (Todo todoToUpdate : todosToUpdate) {
-        UpdateTodoService updateTodoService = retrofit.create(UpdateTodoService.class);
-
         UpdateTodoRequest updateTodoRequest = new UpdateTodoRequest();
 
         updateTodoRequest.setTodoOnlineId(todoToUpdate.getTodoOnlineId());
@@ -131,52 +140,13 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         updateTodoRequest.setDeleted(todoToUpdate.getDeleted());
         updateTodoRequest.setPosition(todoToUpdate.getPosition());
 
-        Call<UpdateTodoResponse> call = updateTodoService.updateTodo(
-            dbLoader.getApiKey(), updateTodoRequest
+        disposable.add(
+            apiService
+                .updateTodo(updateTodoRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(createUpdateTodoDisposableSingleObserver(todoToUpdate))
         );
-
-        call.enqueue(new Callback<UpdateTodoResponse>() {
-          @Override
-          public void onResponse(Call<UpdateTodoResponse> call, retrofit2.Response<UpdateTodoResponse> response) {
-            Log.d(TAG, "Update Todo Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeTodoUpToDate(todoToUpdate);
-              if (isLastUpdateTodoRequest()) {
-                isUpdateTodoRequestsFinished = true;
-                if (isAllTodoRequestsFinished()) {
-                  onSyncTodoDataListener.onFinishSyncTodoData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncTodoDataListener.onSyncError(message);
-
-              if (isLastUpdateTodoRequest()) {
-                isUpdateTodoRequestsFinished = true;
-                if (isAllTodoRequestsFinished()) {
-                  onSyncTodoDataListener.onFinishSyncTodoData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<UpdateTodoResponse> call, Throwable t) {
-            Log.d(TAG, "Update Todo Response - onFailure: " + t.toString());
-
-            onSyncTodoDataListener.onSyncError(t.toString());
-
-            if (isLastUpdateTodoRequest()) {
-              isUpdateTodoRequestsFinished = true;
-              if (isAllTodoRequestsFinished()) {
-                onSyncTodoDataListener.onFinishSyncTodoData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -185,6 +155,53 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         onSyncTodoDataListener.onFinishSyncTodoData();
       }
     }
+  }
+
+  private DisposableSingleObserver<UpdateTodoResponse>
+  createUpdateTodoDisposableSingleObserver(Todo todoToUpdate) {
+    return new DisposableSingleObserver<UpdateTodoResponse>() {
+
+      @Override
+      public void onSuccess(UpdateTodoResponse updateTodoResponse) {
+        Log.d(TAG, "Update Todo Response: " + updateTodoResponse);
+
+        if (updateTodoResponse != null && updateTodoResponse.error.equals("false")) {
+          makeTodoUpToDate(todoToUpdate);
+          if (isLastUpdateTodoRequest()) {
+            isUpdateTodoRequestsFinished = true;
+            if (isAllTodoRequestsFinished()) {
+              onSyncTodoDataListener.onFinishSyncTodoData();
+            }
+          }
+        } else if (updateTodoResponse != null) {
+          String message = updateTodoResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncTodoDataListener.onSyncError(message);
+
+          if (isLastUpdateTodoRequest()) {
+            isUpdateTodoRequestsFinished = true;
+            if (isAllTodoRequestsFinished()) {
+              onSyncTodoDataListener.onFinishSyncTodoData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Update Todo Response - onFailure: " + throwable.toString());
+
+        onSyncTodoDataListener.onSyncError(throwable.toString());
+
+        if (isLastUpdateTodoRequest()) {
+          isUpdateTodoRequestsFinished = true;
+          if (isAllTodoRequestsFinished()) {
+            onSyncTodoDataListener.onFinishSyncTodoData();
+          }
+        }
+      }
+    };
   }
 
   private void makeTodoUpToDate(Todo todoToUpdate) {
@@ -201,8 +218,6 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (Todo todoToInsert : todosToInsert) {
-        InsertTodoService insertTodoService = retrofit.create(InsertTodoService.class);
-
         InsertTodoRequest insertTodoRequest = new InsertTodoRequest();
 
         insertTodoRequest.setTodoOnlineId(todoToInsert.getTodoOnlineId());
@@ -217,52 +232,13 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         insertTodoRequest.setDeleted(todoToInsert.getDeleted());
         insertTodoRequest.setPosition(todoToInsert.getPosition());
 
-        Call<InsertTodoResponse> call = insertTodoService.insertTodo(
-            dbLoader.getApiKey(), insertTodoRequest
+        disposable.add(
+            apiService
+            .insertTodo(insertTodoRequest)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeWith(createInsertTodoDisposableSingleObserver(todoToInsert))
         );
-
-        call.enqueue(new Callback<InsertTodoResponse>() {
-          @Override
-          public void onResponse(Call<InsertTodoResponse> call, retrofit2.Response<InsertTodoResponse> response) {
-            Log.d(TAG, "Insert Todo Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeTodoUpToDate(todoToInsert);
-              if (isLastInsertTodoRequest()) {
-                isInsertTodoRequestsFinished = true;
-                if (isAllTodoRequestsFinished()) {
-                  onSyncTodoDataListener.onFinishSyncTodoData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncTodoDataListener.onSyncError(message);
-
-              if (isLastInsertTodoRequest()) {
-                isInsertTodoRequestsFinished = true;
-                if (isAllTodoRequestsFinished()) {
-                  onSyncTodoDataListener.onFinishSyncTodoData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<InsertTodoResponse> call, Throwable t) {
-            Log.d(TAG, "Insert Todo Response - onFailure: " + t.toString());
-
-            onSyncTodoDataListener.onSyncError(t.toString());
-
-            if (isLastInsertTodoRequest()) {
-              isInsertTodoRequestsFinished = true;
-              if (isAllTodoRequestsFinished()) {
-                onSyncTodoDataListener.onFinishSyncTodoData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -271,6 +247,53 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         onSyncTodoDataListener.onFinishSyncTodoData();
       }
     }
+  }
+
+  private DisposableSingleObserver<InsertTodoResponse>
+  createInsertTodoDisposableSingleObserver(Todo todoToInsert) {
+    return new DisposableSingleObserver<InsertTodoResponse>() {
+
+      @Override
+      public void onSuccess(InsertTodoResponse insertTodoResponse) {
+        Log.d(TAG, "Insert Todo Response: " + insertTodoResponse);
+
+        if (insertTodoResponse != null && insertTodoResponse.error.equals("false")) {
+          makeTodoUpToDate(todoToInsert);
+          if (isLastInsertTodoRequest()) {
+            isInsertTodoRequestsFinished = true;
+            if (isAllTodoRequestsFinished()) {
+              onSyncTodoDataListener.onFinishSyncTodoData();
+            }
+          }
+        } else if (insertTodoResponse != null) {
+          String message = insertTodoResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncTodoDataListener.onSyncError(message);
+
+          if (isLastInsertTodoRequest()) {
+            isInsertTodoRequestsFinished = true;
+            if (isAllTodoRequestsFinished()) {
+              onSyncTodoDataListener.onFinishSyncTodoData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError (Throwable throwable){
+        Log.d(TAG, "Insert Todo Response - onFailure: " + throwable.toString());
+
+        onSyncTodoDataListener.onSyncError(throwable.toString());
+
+        if (isLastInsertTodoRequest()) {
+          isInsertTodoRequestsFinished = true;
+          if (isAllTodoRequestsFinished()) {
+            onSyncTodoDataListener.onFinishSyncTodoData();
+          }
+        }
+      }
+    };
   }
 
   private void updateTodosInLocalDatabase(ArrayList<Todo> todos) {

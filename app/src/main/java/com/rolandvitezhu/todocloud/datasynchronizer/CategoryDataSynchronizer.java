@@ -2,28 +2,35 @@ package com.rolandvitezhu.todocloud.datasynchronizer;
 
 import android.util.Log;
 
+import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
+import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.category.dto.GetCategoriesResponse;
 import com.rolandvitezhu.todocloud.network.api.category.dto.InsertCategoryRequest;
 import com.rolandvitezhu.todocloud.network.api.category.dto.InsertCategoryResponse;
 import com.rolandvitezhu.todocloud.network.api.category.dto.UpdateCategoryRequest;
 import com.rolandvitezhu.todocloud.network.api.category.dto.UpdateCategoryResponse;
-import com.rolandvitezhu.todocloud.network.api.category.service.GetCategoriesService;
-import com.rolandvitezhu.todocloud.network.api.category.service.InsertCategoryService;
-import com.rolandvitezhu.todocloud.network.api.category.service.UpdateCategoryService;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
 import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
 public class CategoryDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = CategoryDataSynchronizer.class.getSimpleName();
+
+  private ApiService apiService;
+
+  private CompositeDisposable disposable;
 
   private OnSyncCategoryDataListener onSyncCategoryDataListener;
   private boolean isUpdateCategoryRequestsFinished;
@@ -36,43 +43,54 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
   private ArrayList<Category> categoriesToUpdate;
   private ArrayList<Category> categoriesToInsert;
 
+  public CategoryDataSynchronizer() {
+    AppController.getInstance().getAppComponent().inject(this);
+
+    apiService = retrofit.create(ApiService.class);
+  }
+
   void setOnSyncCategoryDataListener(
       OnSyncCategoryDataListener onSyncCategoryDataListener
   ) {
     this.onSyncCategoryDataListener = onSyncCategoryDataListener;
   }
 
-  void syncCategoryData() {
+  void syncCategoryData(CompositeDisposable disposable) {
+    this.disposable = disposable;;
     initCategoryRequestsStates();
 
-    GetCategoriesService getCategoriesService = retrofit.create(GetCategoriesService.class);
+    this.disposable.add(
+        apiService
+            .getCategories(dbLoader.getLastCategoryRowVersion())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeWith(createGetCategoriesDisposableSingleObserver())
+    );
+  }
 
-    Call<GetCategoriesResponse> call = getCategoriesService.
-        getCategories(dbLoader.getLastTodoRowVersion(), dbLoader.getApiKey());
-
-    call.enqueue(new Callback<GetCategoriesResponse>() {
+  private DisposableSingleObserver<GetCategoriesResponse>
+  createGetCategoriesDisposableSingleObserver() {
+    return new DisposableSingleObserver<GetCategoriesResponse>() {
       @Override
-      public void onResponse(Call<GetCategoriesResponse> call, retrofit2.Response<GetCategoriesResponse> response) {
-        Log.d(TAG, "Get Categories Response: " + RetrofitResponseHelper.ResponseToJson(response));
+      public void onSuccess(GetCategoriesResponse getCategoriesResponse) {
+        Log.d(TAG, "Get Categories Response: " + getCategoriesResponse);
 
-        if (RetrofitResponseHelper.IsNoError(response)) {
+        if (getCategoriesResponse != null && getCategoriesResponse.error.equals("false")) {
           ArrayList<Category> categories = null;
 
-          if (response.body() != null) {
-            categories = response.body().getCategories();
-          }
-          if (categories != null && !categories.isEmpty()) {
+          categories = getCategoriesResponse.getCategories();
+
+          if (!categories.isEmpty())
             updateCategoriesInLocalDatabase(categories);
-          }
 
           boolean shouldUpdateOrInsertCategories = !categoriesToUpdate.isEmpty() || !categoriesToInsert.isEmpty();
 
           if (shouldUpdateOrInsertCategories)
             updateOrInsertCategories();
           else onSyncCategoryDataListener.onFinishSyncCategoryData();
-        } else if (response.body() != null) {
+        } else if (getCategoriesResponse != null) {
           // Handle error, if any
-          String message = response.body().getMessage();
+          String message = getCategoriesResponse.getMessage();
 
           if (message == null) message = "Unknown error";
           onSyncCategoryDataListener.onSyncError(message);
@@ -80,10 +98,10 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
       }
 
       @Override
-      public void onFailure(Call<GetCategoriesResponse> call, Throwable t) {
-        Log.d(TAG, "Get Next Row Version Response - onFailure: " + t.toString());
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Get Next Row Version Response - onFailure: " + throwable.toString());
       }
-    });
+    };
   }
 
   private void updateOrInsertCategories() {
@@ -150,8 +168,6 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (Category categoryToUpdate : categoriesToUpdate) {
-        UpdateCategoryService updateCategoryService = retrofit.create(UpdateCategoryService.class);
-
         UpdateCategoryRequest updateCategoryRequest = new UpdateCategoryRequest();
 
         updateCategoryRequest.setCategoryOnlineId(categoryToUpdate.getCategoryOnlineId());
@@ -160,53 +176,13 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
         updateCategoryRequest.setDeleted(categoryToUpdate.getDeleted());
         updateCategoryRequest.setPosition(categoryToUpdate.getPosition());
 
-        Call<UpdateCategoryResponse> call = updateCategoryService.updateCategory(
-            dbLoader.getApiKey(),
-            updateCategoryRequest
+        disposable.add(
+            apiService
+                .updateCategory(updateCategoryRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(createUpdateCategoryDisposableSingleObserver(categoryToUpdate))
         );
-
-        call.enqueue(new Callback<UpdateCategoryResponse>() {
-          @Override
-          public void onResponse(Call<UpdateCategoryResponse> call, retrofit2.Response<UpdateCategoryResponse> response) {
-            Log.d(TAG, "Update Category Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeCategoryUpToDate(categoryToUpdate);
-              if (isLastUpdateCategoryRequest()) {
-                isUpdateCategoryRequestsFinished = true;
-                if (isAllCategoryRequestsFinished()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncCategoryDataListener.onSyncError(message);
-
-              if (isLastUpdateCategoryRequest()) {
-                isUpdateCategoryRequestsFinished = true;
-                if (isAllCategoryRequestsFinished()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<UpdateCategoryResponse> call, Throwable t) {
-            Log.d(TAG, "Update Category Response - onFailure: " + t.toString());
-
-            onSyncCategoryDataListener.onSyncError(t.toString());
-
-            if (isLastUpdateCategoryRequest()) {
-              isUpdateCategoryRequestsFinished = true;
-              if (isAllCategoryRequestsFinished()) {
-                onSyncCategoryDataListener.onFinishSyncCategoryData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -217,6 +193,52 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
     }
   }
 
+  private DisposableSingleObserver<UpdateCategoryResponse>
+  createUpdateCategoryDisposableSingleObserver(Category categoryToUpdate) {
+    return new DisposableSingleObserver<UpdateCategoryResponse>() {
+      @Override
+      public void onSuccess(UpdateCategoryResponse updateCategoryResponse) {
+        Log.d(TAG, "Update Category Response: " + updateCategoryResponse);
+
+        if (updateCategoryResponse != null && updateCategoryResponse.error.equals("false")) {
+          makeCategoryUpToDate(categoryToUpdate);
+          if (isLastUpdateCategoryRequest()) {
+            isUpdateCategoryRequestsFinished = true;
+            if (isAllCategoryRequestsFinished()) {
+              onSyncCategoryDataListener.onFinishSyncCategoryData();
+            }
+          }
+        } else if (updateCategoryResponse != null) {
+          String message = updateCategoryResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncCategoryDataListener.onSyncError(message);
+
+          if (isLastUpdateCategoryRequest()) {
+            isUpdateCategoryRequestsFinished = true;
+            if (isAllCategoryRequestsFinished()) {
+              onSyncCategoryDataListener.onFinishSyncCategoryData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Update Category Response - onFailure: " + throwable.toString());
+
+        onSyncCategoryDataListener.onSyncError(throwable.toString());
+
+        if (isLastUpdateCategoryRequest()) {
+          isUpdateCategoryRequestsFinished = true;
+          if (isAllCategoryRequestsFinished()) {
+            onSyncCategoryDataListener.onFinishSyncCategoryData();
+          }
+        }
+      }
+    };
+  }
+
   private void insertCategories() {
     // Process list
     if (!categoriesToInsert.isEmpty()) {
@@ -225,8 +247,6 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
 
       // Process list item
       for (Category categoryToInsert : categoriesToInsert) {
-        InsertCategoryService insertCategoryService = retrofit.create(InsertCategoryService.class);
-
         InsertCategoryRequest insertCategoryRequest = new InsertCategoryRequest();
 
         insertCategoryRequest.setCategoryOnlineId(categoryToInsert.getCategoryOnlineId());
@@ -235,52 +255,13 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
         insertCategoryRequest.setDeleted(categoryToInsert.getDeleted());
         insertCategoryRequest.setPosition(categoryToInsert.getPosition());
 
-        Call<InsertCategoryResponse> call = insertCategoryService.insertCategory(
-            dbLoader.getApiKey(), insertCategoryRequest
+        disposable.add(
+            apiService
+                .insertCategory(insertCategoryRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(createInsertCategoryDisposableSingleObserver(categoryToInsert))
         );
-
-        call.enqueue(new Callback<InsertCategoryResponse>() {
-          @Override
-          public void onResponse(Call<InsertCategoryResponse> call, retrofit2.Response<InsertCategoryResponse> response) {
-            Log.d(TAG, "Insert Category Response: " + RetrofitResponseHelper.ResponseToJson(response));
-
-            if (RetrofitResponseHelper.IsNoError(response)) {
-              makeCategoryUpToDate(categoryToInsert);
-              if (isLastInsertCategoryRequest()) {
-                isInsertCategoryRequestsFinished = true;
-                if (isAllCategoryRequestsFinished()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
-                }
-              }
-            } else if (response.body() != null) {
-              String message = response.body().getMessage();
-
-              if (message == null) message = "Unknown error";
-              onSyncCategoryDataListener.onSyncError(message);
-
-              if (isLastInsertCategoryRequest()) {
-                isInsertCategoryRequestsFinished = true;
-                if (isAllCategoryRequestsFinished()) {
-                  onSyncCategoryDataListener.onFinishSyncCategoryData();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void onFailure(Call<InsertCategoryResponse> call, Throwable t) {
-            Log.d(TAG, "Insert Category Response - onFailure: " + t.toString());
-
-            onSyncCategoryDataListener.onSyncError(t.toString());
-
-            if (isLastInsertCategoryRequest()) {
-              isInsertCategoryRequestsFinished = true;
-              if (isAllCategoryRequestsFinished()) {
-                onSyncCategoryDataListener.onFinishSyncCategoryData();
-              }
-            }
-          }
-        });
       }
       // Sync finished - there are no list items
     } else {
@@ -289,6 +270,52 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
         onSyncCategoryDataListener.onFinishSyncCategoryData();
       }
     }
+  }
+
+  private DisposableSingleObserver<InsertCategoryResponse>
+  createInsertCategoryDisposableSingleObserver(Category categoryToInsert) {
+    return new DisposableSingleObserver<InsertCategoryResponse>() {
+      @Override
+      public void onSuccess(InsertCategoryResponse insertCategoryResponse) {
+        Log.d(TAG, "Insert Category Response: " + insertCategoryResponse);
+
+        if (insertCategoryResponse != null && insertCategoryResponse.error.equals("false")) {
+          makeCategoryUpToDate(categoryToInsert);
+          if (isLastInsertCategoryRequest()) {
+            isInsertCategoryRequestsFinished = true;
+            if (isAllCategoryRequestsFinished()) {
+              onSyncCategoryDataListener.onFinishSyncCategoryData();
+            }
+          }
+        } else if (insertCategoryResponse != null) {
+          String message = insertCategoryResponse.getMessage();
+
+          if (message == null) message = "Unknown error";
+          onSyncCategoryDataListener.onSyncError(message);
+
+          if (isLastInsertCategoryRequest()) {
+            isInsertCategoryRequestsFinished = true;
+            if (isAllCategoryRequestsFinished()) {
+              onSyncCategoryDataListener.onFinishSyncCategoryData();
+            }
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        Log.d(TAG, "Insert Category Response - onFailure: " + throwable.toString());
+
+        onSyncCategoryDataListener.onSyncError(throwable.toString());
+
+        if (isLastInsertCategoryRequest()) {
+          isInsertCategoryRequestsFinished = true;
+          if (isAllCategoryRequestsFinished()) {
+            onSyncCategoryDataListener.onFinishSyncCategoryData();
+          }
+        }
+      }
+    };
   }
 
   private void updateCategoriesInLocalDatabase(ArrayList<Category> categories) {

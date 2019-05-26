@@ -4,6 +4,8 @@ import com.rolandvitezhu.todocloud.app.AppController;
 
 import javax.inject.Inject;
 
+import io.reactivex.disposables.CompositeDisposable;
+
 public class DataSynchronizer implements
     TodoDataSynchronizer.OnSyncTodoDataListener,
     ListDataSynchronizer.OnSyncListDataListener,
@@ -41,11 +43,11 @@ public class DataSynchronizer implements
    * If an error occurs in the processing of the requests, they should be aborted and start the
    * whole processing from the beginning, with the call of get methods.
    */
-  public void syncData() {
+  public void syncData(CompositeDisposable disposable) {
     initializeSyncStates();
-    todoDataSynchronizer.syncTodoData();
-    listDataSynchronizer.syncListData();
-    categoryDataSynchronizer.syncCategoryData();
+    todoDataSynchronizer.syncTodoData(disposable);
+    listDataSynchronizer.syncListData(disposable);
+    categoryDataSynchronizer.syncCategoryData(disposable);
   }
 
   private void initializeSyncStates() {
