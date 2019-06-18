@@ -1,4 +1,4 @@
-package com.rolandvitezhu.todocloud.adapter;
+package com.rolandvitezhu.todocloud.ui.activity.main.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;

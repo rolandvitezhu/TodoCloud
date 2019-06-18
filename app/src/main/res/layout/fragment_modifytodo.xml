@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
             android:paddingBottom="4dp"
+            android:hint="@string/all_create"
             android:textColorHint="@color/colorControlNormal">
 
             <android.support.design.widget.TextInputEditText
@@ -27,7 +28,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:hint="@string/all_create"
                 android:textColor="@color/textColorSecondary"
                 android:theme="@style/MyEditTextTheme"/>
         </android.support.design.widget.TextInputLayout>
@@ -132,6 +132,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:paddingBottom="16dp"
+                android:hint="@string/all_descriptionhint"
                 android:textColorHint="@color/colorControlNormal">
 
                 <android.support.design.widget.TextInputEditText
@@ -139,7 +140,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
-                    android:hint="@string/all_descriptionhint"
                     android:textColor="@color/textColorSecondary"
                     android:theme="@style/MyEditTextTheme"/>
             </android.support.design.widget.TextInputLayout>

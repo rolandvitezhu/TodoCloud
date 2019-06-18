@@ -1,4 +1,4 @@
-package com.rolandvitezhu.todocloud.adapter;
+package com.rolandvitezhu.todocloud.ui.activity.main.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -54,31 +54,29 @@ public class PredefinedListAdapter extends BaseAdapter {
     View itemView = layoutInflater.inflate(R.layout.item_predefinedlist, null);
     ButterKnife.bind(this, itemView);
 
-    String title = predefinedList.getTitle();
-    switch (title) {
-      case "0":
+    switch (position) {
+      case 0:
         ivPredefinedList.setImageResource(R.drawable.baseline_today_24);
-        tvTitle.setText(R.string.all_today);
         break;
-      case "1":
+      case 1:
         ivPredefinedList.setImageResource(R.drawable.baseline_view_week_24);
-        tvTitle.setText(R.string.all_next7days);
         break;
-      case "2":
+      case 2:
         ivPredefinedList.setImageResource(R.drawable.baseline_all_inclusive_24);
-        tvTitle.setText(R.string.all_all);
         break;
-      case "3":
+      case 3:
         ivPredefinedList.setImageResource(R.drawable.baseline_done_24);
-        tvTitle.setText(R.string.all_completed);
         break;
     }
+
+    tvTitle.setText(predefinedList.getTitle());
 
     return itemView;
   }
 
-  public void addItem(PredefinedList predefinedList) {
-    predefinedLists.add(predefinedList);
+  public void update(List<PredefinedList> predefinedLists) {
+    this.predefinedLists.clear();
+    this.predefinedLists.addAll(predefinedLists);
   }
 
   public void clear() {

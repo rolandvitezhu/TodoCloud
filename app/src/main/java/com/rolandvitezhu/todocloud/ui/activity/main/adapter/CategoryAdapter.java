@@ -1,4 +1,4 @@
-package com.rolandvitezhu.todocloud.adapter;
+package com.rolandvitezhu.todocloud.ui.activity.main.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -40,7 +40,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   public int getChildrenCount(int groupPosition) {
     Category category = categories.get(groupPosition);
     List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
-    return lists.size();
+    return (lists != null) ? lists.size() : 0;
   }
 
   @Override
@@ -52,7 +52,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   public Object getChild(int groupPosition, int childPosition) {
     Category category = categories.get(groupPosition);
     List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
-    return lists.get(childPosition);
+    return (lists != null) ? lists.get(childPosition) : null;
   }
 
   @Override
@@ -65,8 +65,8 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   public long getChildId(int groupPosition, int childPosition) {
     Category category = categories.get(groupPosition);
     List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
-    com.rolandvitezhu.todocloud.data.List list = lists.get(childPosition);
-    return list.get_id();
+    com.rolandvitezhu.todocloud.data.List list = (lists != null) ? lists.get(childPosition) : null;
+    return (list != null) ? list.get_id() : -1;
   }
 
   @Override
@@ -105,16 +105,12 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   }
 
   private void showCollapsedGroupIndicator(View convertView) {
-    ImageView ivGroupIndicator = (ImageView) convertView.findViewById(
-        R.id.imageview_itemcategory_groupindicator
-    );
+    ImageView ivGroupIndicator = convertView.findViewById(R.id.imageview_itemcategory_groupindicator);
     ivGroupIndicator.setImageResource(R.drawable.baseline_expand_less_24);
   }
 
   private void showExpandedGroupIndicator(View convertView) {
-    ImageView ivGroupIndicator = (ImageView) convertView.findViewById(
-        R.id.imageview_itemcategory_groupindicator
-    );
+    ImageView ivGroupIndicator = convertView.findViewById(R.id.imageview_itemcategory_groupindicator);
     ivGroupIndicator.setImageResource(R.drawable.baseline_expand_more_24);
   }
 
@@ -138,9 +134,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
         Context.LAYOUT_INFLATER_SERVICE
     );
     convertView = layoutInflater.inflate(R.layout.item_listincategory, null);
-    TextView tvTitle = (TextView) convertView.findViewById(
-        R.id.textview_itemlistincategory_actiontext
-    );
+    TextView tvTitle = convertView.findViewById(R.id.textview_itemlistincategory_actiontext);
     tvTitle.setText(list.getTitle());
 
     return convertView;
@@ -151,11 +145,10 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     return true;
   }
 
-  public void update(final List<Category> categories,
-                     final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
+  public void update(final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
     this.categories.clear();
     this.hmCategories.clear();
-    this.categories.addAll(categories);
+    this.categories.addAll(hmCategories.keySet());
     this.hmCategories.putAll(hmCategories);
   }
 

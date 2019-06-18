@@ -2,12 +2,12 @@ package com.rolandvitezhu.todocloud.di.module;
 
 import android.app.Application;
 
-import com.rolandvitezhu.todocloud.adapter.CategoryAdapter;
-import com.rolandvitezhu.todocloud.adapter.ListAdapter;
-import com.rolandvitezhu.todocloud.adapter.PredefinedListAdapter;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.ListAdapter;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.PredefinedListAdapter;
 
 import javax.inject.Singleton;
 

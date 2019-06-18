@@ -3,6 +3,8 @@ package com.rolandvitezhu.todocloud.fragment;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.app.SearchableInfo;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
@@ -27,11 +29,16 @@ import android.widget.SearchView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.app.AppController;
+import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask;
 import com.rolandvitezhu.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
+import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.SearchListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
 
 import java.util.ArrayList;
 
@@ -42,7 +49,6 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 public class SearchFragment extends Fragment implements
-    ModifyTodoFragment.IModifyTodoFragment,
     ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
 
   @Inject
@@ -55,24 +61,31 @@ public class SearchFragment extends Fragment implements
 
   private SearchView searchView;
 
-  private ISearchFragment listener;
   private ActionMode actionMode;
 
   Unbinder unbinder;
 
   @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (ISearchFragment) context;
-  }
-
-  @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+            super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
-    todoAdapter.clear();
+
+    TodosViewModel todosViewModel =
+        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
+
+    todosViewModel.getTodos().observe(
+        this,
+        new Observer<ArrayList<Todo>>() {
+
+          @Override
+          public void onChanged(@Nullable ArrayList<Todo> todos) {
+            todoAdapter.update(todos);
+            todoAdapter.notifyDataSetChanged();
+          }
+        }
+    );
   }
 
   @Nullable
@@ -93,7 +106,7 @@ public class SearchFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle("");
+    ((MainActivity)this.getActivity()).onSetActionBarTitle("");
     prepareSearchViewAfterModifyTodo();
   }
 
@@ -136,7 +149,7 @@ public class SearchFragment extends Fragment implements
           @Override
           public void onLongClick(View childView, int childViewAdapterPosition) {
             if (!isActionMode()) {
-              listener.onStartActionMode(callback);
+              ((MainActivity)SearchFragment.this.getActivity()).onStartActionMode(callback);
               todoAdapter.toggleSelection(childViewAdapterPosition);
               actionMode.invalidate();
             }
@@ -196,7 +209,11 @@ public class SearchFragment extends Fragment implements
 
   private void openModifyTodoFragment(int childViewAdapterPosition) {
     Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
-    listener.onClickTodo(todo, this);
+
+    TodosViewModel todosViewModel = ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
+    todosViewModel.setTodo(todo);
+
+    ((MainActivity)this.getActivity()).openModifyTodoFragment(this);
   }
 
   private void prepareSearchViewAfterModifyTodo() {
@@ -221,8 +238,10 @@ public class SearchFragment extends Fragment implements
 
   private void restoreQueryTextState() {
     if (searchView != null) {
-      String queryText = getArguments().getString("queryText");
-      searchView.setQuery(queryText, false);
+      SearchListsViewModel searchListsViewModel =
+          ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
+
+      searchView.setQuery(searchListsViewModel.getQueryText(), false);
     }
   }
 
@@ -335,9 +354,12 @@ public class SearchFragment extends Fragment implements
     );
   }
 
-  private void updateTodoAdapter() {
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(todoAdapter);
-    updateAdapterTask.execute(getArguments());
+  private void updateTodosViewModel() {
+    UpdateViewModelTask updateViewModelTask =
+        new UpdateViewModelTask(
+            ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class),
+            this.getActivity());
+    updateViewModelTask.execute();
   }
 
   @Override
@@ -425,27 +447,31 @@ public class SearchFragment extends Fragment implements
       }
 
       private void saveQueryTextState(String queryText) {
-        Bundle arguments = new Bundle();
-        arguments.putString("queryText", queryText);
-        Bundle currentArguments = getArguments();
-        currentArguments.putAll(arguments);
+        SearchListsViewModel searchListsViewModel =
+            ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
+
+        searchListsViewModel.setQueryText(queryText);
       }
 
       private void showSearchResults(String newText) {
-        setUpdateTodoAdapterArguments(newText);
-        updateTodoAdapter();
+        setUpdateTodosViewModelObjects(newText);
+        updateTodosViewModel();
       }
 
       private void clearSearchResults() {
         todoAdapter.clear();
       }
 
-      private void setUpdateTodoAdapterArguments(String queryText) {
+      private void setUpdateTodosViewModelObjects(String queryText) {
+        TodosViewModel todosViewModel =
+            ViewModelProviders.of(SearchFragment.this.getActivity()).get(TodosViewModel.class);
+        PredefinedListsViewModel predefinedListsViewModel =
+            ViewModelProviders.of(SearchFragment.this.getActivity()).get(PredefinedListsViewModel.class);
+
         String where = dbLoader.prepareSearchWhere(queryText);
-        Bundle arguments = new Bundle();
-        arguments.putString("selectFromDB", where);
-        Bundle currentArguments = getArguments();
-        currentArguments.putAll(arguments);
+
+        todosViewModel.setIsPredefinedList(true);
+        predefinedListsViewModel.setPredefinedList(new PredefinedList("0", where));
       }
 
     });
@@ -471,21 +497,6 @@ public class SearchFragment extends Fragment implements
     return !todo.isCompleted();
   }
 
-  @Override
-  public void onModifyTodo(Todo todo) {
-    dbLoader.updateTodo(todo);
-    dbLoader.fixTodoPositions();
-    updateTodoAdapter();
-
-    if (isSetReminder(todo)) {
-      if (shouldCreateReminderService(todo)) {
-        ReminderSetter.createReminderService(todo);
-      }
-    } else {
-      ReminderSetter.cancelReminderService(todo);
-    }
-  }
-
   private boolean shouldCreateReminderService(Todo todoToModify) {
     return isNotCompleted(todoToModify) && isNotDeleted(todoToModify);
   }
@@ -498,7 +509,7 @@ public class SearchFragment extends Fragment implements
   public void onSoftDelete(String onlineId, String itemType) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
-    updateTodoAdapter();
+    updateTodosViewModel();
     ReminderSetter.cancelReminderService(todoToSoftDelete);
     if (actionMode != null) {
       actionMode.finish();
@@ -512,16 +523,10 @@ public class SearchFragment extends Fragment implements
       dbLoader.softDeleteTodo(todoToSoftDelete);
       ReminderSetter.cancelReminderService(todoToSoftDelete);
     }
-    updateTodoAdapter();
+    updateTodosViewModel();
     if (actionMode != null) {
       actionMode.finish();
     }
-  }
-
-  public interface ISearchFragment {
-    void onSetActionBarTitle(String actionBarTitle);
-    void onStartActionMode(ActionMode.Callback callback);
-    void onClickTodo(Todo todo, Fragment targetFragment);
   }
 
 }

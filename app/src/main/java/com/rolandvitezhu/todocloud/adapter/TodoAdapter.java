@@ -42,7 +42,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     todos = new ArrayList<>();
   }
 
-  public void updateDataSet(ArrayList<Todo> todos) {
+  public void update(ArrayList<Todo> todos) {
     this.todos.clear();
 
     // Order todo list items ascending by position value

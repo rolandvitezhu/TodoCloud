@@ -1,5 +1,6 @@
-package com.rolandvitezhu.todocloud;
+package com.rolandvitezhu.todocloud.ui.activity.main;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -23,16 +24,18 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.data.User;
+import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask;
 import com.rolandvitezhu.todocloud.fragment.CreateTodoFragment;
 import com.rolandvitezhu.todocloud.fragment.LoginUserFragment;
 import com.rolandvitezhu.todocloud.fragment.LogoutUserDialogFragment;
-import com.rolandvitezhu.todocloud.fragment.MainListFragment;
 import com.rolandvitezhu.todocloud.fragment.ModifyPasswordFragment;
 import com.rolandvitezhu.todocloud.fragment.ModifyTodoFragment;
 import com.rolandvitezhu.todocloud.fragment.RegisterUserFragment;
@@ -40,8 +43,13 @@ import com.rolandvitezhu.todocloud.fragment.ResetPasswordFragment;
 import com.rolandvitezhu.todocloud.fragment.SearchFragment;
 import com.rolandvitezhu.todocloud.fragment.SettingsPreferenceFragment;
 import com.rolandvitezhu.todocloud.fragment.TodoListFragment;
+import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
 
 import java.util.ArrayList;
 
@@ -51,18 +59,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements
-    MainListFragment.IMainListFragment,
+    FragmentManager.OnBackStackChangedListener,
     LoginUserFragment.ILoginUserFragment,
     RegisterUserFragment.IRegisterUserFragment,
     ModifyPasswordFragment.IModifyPasswordFragment,
     ResetPasswordFragment.IResetPasswordFragment,
-    FragmentManager.OnBackStackChangedListener,
-    TodoListFragment.ITodoListFragment,
-    ModifyTodoFragment.IModifyTodoFragmentActionBar,
-    CreateTodoFragment.ICreateTodoFragmentActionBar,
     SettingsPreferenceFragment.ISettingsPreferenceFragment,
-    LogoutUserDialogFragment.ILogoutUserDialogFragment,
-    SearchFragment.ISearchFragment {
+    LogoutUserDialogFragment.ILogoutUserDialogFragment {
 
   @Inject
   DbLoader dbLoader;
@@ -107,11 +110,15 @@ public class MainActivity extends AppCompatActivity implements
         if (wasMainActivityStartedFromLauncherIcon) {
           openMainListFragment();
         } else if (wasMainActivityStartedFromNotification(id)){
+          TodosViewModel todosViewModel =
+              ViewModelProviders.of(this).get(TodosViewModel.class);
+
+          todosViewModel.setTodo(getNotificationRelatedTodo(id));
+
           openMainListFragment();
           TodoListFragment todoListFragment = new TodoListFragment();
           openAllPredefinedList(todoListFragment);
-          Todo notificationRelatedTodo = getNotificationRelatedTodo(id);
-          openModifyTodoFragment(notificationRelatedTodo, todoListFragment);
+          openModifyTodoFragment(todoListFragment);
         }
       } else {
         openLoginUserFragment();
@@ -120,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements
       prepareActionBarNavigationHandler();
       shouldDisplayHomeAsUp();
     }
+
+    ReminderSetter.createReminderServices(getApplicationContext());
   }
 
   private boolean wasMainActivityStartedFromNotification(long id) {
@@ -128,11 +137,17 @@ public class MainActivity extends AppCompatActivity implements
 
   private void openAllPredefinedList(TodoListFragment todoListFragment) {
     String allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere();
-    Bundle arguments = new Bundle();
-    arguments.putString("selectFromDB", allPredefinedListWhere);
-    arguments.putString("title", "2");
-    arguments.putBoolean("isPredefinedList", true);
-    todoListFragment.setArguments(arguments);
+
+    PredefinedList predefinedList =
+        new PredefinedList(getString(R.string.all_all), allPredefinedListWhere);
+
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    PredefinedListsViewModel predefinedListsViewModel =
+        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
+
+    todosViewModel.setIsPredefinedList(true);
+    predefinedListsViewModel.setPredefinedList(predefinedList);
+
     openTodoListFragment(todoListFragment);
   }
 
@@ -245,7 +260,6 @@ public class MainActivity extends AppCompatActivity implements
     logoutUserDialogFragment.show(getSupportFragmentManager(), "LogoutUserDialogFragment");
   }
 
-  @Override
   public void onPrepareNavigationHeader() {
     View navigationHeader = navigationView.getHeaderView(0);
     TextView tvName = navigationHeader.findViewById(R.id.textview_navigationdrawerheader_name);
@@ -257,15 +271,15 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  @Override
   public void onSearchActionItemClick() {
     openSearchFragment();
   }
 
   private void openSearchFragment() {
-    Bundle arguments = new Bundle(); // Will store UpdateTodoAdapter arguments later
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    todosViewModel.clearTodos();
+
     SearchFragment searchFragment = new SearchFragment();
-    searchFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(container.getId(), searchFragment);
@@ -324,26 +338,32 @@ public class MainActivity extends AppCompatActivity implements
     onSetActionBarTitle(getString(R.string.all_login));
   }
 
-  @Override
   public void onClickPredefinedList(PredefinedList predefinedList) {
-    Bundle arguments = new Bundle();
-    arguments.putString("selectFromDB", predefinedList.getSelectFromDB());
-    arguments.putString("title", predefinedList.getTitle());
-    arguments.putBoolean("isPredefinedList", true);
-    openTodoListFragment(arguments);
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    PredefinedListsViewModel predefinedListsViewModel =
+        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
+
+    todosViewModel.setIsPredefinedList(true);
+    predefinedListsViewModel.setPredefinedList(predefinedList);
+
+    openTodoListFragment();
   }
 
-  @Override
   public void onClickList(List list) {
-    Bundle arguments = new Bundle();
-    arguments.putString("listOnlineId", list.getListOnlineId());
-    arguments.putString("title", list.getTitle());
-    openTodoListFragment(arguments);
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    ListsViewModel listsViewModel = ViewModelProviders.of(this).get(ListsViewModel.class);
+
+    todosViewModel.setIsPredefinedList(false);
+    listsViewModel.setList(list);
+
+    openTodoListFragment();
   }
 
-  private void openTodoListFragment(Bundle arguments) {
+  private void openTodoListFragment() {
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    todosViewModel.clearTodos();
+
     TodoListFragment todoListFragment = new TodoListFragment();
-    todoListFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(container.getId(), todoListFragment);
@@ -501,29 +521,19 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  @Override
   public void onSetActionBarTitle(String title) {
     if (getSupportActionBar() != null)
       getSupportActionBar().setTitle(title);
     setDrawerEnabled(title.equals("Todo Cloud"));
   }
 
-  @Override
   public void onStartActionMode(ActionMode.Callback callback) {
     startSupportActionMode(callback);
   }
 
-  @Override
-  public void onClickTodo(Todo todo, Fragment targetFragment) {
-    openModifyTodoFragment(todo, targetFragment);
-  }
-
-  private void openModifyTodoFragment(Todo todo, Fragment targetFragment) {
-    Bundle arguments = new Bundle();
-    arguments.putParcelable("todo", todo);
+  public void openModifyTodoFragment(Fragment targetFragment) {
     ModifyTodoFragment modifyTodoFragment = new ModifyTodoFragment();
     modifyTodoFragment.setTargetFragment(targetFragment, 0);
-    modifyTodoFragment.setArguments(arguments);
     FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
     fragmentTransaction.replace(
@@ -535,7 +545,6 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.commit();
   }
 
-  @Override
   public void onOpenCreateTodoFragment(TodoListFragment targetFragment) {
     CreateTodoFragment createTodoFragment = new CreateTodoFragment();
     createTodoFragment.setTargetFragment(targetFragment, 0);
@@ -553,6 +562,120 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.replace(container.getId(), settingsPreferenceFragment);
     fragmentTransaction.addToBackStack(null);
     fragmentTransaction.commit();
+  }
+
+  public void ModifyTodo() {
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+
+    Todo todo = todosViewModel.getTodo();
+
+    dbLoader.updateTodo(todo);
+    dbLoader.fixTodoPositions();
+    updateTodosViewModel();
+
+    if (isSetReminder(todo)) {
+      if (shouldCreateReminderService(todo)) {
+        ReminderSetter.createReminderService(todo);
+      }
+    } else {
+      ReminderSetter.cancelReminderService(todo);
+    }
+  }
+
+  public void CreateTodo() {
+    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+
+    Todo todo = todosViewModel.getTodo();
+
+    createTodoInLocalDatabase(todo);
+    updateTodosViewModel();
+
+    if (isSetReminder(todo) && isNotCompleted(todo)) {
+      ReminderSetter.createReminderService(todo);
+    }
+  }
+
+  private void updateTodosViewModel() {
+    UpdateViewModelTask updateViewModelTask =
+        new UpdateViewModelTask(
+            ViewModelProviders.of(this).get(TodosViewModel.class),
+            this
+        );
+    updateViewModelTask.execute();
+  }
+
+  private boolean isSetReminder(Todo todo) {
+    return !todo.getReminderDateTime().equals("-1");
+  }
+
+  private boolean shouldCreateReminderService(Todo todoToModify) {
+    return isNotCompleted(todoToModify) && isNotDeleted(todoToModify);
+  }
+
+  private boolean isNotCompleted(Todo todo) {
+    return !todo.isCompleted();
+  }
+
+  private boolean isNotDeleted(Todo todo) {
+    return !todo.getDeleted();
+  }
+
+  private void createTodoInLocalDatabase(Todo todoToCreate) {
+    TodosViewModel todosViewModel =
+        ViewModelProviders.of(this).get(TodosViewModel.class);
+    ListsViewModel listsViewModel =
+        ViewModelProviders.of(this).get(ListsViewModel.class);
+
+    String listOnlineId = listsViewModel.getList().getListOnlineId();
+
+    if (isPredefinedListCompleted()) {
+      todoToCreate.setCompleted(true);
+    }
+
+    if (!todosViewModel.isPredefinedList()) {
+      todoToCreate.setListOnlineId(listOnlineId);
+    }
+
+    todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
+    todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
+    String todoOnlineId = OnlineIdGenerator.generateOnlineId(
+        DbConstants.Todo.DATABASE_TABLE,
+        todoToCreate.get_id(),
+        dbLoader.getApiKey()
+    );
+    todoToCreate.setTodoOnlineId(todoOnlineId);
+
+    dbLoader.updateTodo(todoToCreate);
+    dbLoader.fixTodoPositions();
+  }
+
+  private boolean isPredefinedListCompleted() {
+    TodosViewModel todosViewModel =
+        ViewModelProviders.of(this).get(TodosViewModel.class);
+    PredefinedListsViewModel predefinedListsViewModel =
+        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
+
+    if (todosViewModel.isPredefinedList())
+    {
+      String selectPredefinedListCompleted =
+          DbConstants.Todo.KEY_COMPLETED +
+              "=" +
+              1 +
+              " AND " +
+              DbConstants.Todo.KEY_USER_ONLINE_ID +
+              "='" +
+              dbLoader.getUserOnlineId() +
+              "'" +
+              " AND " +
+              DbConstants.Todo.KEY_DELETED +
+              "=" +
+              0;
+
+      return predefinedListsViewModel.getPredefinedList()
+          .getSelectFromDB().equals(selectPredefinedListCompleted);
+    }
+
+    return false;
   }
 
 }

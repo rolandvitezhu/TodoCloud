@@ -12,10 +12,11 @@ public class ReminderSetter extends BroadcastReceiver {
 
   @Override
   public void onReceive(Context context, Intent intent) {
-    createReminderServicesOnBootCompleted(context);
+    // Create notification services on boot completed
+    createReminderServices(context);
   }
 
-  private void createReminderServicesOnBootCompleted(Context context) {
+  public static void createReminderServices(Context context) {
     Intent serviceIntent = new Intent(context, ReminderService.class);
     serviceIntent.setAction(ReminderService.CREATE);
     context.startService(serviceIntent);

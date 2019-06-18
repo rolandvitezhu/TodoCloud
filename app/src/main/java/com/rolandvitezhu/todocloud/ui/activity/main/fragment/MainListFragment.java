@@ -1,8 +1,10 @@
-package com.rolandvitezhu.todocloud.fragment;
+package com.rolandvitezhu.todocloud.ui.activity.main.fragment;
 
-import android.content.Context;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
@@ -24,9 +26,6 @@ import android.widget.ScrollView;
 
 import com.github.clans.fab.FloatingActionMenu;
 import com.rolandvitezhu.todocloud.R;
-import com.rolandvitezhu.todocloud.adapter.CategoryAdapter;
-import com.rolandvitezhu.todocloud.adapter.ListAdapter;
-import com.rolandvitezhu.todocloud.adapter.PredefinedListAdapter;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView;
 import com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView;
@@ -34,11 +33,28 @@ import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateAdapterTask;
+import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask;
 import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer;
+import com.rolandvitezhu.todocloud.fragment.ConfirmDeleteDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.CreateCategoryDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.CreateListDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.CreateListInCategoryDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.LogoutUserDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.ModifyCategoryDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.ModifyListDialogFragment;
+import com.rolandvitezhu.todocloud.fragment.MoveListDialogFragment;
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.ListAdapter;
+import com.rolandvitezhu.todocloud.ui.activity.main.adapter.PredefinedListAdapter;
+import com.rolandvitezhu.todocloud.viewmodel.CategoriesViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -75,8 +91,6 @@ public class MainListFragment extends ListFragment implements
   @Inject
   ListAdapter listAdapter;
 
-  private IMainListFragment listener;
-
   @BindView(R.id.expandableheightlistview_mainlist_predefinedlist)
   ExpandableHeightListView ehlvPredefinedList;
   @BindView(R.id.expandableheightexpandablelistview_mainlist_category)
@@ -105,21 +119,55 @@ public class MainListFragment extends ListFragment implements
   Unbinder unbinder;
 
   @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IMainListFragment) context;
-  }
-
-  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
-    listener.onPrepareNavigationHeader();
-    updatePredefinedListAdapter();
-    updateCategoryAdapter();
-    updateListAdapter();
+    CategoriesViewModel categoriesViewModel =
+        ViewModelProviders.of(this.getActivity()).get(CategoriesViewModel.class);
+    ListsViewModel listsViewModel = ViewModelProviders.of(this.getActivity()).get(ListsViewModel.class);
+    PredefinedListsViewModel predefinedListsViewModel =
+        ViewModelProviders.of(this.getActivity()).get(PredefinedListsViewModel.class);
+
+    categoriesViewModel.getCategories().observe(
+        this,
+        new Observer<HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>>() {
+
+          @Override
+          public void onChanged(
+              @Nullable HashMap<Category,
+                  List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
+            categoryAdapter.update(hmCategories);
+            categoryAdapter.notifyDataSetChanged();
+          }
+        }
+    );
+    listsViewModel.getLists().observe(
+        this, new Observer<List<com.rolandvitezhu.todocloud.data.List>>() {
+
+      @Override
+      public void onChanged(@Nullable List<com.rolandvitezhu.todocloud.data.List> lists) {
+        listAdapter.update(lists);
+        listAdapter.notifyDataSetChanged();
+      }
+    });
+    predefinedListsViewModel.getPredefinedLists().observe(
+        this, new Observer<List<PredefinedList>>() {
+
+          @Override
+          public void onChanged(@Nullable List<PredefinedList> predefinedLists) {
+            predefinedListAdapter.update(predefinedLists);
+            predefinedListAdapter.notifyDataSetChanged();
+          }
+        }
+    );
+
+    ((MainActivity)MainListFragment.this.getActivity()).onPrepareNavigationHeader();
+
+    updatePredefinedListsViewModel();
+    updateCategoriesViewModel();
+    updateListsViewModel();
 
     dataSynchronizer.setOnSyncDataListener(this);
 
@@ -444,7 +492,7 @@ public class MainListFragment extends ListFragment implements
 
     switch (menuItemId) {
       case R.id.menuitem_mainlist_search:
-        listener.onSearchActionItemClick();
+        ((MainActivity)MainListFragment.this.getActivity()).onSearchActionItemClick();
         break;
     }
 
@@ -463,20 +511,31 @@ public class MainListFragment extends ListFragment implements
     createCategoryDialogFragment.show(getFragmentManager(), "CreateCategoryDialogFragment");
   }
 
-  private void updatePredefinedListAdapter() {
-    predefinedListAdapter.clear();
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(predefinedListAdapter);
-    updateAdapterTask.execute();
+  private void updatePredefinedListsViewModel() {
+    UpdateViewModelTask updateViewModelTask =
+        new UpdateViewModelTask(
+            ViewModelProviders.of(this.getActivity()).get(PredefinedListsViewModel.class),
+            this.getActivity()
+        );
+    updateViewModelTask.execute();
   }
 
-  private void updateCategoryAdapter() {
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(categoryAdapter);
-    updateAdapterTask.execute();
+  private void updateCategoriesViewModel() {
+    UpdateViewModelTask updateViewModelTask =
+        new UpdateViewModelTask(
+            ViewModelProviders.of(this.getActivity()).get(CategoriesViewModel.class),
+            this.getActivity()
+        );
+    updateViewModelTask.execute();
   }
 
-  private void updateListAdapter() {
-    UpdateAdapterTask updateAdapterTask = new UpdateAdapterTask(listAdapter);
-    updateAdapterTask.execute();
+  private void updateListsViewModel() {
+    UpdateViewModelTask updateViewModelTask =
+        new UpdateViewModelTask(
+            ViewModelProviders.of(this.getActivity()).get(ListsViewModel.class),
+            this.getActivity()
+        );
+    updateViewModelTask.execute();
   }
 
   private void openCreateListInCategoryDialogFragment() {
@@ -619,7 +678,7 @@ public class MainListFragment extends ListFragment implements
       if (!AppController.isActionModeEnabled()) {
         PredefinedList predefinedList = (PredefinedList) parent.getAdapter().getItem(
             position);
-        listener.onClickPredefinedList(predefinedList);
+        ((MainActivity)MainListFragment.this.getActivity()).onClickPredefinedList(predefinedList);
       }
     }
 
@@ -632,7 +691,7 @@ public class MainListFragment extends ListFragment implements
       com.rolandvitezhu.todocloud.data.List clickedList =
           (com.rolandvitezhu.todocloud.data.List) listAdapter.getItem(position);
       if (!AppController.isActionModeEnabled()) {
-        listener.onClickList(clickedList);
+        ((MainActivity)MainListFragment.this.getActivity()).onClickList(clickedList);
       } else {
         handleItemSelection(position, clickedList);
       }
@@ -655,8 +714,7 @@ public class MainListFragment extends ListFragment implements
     }
 
     private boolean isNoSelectedItems() {
-      int checkedItemCount = getCheckedItemCount();
-      return checkedItemCount == 0;
+      return getCheckedItemCount() == 0;
     }
 
     private int getCheckedItemCount() {
@@ -679,7 +737,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private void startActionMode(int position) {
-          listener.onStartActionMode(callback);
+          ((MainActivity)MainListFragment.this.getActivity()).onStartActionMode(callback);
           ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           ehlvList.setItemChecked(position, true);
           com.rolandvitezhu.todocloud.data.List selectedList =
@@ -705,7 +763,7 @@ public class MainListFragment extends ListFragment implements
           );
           int position = parent.getFlatListPosition(packedPosition);
           if (!AppController.isActionModeEnabled()) {
-            listener.onClickList(clickedList);
+            ((MainActivity)MainListFragment.this.getActivity()).onClickList(clickedList);
           } else {
             handleItemSelection(parent, clickedList, position);
           }
@@ -789,8 +847,7 @@ public class MainListFragment extends ListFragment implements
         }
 
         private boolean isNoSelectedItems() {
-          int checkedItemCount = getCheckedItemCount();
-          return checkedItemCount == 0;
+          return getCheckedItemCount() == 0;
         }
 
         private int getCheckedItemCount() {
@@ -823,7 +880,7 @@ public class MainListFragment extends ListFragment implements
 
         private void startActionModeWithList(int position) {
           actionModeStartedWithELV = true;
-          listener.onStartActionMode(callback);
+          ((MainActivity)MainListFragment.this.getActivity()).onStartActionMode(callback);
           expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableHeightExpandableListView.setItemChecked(position, true);
           com.rolandvitezhu.todocloud.data.List clickedList = (com.rolandvitezhu.todocloud.data.List)
@@ -835,7 +892,7 @@ public class MainListFragment extends ListFragment implements
 
         private void startActionModeWithCategory(int position) {
           actionModeStartedWithELV = true;
-          listener.onStartActionMode(callback);
+          ((MainActivity)MainListFragment.this.getActivity()).onStartActionMode(callback);
           expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
           expandableHeightExpandableListView.setItemChecked(position, true);
           Category clickedCategory = (Category) expandableHeightExpandableListView.getItemAtPosition(position);
@@ -857,7 +914,7 @@ public class MainListFragment extends ListFragment implements
   @Override
   public void onCreateCategory(Category category) {
     createCategoryInLocalDatabase(category);
-    updateCategoryAdapter();
+    updateCategoriesViewModel();
   }
 
   private void createCategoryInLocalDatabase(Category category) {
@@ -876,14 +933,14 @@ public class MainListFragment extends ListFragment implements
   public void onModifyCategory(Category category) {
     category.setDirty(true);
     dbLoader.updateCategory(category);
-    updateCategoryAdapter();
+    updateCategoriesViewModel();
     actionMode.finish();
   }
 
   @Override
   public void onCreateList(com.rolandvitezhu.todocloud.data.List list) {
     createListInLocalDatabase(list);
-    updateListAdapter();
+    updateListsViewModel();
   }
 
   private void createListInLocalDatabase(com.rolandvitezhu.todocloud.data.List list) {
@@ -903,9 +960,9 @@ public class MainListFragment extends ListFragment implements
     list.setDirty(true);
     dbLoader.updateList(list);
     if (isInCategory) {
-      updateCategoryAdapter();
+      updateCategoriesViewModel();
     } else {
-      updateListAdapter();
+      updateListsViewModel();
     }
     actionMode.finish();
   }
@@ -914,7 +971,7 @@ public class MainListFragment extends ListFragment implements
   public void onCreateListInCategory(com.rolandvitezhu.todocloud.data.List list,
                                      String categoryOnlineId) {
     createListInCategoryInLocalDatabase(list, categoryOnlineId);
-    updateCategoryAdapter();
+    updateCategoriesViewModel();
     actionMode.finish();
   }
 
@@ -966,8 +1023,8 @@ public class MainListFragment extends ListFragment implements
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
-    updateListAdapter();
-    updateCategoryAdapter();
+    updateListsViewModel();
+    updateCategoriesViewModel();
   }
 
   private void moveListIntoAnotherCategory(
@@ -977,15 +1034,15 @@ public class MainListFragment extends ListFragment implements
     list.setCategoryOnlineId(categoryOnlineId);
     list.setDirty(true);
     dbLoader.updateList(list);
-    updateCategoryAdapter();
+    updateCategoriesViewModel();
   }
 
   private void moveListOutsideCategory(com.rolandvitezhu.todocloud.data.List list) {
     list.setCategoryOnlineId(null);
     list.setDirty(true);
     dbLoader.updateList(list);
-    updateCategoryAdapter();
-    updateListAdapter();
+    updateCategoriesViewModel();
+    updateListsViewModel();
   }
 
   private boolean moveListOutsideCategory(String categoryOnlineId) {
@@ -1002,17 +1059,17 @@ public class MainListFragment extends ListFragment implements
     switch (itemType) {
       case "list":
         dbLoader.softDeleteListAndRelatedTodos(onlineId);
-        updateListAdapter();
+        updateListsViewModel();
         actionMode.finish();
         break;
       case "listInCategory":
         dbLoader.softDeleteListAndRelatedTodos(onlineId);
-        updateCategoryAdapter();
+        updateCategoriesViewModel();
         actionMode.finish();
         break;
       case "category":
         dbLoader.softDeleteCategoryAndListsAndTodos(onlineId);
-        updateCategoryAdapter();
+        updateCategoriesViewModel();
         actionMode.finish();
         break;
     }
@@ -1026,7 +1083,7 @@ public class MainListFragment extends ListFragment implements
         for (com.rolandvitezhu.todocloud.data.List list:lists) {
           dbLoader.softDeleteListAndRelatedTodos(list.getListOnlineId());
         }
-        updateListAdapter();
+        updateListsViewModel();
         actionMode.finish();
         break;
       case "listInCategory":
@@ -1034,7 +1091,7 @@ public class MainListFragment extends ListFragment implements
         for (com.rolandvitezhu.todocloud.data.List list:listsInCategory) {
           dbLoader.softDeleteListAndRelatedTodos(list.getListOnlineId());
         }
-        updateCategoryAdapter();
+        updateCategoriesViewModel();
         actionMode.finish();
         break;
       case "category":
@@ -1042,7 +1099,7 @@ public class MainListFragment extends ListFragment implements
         for (Category category:categories) {
           dbLoader.softDeleteCategoryAndListsAndTodos(category.getCategoryOnlineId());
         }
-        updateCategoryAdapter();
+        updateCategoriesViewModel();
         actionMode.finish();
         break;
     }
@@ -1050,18 +1107,18 @@ public class MainListFragment extends ListFragment implements
 
   @Override
   public void onLogout() {
-    listener.onLogout();
+    ((MainActivity)MainListFragment.this.getActivity()).onLogout();
   }
 
   @Override
   public void onFinishSyncListData() {
-    updateListAdapter();
-    updateCategoryAdapter();
+    updateListsViewModel();
+    updateCategoriesViewModel();
   }
 
   @Override
   public void onFinishSyncCategoryData() {
-    updateCategoryAdapter();
+    updateCategoriesViewModel();
   }
 
   @Override
@@ -1069,7 +1126,7 @@ public class MainListFragment extends ListFragment implements
     try {
       swipeRefreshLayout.setRefreshing(false);
     } catch (NullPointerException e) {
-      // SwipeRefreshLayout doesn't exists already.
+      // SwipeRefreshLayout doesn't already exists.
     }
   }
 
@@ -1123,15 +1180,6 @@ public class MainListFragment extends ListFragment implements
   public void onFabCreateListClick(View view) {
     openCreateListDialogFragment();
     fam.close(true);
-  }
-
-  public interface IMainListFragment {
-    void onClickPredefinedList(PredefinedList predefinedList);
-    void onClickList(com.rolandvitezhu.todocloud.data.List list);
-    void onLogout();
-    void onStartActionMode(ActionMode.Callback callback);
-    void onPrepareNavigationHeader();
-    void onSearchActionItemClick();
   }
 
 }
