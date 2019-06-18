@@ -56,7 +56,7 @@ public class ReminderReceiver extends BroadcastReceiver {
       NotificationChannel channel = new NotificationChannel(
           NOTIFICATION_CHANNEL_REMINDER,
           notificationChannelName,
-          NotificationManager.IMPORTANCE_HIGH);
+          NotificationManager.IMPORTANCE_DEFAULT);
       notificationManager.createNotificationChannel(channel);
       notificationBuilder.setChannelId(NOTIFICATION_CHANNEL_REMINDER);
     }
