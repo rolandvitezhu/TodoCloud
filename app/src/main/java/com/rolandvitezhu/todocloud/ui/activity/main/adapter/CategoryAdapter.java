@@ -12,7 +12,7 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Category;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -21,14 +21,14 @@ import butterknife.ButterKnife;
 public class CategoryAdapter extends BaseExpandableListAdapter {
 
   private final List<Category> categories;
-  private final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories;
+  private final LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> lhmCategories;
 
   @BindView(R.id.textview_itemcategory_actiontext)
   TextView tvTitle;
 
   public CategoryAdapter() {
     categories = new ArrayList<>();
-    hmCategories = new HashMap<>();
+    lhmCategories = new LinkedHashMap<>();
   }
 
   @Override
@@ -39,7 +39,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   @Override
   public int getChildrenCount(int groupPosition) {
     Category category = categories.get(groupPosition);
-    List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
+    List<com.rolandvitezhu.todocloud.data.List> lists = lhmCategories.get(category);
     return (lists != null) ? lists.size() : 0;
   }
 
@@ -51,7 +51,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   @Override
   public Object getChild(int groupPosition, int childPosition) {
     Category category = categories.get(groupPosition);
-    List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
+    List<com.rolandvitezhu.todocloud.data.List> lists = lhmCategories.get(category);
     return (lists != null) ? lists.get(childPosition) : null;
   }
 
@@ -64,7 +64,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   @Override
   public long getChildId(int groupPosition, int childPosition) {
     Category category = categories.get(groupPosition);
-    List<com.rolandvitezhu.todocloud.data.List> lists = hmCategories.get(category);
+    List<com.rolandvitezhu.todocloud.data.List> lists = lhmCategories.get(category);
     com.rolandvitezhu.todocloud.data.List list = (lists != null) ? lists.get(childPosition) : null;
     return (list != null) ? list.get_id() : -1;
   }
@@ -145,16 +145,16 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
     return true;
   }
 
-  public void update(final HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
+  public void update(final LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> lhmCategories) {
     this.categories.clear();
-    this.hmCategories.clear();
-    this.categories.addAll(hmCategories.keySet());
-    this.hmCategories.putAll(hmCategories);
+    this.lhmCategories.clear();
+    this.categories.addAll(lhmCategories.keySet());
+    this.lhmCategories.putAll(lhmCategories);
   }
 
   public void clear() {
     categories.clear();
-    hmCategories.clear();
+    lhmCategories.clear();
     notifyDataSetChanged();
   }
 

@@ -18,7 +18,7 @@ import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -33,7 +33,7 @@ public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
   private List<com.rolandvitezhu.todocloud.data.List> lists;
   private List<PredefinedList> predefinedLists;
   private ArrayList<Todo> todos;
-  private HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories;
+  private LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> lhmCategories;
 
   public UpdateViewModelTask(Object viewModel, FragmentActivity activity) {
     this.viewModel = viewModel;
@@ -65,7 +65,7 @@ public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
     } else if (viewModel instanceof PredefinedListsViewModel) {
       ((PredefinedListsViewModel) viewModel).setPredefinedLists(predefinedLists);
     } else if (viewModel instanceof CategoriesViewModel) {
-      ((CategoriesViewModel) viewModel).setCategories(hmCategories);
+      ((CategoriesViewModel) viewModel).setCategories(lhmCategories);
     } else if (viewModel instanceof ListsViewModel) {
       ((ListsViewModel) viewModel).setLists(lists);
     }
@@ -117,12 +117,12 @@ public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
 
   private void updateCategoriesViewModel() {
     List<Category> categories = dbLoader.getCategories();
-    hmCategories = new HashMap<>();
+    lhmCategories = new LinkedHashMap<>();
 
     for (Category category : categories) {
       List<com.rolandvitezhu.todocloud.data.List> listData =
           dbLoader.getListsByCategoryOnlineId(category.getCategoryOnlineId());
-      hmCategories.put(category, listData);
+      lhmCategories.put(category, listData);
     }
   }
 

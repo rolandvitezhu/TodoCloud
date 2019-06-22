@@ -6,26 +6,26 @@ import android.arch.lifecycle.ViewModel;
 
 import com.rolandvitezhu.todocloud.data.Category;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class CategoriesViewModel extends ViewModel {
 
-  private MutableLiveData<HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>> hmCategories;
+  private MutableLiveData<LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>> lhmCategories;
   private Category category;
 
-  public LiveData<HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>> getCategories() {
-    if (hmCategories == null)
-      hmCategories = new MutableLiveData<>();
+  public LiveData<LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>> getCategories() {
+    if (lhmCategories == null)
+      lhmCategories = new MutableLiveData<>();
 
-    return hmCategories;
+    return lhmCategories;
   }
 
-  public void setCategories(HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
-    if (this.hmCategories == null)
-      this.hmCategories = new MutableLiveData<>();
+  public void setCategories(LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
+    if (this.lhmCategories == null)
+      this.lhmCategories = new MutableLiveData<>();
 
-    this.hmCategories.setValue(hmCategories);
+    this.lhmCategories.setValue(hmCategories);
   }
 
   public Category getCategory() {

@@ -54,7 +54,7 @@ import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.UserViewModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -129,13 +129,13 @@ public class MainListFragment extends ListFragment implements
 
     categoriesViewModel.getCategories().observe(
         this,
-        new Observer<HashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>>() {
+        new Observer<LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>>() {
 
           @Override
           public void onChanged(
-              @Nullable HashMap<Category,
-                  List<com.rolandvitezhu.todocloud.data.List>> hmCategories) {
-            categoryAdapter.update(hmCategories);
+              @Nullable LinkedHashMap<Category,
+                  List<com.rolandvitezhu.todocloud.data.List>> lhmCategories) {
+            categoryAdapter.update(lhmCategories);
             categoryAdapter.notifyDataSetChanged();
           }
         }
