@@ -31,6 +31,7 @@ import com.rolandvitezhu.todocloud.helper.SessionManager;
 import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
 import javax.inject.Inject;
 
@@ -81,15 +82,7 @@ public class LoginUserFragment extends Fragment {
   @BindView(R.id.button_loginuser_linktoresetpassword)
   Button btnLinkToResetPassword;
 
-  private ILoginUserFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (ILoginUserFragment) context;
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -100,7 +93,7 @@ public class LoginUserFragment extends Fragment {
     apiService = retrofit.create(ApiService.class);
 
     if (sessionManager.isLoggedIn()) {
-      listener.onFinishLoginUser();
+      ((MainActivity)this.getActivity()).onFinishLoginUser();
     }
   }
 
@@ -122,7 +115,7 @@ public class LoginUserFragment extends Fragment {
   public void onResume() {
     super.onResume();
     try {
-      listener.onSetActionBarTitle(getString(R.string.all_login));
+      ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_login));
     } catch (NullPointerException e) {
       // Activity doesn't exists already.
     }
@@ -279,7 +272,7 @@ public class LoginUserFragment extends Fragment {
 
   public void onFinishLoginUser() {
     hideFormSubmissionErrors();
-    listener.onFinishLoginUser();
+    ((MainActivity)this.getActivity()).onFinishLoginUser();
   }
 
   public void onSyncError(String errorMessage) {
@@ -350,12 +343,12 @@ public class LoginUserFragment extends Fragment {
 
   @OnClick(R.id.button_loginuser_linktoregister)
   public void onBtnLinkToRegisterClick(View view) {
-    listener.onClickLinkToRegisterUser();
+    ((MainActivity)this.getActivity()).onClickLinkToRegisterUser();
   }
 
   @OnClick(R.id.button_loginuser_linktoresetpassword)
   public void onBtnLinkToResetPasswordClick(View view) {
-    listener.onClickLinkToResetPassword();
+    ((MainActivity)this.getActivity()).onClickLinkToResetPassword();
   }
 
   private class MyTextWatcher implements TextWatcher {
@@ -388,13 +381,6 @@ public class LoginUserFragment extends Fragment {
       }
     }
 
-  }
-
-  public interface ILoginUserFragment {
-    void onClickLinkToRegisterUser();
-    void onFinishLoginUser();
-    void onSetActionBarTitle(String title);
-    void onClickLinkToResetPassword();
   }
 
 }

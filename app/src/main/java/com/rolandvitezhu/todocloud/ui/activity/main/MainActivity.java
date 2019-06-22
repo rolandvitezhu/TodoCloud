@@ -47,9 +47,11 @@ import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.helper.SessionManager;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.ui.activity.main.viewholder.NavigationHeaderViewHolder;
 import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.UserViewModel;
 
 import java.util.ArrayList;
 
@@ -60,10 +62,6 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements
     FragmentManager.OnBackStackChangedListener,
-    LoginUserFragment.ILoginUserFragment,
-    RegisterUserFragment.IRegisterUserFragment,
-    ModifyPasswordFragment.IModifyPasswordFragment,
-    ResetPasswordFragment.IResetPasswordFragment,
     SettingsPreferenceFragment.ISettingsPreferenceFragment,
     LogoutUserDialogFragment.ILogoutUserDialogFragment {
 
@@ -82,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements
   FrameLayout container;
   @BindView(R.id.main_coordinator_layout)
   CoordinatorLayout coordinatorLayout;
+
+  private NavigationHeaderViewHolder navigationHeaderViewHolder;
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
 
@@ -129,6 +129,12 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     ReminderSetter.createReminderServices(getApplicationContext());
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    navigationHeaderViewHolder.unbind();
   }
 
   private boolean wasMainActivityStartedFromNotification(long id) {
@@ -262,12 +268,22 @@ public class MainActivity extends AppCompatActivity implements
 
   public void onPrepareNavigationHeader() {
     View navigationHeader = navigationView.getHeaderView(0);
-    TextView tvName = navigationHeader.findViewById(R.id.textview_navigationdrawerheader_name);
-    TextView tvEmail = navigationHeader.findViewById(R.id.textview_navigationdrawerheader_email);
+    navigationHeaderViewHolder = new NavigationHeaderViewHolder(navigationHeader);
+
     User user = dbLoader.getUser();
-    if (user != null) {
-      tvName.setText(user.getName());
-      tvEmail.setText(user.getEmail());
+    UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+    userViewModel.setUser(user);
+
+    updateNavigationHeader();
+  }
+
+  public void updateNavigationHeader() {
+    UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+    User user = userViewModel.getUser().getValue();
+
+    if (user != null && navigationHeaderViewHolder != null) {
+      navigationHeaderViewHolder.name.setText(user.getName());
+      navigationHeaderViewHolder.email.setText(user.getEmail());
     }
   }
 
@@ -396,12 +412,10 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  @Override
   public void onClickLinkToRegisterUser() {
     openRegisterUserFragment();
   }
 
-  @Override
   public void onClickLinkToResetPassword() {
     openResetPasswordFragment();
   }
@@ -432,7 +446,6 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.commit();
   }
 
-  @Override
   public void onFinishRegisterUser() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
@@ -448,7 +461,6 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.commit();
   }
 
-  @Override
   public void onFinishLoginUser() {
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
@@ -493,7 +505,6 @@ public class MainActivity extends AppCompatActivity implements
     return true;
   }
 
-  @Override
   public void onFinishModifyPassword() {
     try {
       Snackbar snackbar = Snackbar.make(
@@ -507,7 +518,6 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  @Override
   public void onFinishResetPassword() {
     try {
       Snackbar snackbar = Snackbar.make(

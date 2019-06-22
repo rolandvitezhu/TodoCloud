@@ -30,6 +30,7 @@ import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordResponse;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
 import javax.inject.Inject;
 
@@ -69,15 +70,7 @@ public class ResetPasswordFragment extends Fragment {
   @BindView(R.id.button_resetpassword)
   Button btnSubmit;
 
-  private IResetPasswordFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IResetPasswordFragment) context;
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,7 +100,7 @@ public class ResetPasswordFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_reset_password));
+    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_reset_password));
     applyOrientationPortrait();
   }
 
@@ -236,7 +229,7 @@ public class ResetPasswordFragment extends Fragment {
 
   public void onFinishResetPassword() {
     hideFormSubmissionErrors();
-    listener.onFinishResetPassword();
+    ((MainActivity)this.getActivity()).onFinishResetPassword();
   }
 
   public void onSyncError(String errorMessage) {
@@ -332,11 +325,6 @@ public class ResetPasswordFragment extends Fragment {
       }
     }
 
-  }
-
-  public interface IResetPasswordFragment {
-    void onFinishResetPassword();
-    void onSetActionBarTitle(String title);
   }
 
 }

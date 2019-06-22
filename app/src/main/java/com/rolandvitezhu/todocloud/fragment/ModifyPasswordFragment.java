@@ -29,6 +29,7 @@ import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordResponse;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
 import javax.inject.Inject;
 
@@ -78,15 +79,7 @@ public class ModifyPasswordFragment extends Fragment {
   @BindView(R.id.button_changepassword)
   Button btnChangePassword;
 
-  private IModifyPasswordFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IModifyPasswordFragment) context;
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -116,7 +109,7 @@ public class ModifyPasswordFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_change_password));
+    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_change_password));
     applyOrientationPortrait();
   }
 
@@ -282,7 +275,7 @@ public class ModifyPasswordFragment extends Fragment {
 
   public void onFinishModifyPassword() {
     hideFormSubmissionErrors();
-    listener.onFinishModifyPassword();
+    ((MainActivity)this.getActivity()).onFinishModifyPassword();
   }
 
   public void onSyncError(String errorMessage) {
@@ -383,11 +376,6 @@ public class ModifyPasswordFragment extends Fragment {
   public void onBtnChangePasswordClick(View view) {
     hideSoftInput();
     handleChangePassword();
-  }
-
-  public interface IModifyPasswordFragment {
-    void onFinishModifyPassword();
-    void onSetActionBarTitle(String title);
   }
 
 }

@@ -34,6 +34,7 @@ import com.rolandvitezhu.todocloud.helper.SessionManager;
 import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.user.dto.RegisterUserRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.RegisterUserResponse;
+import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
 import javax.inject.Inject;
 
@@ -88,15 +89,7 @@ public class RegisterUserFragment extends Fragment {
   @BindView(R.id.button_registeruser)
   Button btnRegister;
 
-  private IRegisterUserFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IRegisterUserFragment) context;
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,7 +100,7 @@ public class RegisterUserFragment extends Fragment {
     apiService = retrofit.create(ApiService.class);
 
     if (sessionManager.isLoggedIn()) {
-      listener.onFinishLoginUser();
+      ((MainActivity)this.getActivity()).onFinishLoginUser();
     }
   }
 
@@ -130,7 +123,7 @@ public class RegisterUserFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    listener.onSetActionBarTitle(getString(R.string.all_register));
+    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_register));
     applyOrientationPortrait();
   }
 
@@ -352,7 +345,7 @@ public class RegisterUserFragment extends Fragment {
 
   public void onFinishRegisterUser() {
     hideFormSubmissionErrors();
-    listener.onFinishRegisterUser();
+    ((MainActivity)this.getActivity()).onFinishRegisterUser();
   }
 
   public void onSyncError(String errorMessage) {
@@ -457,12 +450,6 @@ public class RegisterUserFragment extends Fragment {
       }
     }
 
-  }
-
-  public interface IRegisterUserFragment {
-    void onFinishRegisterUser();
-    void onFinishLoginUser();
-    void onSetActionBarTitle(String title);
   }
 
 }

@@ -31,6 +31,7 @@ import com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableLis
 import com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView;
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
+import com.rolandvitezhu.todocloud.data.User;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask;
@@ -51,6 +52,7 @@ import com.rolandvitezhu.todocloud.ui.activity.main.adapter.PredefinedListAdapte
 import com.rolandvitezhu.todocloud.viewmodel.CategoriesViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
 import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.UserViewModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,6 +131,8 @@ public class MainListFragment extends ListFragment implements
     ListsViewModel listsViewModel = ViewModelProviders.of(this.getActivity()).get(ListsViewModel.class);
     PredefinedListsViewModel predefinedListsViewModel =
         ViewModelProviders.of(this.getActivity()).get(PredefinedListsViewModel.class);
+    UserViewModel userViewModel =
+        ViewModelProviders.of(this.getActivity()).get(UserViewModel.class);
 
     categoriesViewModel.getCategories().observe(
         this,
@@ -159,6 +163,15 @@ public class MainListFragment extends ListFragment implements
           public void onChanged(@Nullable List<PredefinedList> predefinedLists) {
             predefinedListAdapter.update(predefinedLists);
             predefinedListAdapter.notifyDataSetChanged();
+          }
+        }
+    );
+    userViewModel.getUser().observe(
+        this, new Observer<User>() {
+
+          @Override
+          public void onChanged(@Nullable User user) {
+            ((MainActivity)MainListFragment.this.getActivity()).updateNavigationHeader();
           }
         }
     );
