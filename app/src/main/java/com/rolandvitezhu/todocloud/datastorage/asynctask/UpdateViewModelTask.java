@@ -12,10 +12,10 @@ import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
-import com.rolandvitezhu.todocloud.viewmodel.CategoriesViewModel;
-import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
-import com.rolandvitezhu.todocloud.viewmodel.PredefinedListsViewModel;
-import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewModel;
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel;
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel;
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
