@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,13 +20,6 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
   private int month;
   private int day;
   private LocalDateTime date;
-  private IReminderDatePickerDialogFragment listener;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IReminderDatePickerDialogFragment) getTargetFragment();
-  }
 
   @NonNull
   @Override
@@ -73,13 +65,13 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
   @Override
   public void onDateSet(DatePicker view, int year, int month, int day) {
     date = LocalDateTime.of(year, month + 1, day, date.getHour(), date.getMinute());
-    listener.onSelectReminderDate(date);
-    dismiss();
-  }
 
-  public interface IReminderDatePickerDialogFragment {
-    void onSelectReminderDate(LocalDateTime date);
-    void onDeleteReminder();
+    if (getTargetFragment() instanceof CreateTodoFragment)
+      ((CreateTodoFragment)getTargetFragment()).onSelectReminderDate(date);
+    else if (getTargetFragment() instanceof ModifyTodoFragment)
+      ((ModifyTodoFragment)getTargetFragment()).onSelectReminderDate(date);
+
+    dismiss();
   }
 
 }

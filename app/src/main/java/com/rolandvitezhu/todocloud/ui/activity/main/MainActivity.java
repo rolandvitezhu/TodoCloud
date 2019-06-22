@@ -22,7 +22,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
@@ -60,10 +59,7 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements
-    FragmentManager.OnBackStackChangedListener,
-    SettingsPreferenceFragment.ISettingsPreferenceFragment,
-    LogoutUserDialogFragment.ILogoutUserDialogFragment {
+public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
   @Inject
   DbLoader dbLoader;
@@ -85,6 +81,11 @@ public class MainActivity extends AppCompatActivity implements
 
   private ActionBarDrawerToggle actionBarDrawerToggle;
 
+  private UserViewModel userViewModel;
+  private TodosViewModel todosViewModel;
+  private PredefinedListsViewModel predefinedListsViewModel;
+  private ListsViewModel listsViewModel;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -92,6 +93,11 @@ public class MainActivity extends AppCompatActivity implements
     ButterKnife.bind(this);
 
     ((AppController) getApplication()).getAppComponent().inject(this);
+
+    userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+    todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
+    predefinedListsViewModel = ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
+    listsViewModel = ViewModelProviders.of(this).get(ListsViewModel.class);
 
     setSupportActionBar(toolbar);
 
@@ -110,9 +116,6 @@ public class MainActivity extends AppCompatActivity implements
         if (wasMainActivityStartedFromLauncherIcon) {
           openMainListFragment();
         } else if (wasMainActivityStartedFromNotification(id)){
-          TodosViewModel todosViewModel =
-              ViewModelProviders.of(this).get(TodosViewModel.class);
-
           todosViewModel.setTodo(getNotificationRelatedTodo(id));
 
           openMainListFragment();
@@ -146,10 +149,6 @@ public class MainActivity extends AppCompatActivity implements
 
     PredefinedList predefinedList =
         new PredefinedList(getString(R.string.all_all), allPredefinedListWhere);
-
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
-    PredefinedListsViewModel predefinedListsViewModel =
-        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
 
     todosViewModel.setIsPredefinedList(true);
     predefinedListsViewModel.setPredefinedList(predefinedList);
@@ -271,14 +270,12 @@ public class MainActivity extends AppCompatActivity implements
     navigationHeaderViewHolder = new NavigationHeaderViewHolder(navigationHeader);
 
     User user = dbLoader.getUser();
-    UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
     userViewModel.setUser(user);
 
     updateNavigationHeader();
   }
 
   public void updateNavigationHeader() {
-    UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
     User user = userViewModel.getUser().getValue();
 
     if (user != null && navigationHeaderViewHolder != null) {
@@ -292,7 +289,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openSearchFragment() {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
     todosViewModel.clearTodos();
 
     SearchFragment searchFragment = new SearchFragment();
@@ -355,10 +351,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   public void onClickPredefinedList(PredefinedList predefinedList) {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
-    PredefinedListsViewModel predefinedListsViewModel =
-        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
-
     todosViewModel.setIsPredefinedList(true);
     predefinedListsViewModel.setPredefinedList(predefinedList);
 
@@ -366,9 +358,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   public void onClickList(List list) {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
-    ListsViewModel listsViewModel = ViewModelProviders.of(this).get(ListsViewModel.class);
-
     todosViewModel.setIsPredefinedList(false);
     listsViewModel.setList(list);
 
@@ -376,7 +365,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void openTodoListFragment() {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
     todosViewModel.clearTodos();
 
     TodoListFragment todoListFragment = new TodoListFragment();
@@ -395,7 +383,6 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.commit();
   }
 
-  @Override
   public void onLogout() {
     cancelReminders();
     sessionManager.setLogin(false);
@@ -476,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements
     fragmentTransaction.commit();
   }
 
-  @Override
   public void onClickChangePassword() {
     openModifyPasswordFragment();
   }
@@ -575,8 +561,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   public void ModifyTodo() {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
-
     Todo todo = todosViewModel.getTodo();
 
     dbLoader.updateTodo(todo);
@@ -593,8 +577,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   public void CreateTodo() {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
-
     Todo todo = todosViewModel.getTodo();
 
     createTodoInLocalDatabase(todo);
@@ -606,11 +588,7 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void updateTodosViewModel() {
-    UpdateViewModelTask updateViewModelTask =
-        new UpdateViewModelTask(
-            ViewModelProviders.of(this).get(TodosViewModel.class),
-            this
-        );
+    UpdateViewModelTask updateViewModelTask = new UpdateViewModelTask(todosViewModel, this);
     updateViewModelTask.execute();
   }
 
@@ -631,11 +609,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void createTodoInLocalDatabase(Todo todoToCreate) {
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this).get(TodosViewModel.class);
-    ListsViewModel listsViewModel =
-        ViewModelProviders.of(this).get(ListsViewModel.class);
-
     String listOnlineId = listsViewModel.getList().getListOnlineId();
 
     if (isPredefinedListCompleted()) {
@@ -660,11 +633,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private boolean isPredefinedListCompleted() {
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this).get(TodosViewModel.class);
-    PredefinedListsViewModel predefinedListsViewModel =
-        ViewModelProviders.of(this).get(PredefinedListsViewModel.class);
-
     if (todosViewModel.isPredefinedList())
     {
       String selectPredefinedListCompleted =

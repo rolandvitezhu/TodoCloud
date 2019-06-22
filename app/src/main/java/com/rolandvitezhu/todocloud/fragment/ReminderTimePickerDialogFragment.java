@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialogFragment;
 import android.widget.TimePicker;
@@ -17,13 +16,6 @@ public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment im
   private int hour;
   private int minute;
   private LocalDateTime date;
-  private IReminderTimePickerDialogFragment listener;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IReminderTimePickerDialogFragment) getTargetFragment();
-  }
 
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -43,12 +35,13 @@ public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment im
   @Override
   public void onTimeSet(TimePicker view, int hour, int minute) {
     date = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), hour, minute);
-    listener.onSelectReminderDateTime(date);
-    dismiss();
-  }
 
-  public interface IReminderTimePickerDialogFragment {
-    void onSelectReminderDateTime(LocalDateTime date);
+    if (getTargetFragment() instanceof CreateTodoFragment)
+      ((CreateTodoFragment)getTargetFragment()).onSelectReminderDateTime(date);
+    else if (getTargetFragment() instanceof ModifyTodoFragment)
+      ((ModifyTodoFragment)getTargetFragment()).onSelectReminderDateTime(date);
+
+    dismiss();
   }
 
 }

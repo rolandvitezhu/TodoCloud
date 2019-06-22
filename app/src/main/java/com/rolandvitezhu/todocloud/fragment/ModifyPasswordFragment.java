@@ -109,7 +109,7 @@ public class ModifyPasswordFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_change_password));
+    ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.all_change_password));
     applyOrientationPortrait();
   }
 
@@ -275,7 +275,7 @@ public class ModifyPasswordFragment extends Fragment {
 
   public void onFinishModifyPassword() {
     hideFormSubmissionErrors();
-    ((MainActivity)this.getActivity()).onFinishModifyPassword();
+    ((MainActivity)getActivity()).onFinishModifyPassword();
   }
 
   public void onSyncError(String errorMessage) {

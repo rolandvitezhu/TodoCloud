@@ -1,7 +1,7 @@
 package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
@@ -21,6 +21,8 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Category;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.viewmodel.CategoriesViewModel;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,20 +38,15 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
   @BindView(R.id.button_createcategory_ok)
   Button btnOK;
 
+  private CategoriesViewModel categoriesViewModel;
+
   Unbinder unbinder;
-
-  private ICreateCategoryDialogFragment listener;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (ICreateCategoryDialogFragment) getTargetFragment();
-  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    categoriesViewModel = ViewModelProviders.of(getActivity()).get(CategoriesViewModel.class);
   }
 
   @Override
@@ -157,7 +154,8 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
 
     if (validateTitle()) {
       Category categoryToCreate = prepareCategoryToCreate(givenTitle);
-      listener.onCreateCategory(categoryToCreate);
+      categoriesViewModel.setCategory(categoryToCreate);
+      ((MainListFragment)getTargetFragment()).onCreateCategory();
       dismiss();
     }
   }
@@ -165,10 +163,6 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
   @OnClick(R.id.button_createcategory_cancel)
   public void onBtnCancelClick(View view) {
     dismiss();
-  }
-
-  public interface ICreateCategoryDialogFragment {
-    void onCreateCategory(Category category);
   }
 
 }

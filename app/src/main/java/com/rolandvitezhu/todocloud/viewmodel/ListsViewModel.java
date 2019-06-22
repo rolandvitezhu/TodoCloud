@@ -10,6 +10,7 @@ public class ListsViewModel extends ViewModel {
 
   private MutableLiveData<List<com.rolandvitezhu.todocloud.data.List>> lists;
   private com.rolandvitezhu.todocloud.data.List list;
+  private boolean isInCategory;
 
   public LiveData<List<com.rolandvitezhu.todocloud.data.List>> getLists() {
     if (lists == null)
@@ -34,5 +35,13 @@ public class ListsViewModel extends ViewModel {
 
   public void setList(com.rolandvitezhu.todocloud.data.List list) {
     this.list = list;
+  }
+
+  public boolean isInCategory() {
+    return isInCategory;
+  }
+
+  public void setIsInCategory(boolean inCategory) {
+    isInCategory = inCategory;
   }
 }

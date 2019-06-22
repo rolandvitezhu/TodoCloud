@@ -100,7 +100,7 @@ public class RegisterUserFragment extends Fragment {
     apiService = retrofit.create(ApiService.class);
 
     if (sessionManager.isLoggedIn()) {
-      ((MainActivity)this.getActivity()).onFinishLoginUser();
+      ((MainActivity)getActivity()).onFinishLoginUser();
     }
   }
 
@@ -123,7 +123,7 @@ public class RegisterUserFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_register));
+    ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.all_register));
     applyOrientationPortrait();
   }
 
@@ -345,7 +345,7 @@ public class RegisterUserFragment extends Fragment {
 
   public void onFinishRegisterUser() {
     hideFormSubmissionErrors();
-    ((MainActivity)this.getActivity()).onFinishRegisterUser();
+    ((MainActivity)getActivity()).onFinishRegisterUser();
   }
 
   public void onSyncError(String errorMessage) {

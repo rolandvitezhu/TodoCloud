@@ -1,7 +1,7 @@
 package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
@@ -21,6 +21,8 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.List;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,20 +38,15 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
   @BindView(R.id.button_createlistincategory_ok)
   Button btnOK;
 
-  private ICreateListInCategoryDialogFragment listener;
+  private ListsViewModel listsViewModel;
 
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (ICreateListInCategoryDialogFragment) getTargetFragment();
-  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
   }
 
   @Override
@@ -157,8 +154,8 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
 
     if (validateTitle()) {
       List listToCreate = prepareListToCreate(givenTitle);
-      String categoryOnlineId = getArguments().getString("categoryOnlineId");
-      listener.onCreateListInCategory(listToCreate, categoryOnlineId);
+      listsViewModel.setList(listToCreate);
+      ((MainListFragment)getTargetFragment()).onCreateListInCategory();
       dismiss();
     }
   }
@@ -166,10 +163,6 @@ public class CreateListInCategoryDialogFragment extends AppCompatDialogFragment 
   @OnClick(R.id.button_createlistincategory_cancel)
   public void onBtnCancelClick(View view) {
     dismiss();
-  }
-
-  public interface ICreateListInCategoryDialogFragment {
-    void onCreateListInCategory(List list, String categoryOnlineId);
   }
 
 }

@@ -1,7 +1,6 @@
 package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +13,7 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Todo;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
 
 import java.util.ArrayList;
 
@@ -33,33 +33,7 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
   @BindView(R.id.button_confirmdelete_ok)
   Button btnOK;
 
-  @OnClick(R.id.button_confirmdelete_ok)
-  public void onBtnOkClick(View view) {
-    if (itemType.equals("todo")) {
-      listener.onSoftDelete(itemsToDelete, itemType);
-    } else if (!isManyItems) {
-      String onlineId = getArguments().getString("onlineId");
-      listener.onSoftDelete(onlineId, itemType);
-    } else {
-      listener.onSoftDelete(itemsToDelete, itemType);
-    }
-    dismiss();
-  }
-
-  @OnClick(R.id.button_confirmdelete_cancel)
-  public void onBtnCancelClick(View view) {
-    dismiss();
-  }
-
-  private IConfirmDeleteDialogFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IConfirmDeleteDialogFragment) getTargetFragment();
-  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -201,9 +175,49 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     tvActionText.setText(actionText);
   }
 
-  public interface IConfirmDeleteDialogFragment {
-    void onSoftDelete(String onlineId, String itemType);
-    void onSoftDelete(ArrayList itemsToDelete, String itemType);
+  @OnClick(R.id.button_confirmdelete_ok)
+  public void onBtnOkClick(View view) {
+    if (getTargetFragment() instanceof MainListFragment) {
+      MainListFragment mainListFragment = (MainListFragment) getTargetFragment();
+
+      if (itemType.equals("todo")) {
+        mainListFragment.onSoftDelete(itemsToDelete, itemType);
+      } else if (!isManyItems) {
+        String onlineId = getArguments().getString("onlineId");
+        mainListFragment.onSoftDelete(onlineId, itemType);
+      } else {
+        mainListFragment.onSoftDelete(itemsToDelete, itemType);
+      }
+    } else if (getTargetFragment() instanceof TodoListFragment) {
+      TodoListFragment todoListFragment = (TodoListFragment) getTargetFragment();
+
+      if (itemType.equals("todo")) {
+        todoListFragment.onSoftDelete(itemsToDelete, itemType);
+      } else if (!isManyItems) {
+        String onlineId = getArguments().getString("onlineId");
+        todoListFragment.onSoftDelete(onlineId, itemType);
+      } else {
+        todoListFragment.onSoftDelete(itemsToDelete, itemType);
+      }
+    } else if (getTargetFragment() instanceof SearchFragment) {
+      SearchFragment searchFragment = (SearchFragment) getTargetFragment();
+
+      if (itemType.equals("todo")) {
+        searchFragment.onSoftDelete(itemsToDelete, itemType);
+      } else if (!isManyItems) {
+        String onlineId = getArguments().getString("onlineId");
+        searchFragment.onSoftDelete(onlineId, itemType);
+      } else {
+        searchFragment.onSoftDelete(itemsToDelete, itemType);
+      }
+    }
+
+    dismiss();
+  }
+
+  @OnClick(R.id.button_confirmdelete_cancel)
+  public void onBtnCancelClick(View view) {
+    dismiss();
   }
 
 }

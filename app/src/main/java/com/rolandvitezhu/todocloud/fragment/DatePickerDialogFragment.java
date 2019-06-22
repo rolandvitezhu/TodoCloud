@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatDialogFragment;
@@ -20,13 +19,6 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
 	private int month;
 	private int day;
   private LocalDate date;
-	private IDatePickerDialogFragment listener;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IDatePickerDialogFragment) getTargetFragment();
-  }
 
   @NonNull
   @Override
@@ -50,12 +42,13 @@ public class DatePickerDialogFragment extends AppCompatDialogFragment implements
   @Override
   public void onDateSet(DatePicker view, int year, int month, int day) {
     date = LocalDate.of(year, month + 1, day);
-    listener.onSelectDate(date);
-	  dismiss();
-  }
 
-  public interface IDatePickerDialogFragment {
-		void onSelectDate(LocalDate date);
-	}
+    if (getTargetFragment() instanceof CreateTodoFragment)
+      ((CreateTodoFragment)getTargetFragment()).onSelectDate(date);
+    else if (getTargetFragment() instanceof ModifyTodoFragment)
+      ((ModifyTodoFragment)getTargetFragment()).onSelectDate(date);
+
+    dismiss();
+  }
 
 }

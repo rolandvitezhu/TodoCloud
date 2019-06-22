@@ -1,7 +1,7 @@
 package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -21,6 +21,8 @@ import android.widget.TextView;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.List;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,23 +38,17 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
   @BindView(R.id.button_modifylist_ok)
   Button btnOK;
 
+  private ListsViewModel listsViewModel;
   private List list;
 
-  private IModifyListDialogFragment listener;
-
   Unbinder unbinder;
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IModifyListDialogFragment) getTargetFragment();
-  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
-    list = (List) getArguments().get("list");
+    listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
+    list = listsViewModel.getList();
   }
 
   @Override
@@ -151,8 +147,8 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
     if (validateTitle()) {
       list.setTitle(givenTitle);
-      boolean isInCategory = getArguments().getBoolean("isInCategory");
-      listener.onModifyList(list, isInCategory);
+      listsViewModel.setList(list);
+      ((MainListFragment)getTargetFragment()).onModifyList();
       dismiss();
     }
   }
@@ -160,10 +156,6 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
   @OnClick(R.id.button_modifylist_cancel)
   public void onBtnCancelClick(View view) {
     dismiss();
-  }
-
-  public interface IModifyListDialogFragment {
-    void onModifyList(List list, boolean isInCategory);
   }
 
 }

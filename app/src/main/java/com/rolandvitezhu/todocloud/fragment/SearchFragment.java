@@ -48,8 +48,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class SearchFragment extends Fragment implements
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment {
+public class SearchFragment extends Fragment {
 
   @Inject
   DbLoader dbLoader;
@@ -63,6 +62,10 @@ public class SearchFragment extends Fragment implements
 
   private ActionMode actionMode;
 
+  private TodosViewModel todosViewModel;
+  private SearchListsViewModel searchListsViewModel;
+  private PredefinedListsViewModel predefinedListsViewModel;
+
   Unbinder unbinder;
 
   @Override
@@ -72,8 +75,9 @@ public class SearchFragment extends Fragment implements
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
+    todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
+    searchListsViewModel = ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
+    predefinedListsViewModel = ViewModelProviders.of(SearchFragment.this.getActivity()).get(PredefinedListsViewModel.class);
 
     todosViewModel.getTodos().observe(
         this,
@@ -106,7 +110,7 @@ public class SearchFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    ((MainActivity)this.getActivity()).onSetActionBarTitle("");
+    ((MainActivity)getActivity()).onSetActionBarTitle("");
     prepareSearchViewAfterModifyTodo();
   }
 
@@ -209,11 +213,9 @@ public class SearchFragment extends Fragment implements
 
   private void openModifyTodoFragment(int childViewAdapterPosition) {
     Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
-
-    TodosViewModel todosViewModel = ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
     todosViewModel.setTodo(todo);
 
-    ((MainActivity)this.getActivity()).openModifyTodoFragment(this);
+    ((MainActivity)getActivity()).openModifyTodoFragment(this);
   }
 
   private void prepareSearchViewAfterModifyTodo() {
@@ -237,12 +239,8 @@ public class SearchFragment extends Fragment implements
   }
 
   private void restoreQueryTextState() {
-    if (searchView != null) {
-      SearchListsViewModel searchListsViewModel =
-          ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
-
+    if (searchView != null)
       searchView.setQuery(searchListsViewModel.getQueryText(), false);
-    }
   }
 
   private ActionMode.Callback callback = new ActionMode.Callback() {
@@ -355,10 +353,7 @@ public class SearchFragment extends Fragment implements
   }
 
   private void updateTodosViewModel() {
-    UpdateViewModelTask updateViewModelTask =
-        new UpdateViewModelTask(
-            ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class),
-            this.getActivity());
+    UpdateViewModelTask updateViewModelTask = new UpdateViewModelTask(todosViewModel, getActivity());
     updateViewModelTask.execute();
   }
 
@@ -447,9 +442,6 @@ public class SearchFragment extends Fragment implements
       }
 
       private void saveQueryTextState(String queryText) {
-        SearchListsViewModel searchListsViewModel =
-            ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
-
         searchListsViewModel.setQueryText(queryText);
       }
 
@@ -463,11 +455,6 @@ public class SearchFragment extends Fragment implements
       }
 
       private void setUpdateTodosViewModelObjects(String queryText) {
-        TodosViewModel todosViewModel =
-            ViewModelProviders.of(SearchFragment.this.getActivity()).get(TodosViewModel.class);
-        PredefinedListsViewModel predefinedListsViewModel =
-            ViewModelProviders.of(SearchFragment.this.getActivity()).get(PredefinedListsViewModel.class);
-
         String where = dbLoader.prepareSearchWhere(queryText);
 
         todosViewModel.setIsPredefinedList(true);
@@ -505,7 +492,6 @@ public class SearchFragment extends Fragment implements
     return !todo.getDeleted();
   }
 
-  @Override
   public void onSoftDelete(String onlineId, String itemType) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
@@ -516,7 +502,6 @@ public class SearchFragment extends Fragment implements
     }
   }
 
-  @Override
   public void onSoftDelete(ArrayList itemsToDelete, String itemType) {
     ArrayList<Todo> todosToSoftDelete = itemsToDelete;
     for (Todo todoToSoftDelete:todosToSoftDelete) {

@@ -93,7 +93,7 @@ public class LoginUserFragment extends Fragment {
     apiService = retrofit.create(ApiService.class);
 
     if (sessionManager.isLoggedIn()) {
-      ((MainActivity)this.getActivity()).onFinishLoginUser();
+      ((MainActivity)getActivity()).onFinishLoginUser();
     }
   }
 
@@ -115,7 +115,7 @@ public class LoginUserFragment extends Fragment {
   public void onResume() {
     super.onResume();
     try {
-      ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_login));
+      ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.all_login));
     } catch (NullPointerException e) {
       // Activity doesn't exists already.
     }
@@ -272,7 +272,7 @@ public class LoginUserFragment extends Fragment {
 
   public void onFinishLoginUser() {
     hideFormSubmissionErrors();
-    ((MainActivity)this.getActivity()).onFinishLoginUser();
+    ((MainActivity)getActivity()).onFinishLoginUser();
   }
 
   public void onSyncError(String errorMessage) {
@@ -343,12 +343,12 @@ public class LoginUserFragment extends Fragment {
 
   @OnClick(R.id.button_loginuser_linktoregister)
   public void onBtnLinkToRegisterClick(View view) {
-    ((MainActivity)this.getActivity()).onClickLinkToRegisterUser();
+    ((MainActivity)getActivity()).onClickLinkToRegisterUser();
   }
 
   @OnClick(R.id.button_loginuser_linktoresetpassword)
   public void onBtnLinkToResetPasswordClick(View view) {
-    ((MainActivity)this.getActivity()).onClickLinkToResetPassword();
+    ((MainActivity)getActivity()).onClickLinkToResetPassword();
   }
 
   private class MyTextWatcher implements TextWatcher {

@@ -1,7 +1,7 @@
 package com.rolandvitezhu.todocloud.fragment;
 
 import android.app.Dialog;
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialogFragment;
 import android.view.LayoutInflater;
@@ -15,8 +15,10 @@ import android.widget.Spinner;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Category;
-import com.rolandvitezhu.todocloud.data.List;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
+import com.rolandvitezhu.todocloud.viewmodel.CategoriesViewModel;
+import com.rolandvitezhu.todocloud.viewmodel.ListsViewModel;
 
 import java.util.ArrayList;
 
@@ -35,24 +37,18 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   @BindView(R.id.spinner_movelist_category)
   Spinner spinnerCategory;
 
-  private IMoveListDialogFragment listener;
-  private ArrayList<Category> categoriesFor;
+  private CategoriesViewModel categoriesViewModel;
+  private ListsViewModel listsViewModel;
 
   Unbinder unbinder;
 
   @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
-    listener = (IMoveListDialogFragment) getTargetFragment();
-  }
-
-  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
-
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
+    categoriesViewModel = ViewModelProviders.of(getActivity()).get(CategoriesViewModel.class);
+    listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
   }
 
   @Override
@@ -83,7 +79,7 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
     Category categoryForListWithoutCategory = new Category(
         getString(R.string.movelist_spinneritemlistnotincategory)
     );
-    Category categoryOriginallyRelatedToList = (Category) getArguments().get("category");
+    Category categoryOriginallyRelatedToList = categoriesViewModel.getCategory();
     ArrayList<Category> realCategoriesFromDatabase = dbLoader.getCategories();
 
     ArrayList<Category> categoriesForSpinner = new ArrayList<>();
@@ -111,22 +107,22 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
 
   @OnClick(R.id.button_movelist_ok)
   public void onBtnOkClick(View view) {
-    Category category = (Category) getArguments().get("category");
+    Category category = categoriesViewModel.getCategory();
     boolean isListNotInCategoryBeforeMove = category.getCategoryOnlineId() == null;
-    List list = getArguments().getParcelable("list");
+
     Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
     String categoryOnlineId = selectedCategory.getCategoryOnlineId();
-    listener.onMoveList(list, categoryOnlineId, isListNotInCategoryBeforeMove);
+    category.setCategoryOnlineId(categoryOnlineId);
+
+    categoriesViewModel.setCategory(category);
+
+    ((MainListFragment)getTargetFragment()).onMoveList(isListNotInCategoryBeforeMove);
     dismiss();
   }
 
   @OnClick(R.id.button_movelist_cancel)
   public void onBtnCancelClick(View view) {
     dismiss();
-  }
-
-  public interface IMoveListDialogFragment {
-    void onMoveList(List list, String categoryOnlineId, boolean isListNotInCategoryBeforeMove);
   }
 
 }

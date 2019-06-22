@@ -100,7 +100,7 @@ public class ResetPasswordFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_reset_password));
+    ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.all_reset_password));
     applyOrientationPortrait();
   }
 
@@ -229,7 +229,7 @@ public class ResetPasswordFragment extends Fragment {
 
   public void onFinishResetPassword() {
     hideFormSubmissionErrors();
-    ((MainActivity)this.getActivity()).onFinishResetPassword();
+    ((MainActivity)getActivity()).onFinishResetPassword();
   }
 
   public void onSyncError(String errorMessage) {

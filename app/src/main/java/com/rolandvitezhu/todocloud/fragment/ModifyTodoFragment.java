@@ -22,7 +22,6 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.app.Constant;
 import com.rolandvitezhu.todocloud.data.Todo;
-import com.rolandvitezhu.todocloud.fragment.DatePickerDialogFragment.IDatePickerDialogFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
 
@@ -37,10 +36,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-public class ModifyTodoFragment extends Fragment implements
-    IDatePickerDialogFragment,
-    ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
-    ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
+public class ModifyTodoFragment extends Fragment {
 
   @BindView(R.id.textinputlayout_modifytodo_title)
   TextInputLayout tilTitle;
@@ -79,6 +75,8 @@ public class ModifyTodoFragment extends Fragment implements
 
   private boolean shouldNavigateBack;
 
+  private TodosViewModel todosViewModel;
+
   Unbinder unbinder;
 
   public boolean isShouldNavigateBack() {
@@ -89,9 +87,7 @@ public class ModifyTodoFragment extends Fragment implements
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-
+    todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
     todo = todosViewModel.getTodo();
 
     initDueDate(todo);
@@ -120,7 +116,7 @@ public class ModifyTodoFragment extends Fragment implements
   public void onResume() {
     super.onResume();
 
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.modifytodo_title));
+    ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.modifytodo_title));
     setClearDueDateVisibility();
     setClearReminderDateTimeVisibility();
   }
@@ -143,9 +139,6 @@ public class ModifyTodoFragment extends Fragment implements
     if (rootView != null) {
       hideSoftInput(rootView);
 
-      TodosViewModel todosViewModel =
-          ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-
       Todo todo = todosViewModel.getTodo();
       String titleOnUi = tietTitle.getText().toString().trim();
 
@@ -155,9 +148,9 @@ public class ModifyTodoFragment extends Fragment implements
       } else {
         todo = prepareTodo(todo);
         todosViewModel.setTodo(todo);
-        ((MainActivity)this.getActivity()).ModifyTodo();
+        ((MainActivity)getActivity()).ModifyTodo();
         shouldNavigateBack = true;
-        ((MainActivity)this.getActivity()).onBackPressed();
+        ((MainActivity)getActivity()).onBackPressed();
       }
     }
   }
@@ -214,7 +207,6 @@ public class ModifyTodoFragment extends Fragment implements
     );
   }
 
-  @Override
   public void onSelectDate(LocalDate date) {
     setTvDueDateText(date);
     setClearDueDateVisibility();
@@ -237,7 +229,6 @@ public class ModifyTodoFragment extends Fragment implements
     }
   }
 
-  @Override
   public void onSelectReminderDate(LocalDateTime date) {
     openReminderTimePickerDialogFragment(date);
   }
@@ -256,12 +247,10 @@ public class ModifyTodoFragment extends Fragment implements
     );
   }
 
-  @Override
   public void onDeleteReminder() {
     tvReminderDateTime.setText(getString(R.string.all_noreminder));
   }
 
-  @Override
   public void onSelectReminderDateTime(LocalDateTime date) {
     setTvReminderDateTimeText(date);
     setClearReminderDateTimeVisibility();

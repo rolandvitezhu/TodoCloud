@@ -27,7 +27,6 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.app.Constant;
 import com.rolandvitezhu.todocloud.data.Todo;
-import com.rolandvitezhu.todocloud.fragment.DatePickerDialogFragment.IDatePickerDialogFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 import com.rolandvitezhu.todocloud.viewmodel.TodosViewModel;
 
@@ -41,10 +40,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-public class CreateTodoFragment extends Fragment implements
-    IDatePickerDialogFragment,
-    ReminderDatePickerDialogFragment.IReminderDatePickerDialogFragment,
-    ReminderTimePickerDialogFragment.IReminderTimePickerDialogFragment {
+public class CreateTodoFragment extends Fragment {
 
   @BindView(R.id.textinputlayout_createtodo_title)
   TextInputLayout tilTitle;
@@ -73,6 +69,8 @@ public class CreateTodoFragment extends Fragment implements
   private long reminderDateTimeLong;
   private String reminderDateTimeDisp;
 
+  private TodosViewModel todosViewModel;
+
   Unbinder unbinder;
 
   @Override
@@ -80,6 +78,7 @@ public class CreateTodoFragment extends Fragment implements
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     initDueDate();
+    todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
   }
 
   @Override
@@ -120,7 +119,7 @@ public class CreateTodoFragment extends Fragment implements
   public void onResume() {
     super.onResume();
 
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(getString(R.string.all_createtodo));
+    ((MainActivity)getActivity()).onSetActionBarTitle(getString(R.string.all_createtodo));
     setClearDueDateVisibility();
     setClearReminderDateTimeVisibility();
   }
@@ -180,14 +179,10 @@ public class CreateTodoFragment extends Fragment implements
     if (menuItemId == R.id.menuitem_createtodo) {
       hideSoftInput();
       Todo todoToCreate = prepareTodoToCreate();
-
-      TodosViewModel todosViewModel =
-          ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-
       todosViewModel.setTodo(todoToCreate);
 
-      ((MainActivity)this.getActivity()).CreateTodo();
-      ((MainActivity)this.getActivity()).onBackPressed();
+      ((MainActivity)getActivity()).CreateTodo();
+      ((MainActivity)getActivity()).onBackPressed();
     }
     return super.onOptionsItemSelected(item);
   }
@@ -266,7 +261,6 @@ public class CreateTodoFragment extends Fragment implements
     );
   }
 
-  @Override
   public void onSelectDate(LocalDate date) {
     setTvDueDateText(date);
     setClearDueDateVisibility();
@@ -288,7 +282,6 @@ public class CreateTodoFragment extends Fragment implements
     }
   }
 
-  @Override
   public void onSelectReminderDate(LocalDateTime date) {
     openReminderTimePickerDialogFragment(date);
   }
@@ -306,12 +299,10 @@ public class CreateTodoFragment extends Fragment implements
     );
   }
 
-  @Override
   public void onDeleteReminder() {
     tvReminderDateTime.setText(getString(R.string.all_noreminder));
   }
 
-  @Override
   public void onSelectReminderDateTime(LocalDateTime date) {
     setTvReminderDateTimeText(date);
     setClearReminderDateTimeVisibility();

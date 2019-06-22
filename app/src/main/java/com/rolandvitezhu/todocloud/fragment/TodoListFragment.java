@@ -23,11 +23,9 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.adapter.TodoAdapter;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
-import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask;
 import com.rolandvitezhu.todocloud.dialog.SortTodoListDialog;
-import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator;
 import com.rolandvitezhu.todocloud.listener.RecyclerViewOnItemTouchListener;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
@@ -47,9 +45,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-public class TodoListFragment extends Fragment implements
-    ConfirmDeleteDialogFragment.IConfirmDeleteDialogFragment,
-    SortTodoListDialog.Presenter {
+public class TodoListFragment extends Fragment implements SortTodoListDialog.Presenter {
 
   @Inject
   DbLoader dbLoader;
@@ -61,6 +57,10 @@ public class TodoListFragment extends Fragment implements
 
   private ActionMode actionMode;
 
+  private TodosViewModel todosViewModel;
+  private ListsViewModel listsViewModel;
+  private PredefinedListsViewModel predefinedListsViewModel;
+
   Unbinder unbinder;
 
   @Override
@@ -70,8 +70,9 @@ public class TodoListFragment extends Fragment implements
 
     ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
+    todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
+    listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
+    predefinedListsViewModel = ViewModelProviders.of(getActivity()).get(PredefinedListsViewModel.class);
 
     todosViewModel.getTodos().observe(
         this,
@@ -282,11 +283,9 @@ public class TodoListFragment extends Fragment implements
 
   private void openModifyTodoFragment(int childViewAdapterPosition) {
     Todo todo = todoAdapter.getTodo(childViewAdapterPosition);
-
-    TodosViewModel todosViewModel = ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
     todosViewModel.setTodo(todo);
 
-    ((MainActivity)this.getActivity()).openModifyTodoFragment(this);
+    ((MainActivity)getActivity()).openModifyTodoFragment(this);
   }
 
   @Override
@@ -300,7 +299,7 @@ public class TodoListFragment extends Fragment implements
 
     switch (menuItemId) {
       case R.id.menuitem_todolist_sort:
-        new SortTodoListDialog(this.getActivity(), this);
+        new SortTodoListDialog(getActivity(), this);
         break;
     }
 
@@ -308,23 +307,14 @@ public class TodoListFragment extends Fragment implements
   }
 
   private void setActionBarTitle() {
-    TodosViewModel todosViewModel = ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-
     String actionBarTitle = "";
 
-    if (!todosViewModel.isPredefinedList()) { // List
-      ListsViewModel listsViewModel =
-          ViewModelProviders.of(this.getActivity()).get(ListsViewModel.class);
-
+    if (!todosViewModel.isPredefinedList()) // List
       actionBarTitle = listsViewModel.getList().getTitle();
-    } else { // PredefinedList
-      PredefinedListsViewModel predefinedListsViewModel =
-          ViewModelProviders.of(this.getActivity()).get(PredefinedListsViewModel.class);
-
+    else // PredefinedList
       actionBarTitle = predefinedListsViewModel.getPredefinedList().getTitle();
-    }
 
-    ((MainActivity)this.getActivity()).onSetActionBarTitle(actionBarTitle);
+    ((MainActivity)getActivity()).onSetActionBarTitle(actionBarTitle);
   }
 
   private ActionMode.Callback callback = new ActionMode.Callback() {
@@ -431,89 +421,10 @@ public class TodoListFragment extends Fragment implements
   }
 
   private void updateTodosViewModel() {
-    UpdateViewModelTask updateViewModelTask =
-        new UpdateViewModelTask(
-            ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class),
-            this.getActivity()
-        );
+    UpdateViewModelTask updateViewModelTask = new UpdateViewModelTask(todosViewModel, getActivity());
     updateViewModelTask.execute();
   }
 
-  private void createTodoInLocalDatabase(Todo todoToCreate) {
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-    ListsViewModel listsViewModel =
-        ViewModelProviders.of(this.getActivity()).get(ListsViewModel.class);
-
-    String listOnlineId = listsViewModel.getList().getListOnlineId();
-
-    if (isPredefinedListCompleted()) {
-      todoToCreate.setCompleted(true);
-    }
-
-    if (!todosViewModel.isPredefinedList()) {
-      todoToCreate.setListOnlineId(listOnlineId);
-    }
-
-    todoToCreate.setUserOnlineId(dbLoader.getUserOnlineId());
-    todoToCreate.set_id(dbLoader.createTodo(todoToCreate));
-    String todoOnlineId = OnlineIdGenerator.generateOnlineId(
-        DbConstants.Todo.DATABASE_TABLE,
-        todoToCreate.get_id(),
-        dbLoader.getApiKey()
-    );
-    todoToCreate.setTodoOnlineId(todoOnlineId);
-
-    dbLoader.updateTodo(todoToCreate);
-    dbLoader.fixTodoPositions();
-  }
-
-  private boolean isPredefinedListCompleted() {
-    TodosViewModel todosViewModel =
-        ViewModelProviders.of(this.getActivity()).get(TodosViewModel.class);
-    PredefinedListsViewModel predefinedListsViewModel =
-        ViewModelProviders.of(this.getActivity()).get(PredefinedListsViewModel.class);
-
-    if (todosViewModel.isPredefinedList())
-    {
-      String selectPredefinedListCompleted =
-          DbConstants.Todo.KEY_COMPLETED +
-              "=" +
-              1 +
-              " AND " +
-              DbConstants.Todo.KEY_USER_ONLINE_ID +
-              "='" +
-              dbLoader.getUserOnlineId() +
-              "'" +
-              " AND " +
-              DbConstants.Todo.KEY_DELETED +
-              "=" +
-              0;
-
-      return predefinedListsViewModel.getPredefinedList()
-          .getSelectFromDB().equals(selectPredefinedListCompleted);
-    }
-
-    return false;
-  }
-
-  private boolean isSetReminder(Todo todo) {
-    return !todo.getReminderDateTime().equals("-1");
-  }
-
-  private boolean isNotCompleted(Todo todo) {
-    return !todo.isCompleted();
-  }
-
-  private boolean shouldCreateReminderService(Todo todoToModify) {
-    return isNotCompleted(todoToModify) && isNotDeleted(todoToModify);
-  }
-
-  private boolean isNotDeleted(Todo todo) {
-    return !todo.getDeleted();
-  }
-
-  @Override
   public void onSoftDelete(String onlineId, String itemType) {
     Todo todoToSoftDelete = dbLoader.getTodo(onlineId);
     dbLoader.softDeleteTodo(todoToSoftDelete);
@@ -524,7 +435,6 @@ public class TodoListFragment extends Fragment implements
     }
   }
 
-  @Override
   public void onSoftDelete(ArrayList itemsToDelete, String itemType) {
     ArrayList<Todo> todosToSoftDelete = itemsToDelete;
     for (Todo todoToSoftDelete:todosToSoftDelete) {
