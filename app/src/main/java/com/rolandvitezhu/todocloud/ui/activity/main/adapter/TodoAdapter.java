@@ -8,8 +8,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
@@ -175,14 +173,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final Todo todo = todos.get(position);
 
-    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.llTodoTitleAndDueDate.getLayoutParams();
-    if (AppController.isActionMode()) { // "drag_handle" is visible, so we need bigger margin
-      params.rightMargin = (int) (48f * AppController.getAppContext().getResources().getDisplayMetrics().density);
-    } else { // "drag_handle" is gone, so we need smaller margin
-      params.rightMargin = (int) (32f * AppController.getAppContext().getResources().getDisplayMetrics().density);
-    }
-    holder.llTodoTitleAndDueDate.setLayoutParams(params);
-
     holder.cbCompleted.setChecked(todo.isCompleted());
     holder.tvTitle.setText(todo.getTitle());
     holder.tvDueDate.setText(todo.getFormattedDueDateForListItem());
@@ -304,8 +294,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
 
   public class ItemViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.linearlayout_todo_title_and_due_date)
-    LinearLayout llTodoTitleAndDueDate;
     @BindView(R.id.checkbox_todo_completed)
     AppCompatCheckBox cbCompleted;
     @BindView(R.id.textview_todo_title)

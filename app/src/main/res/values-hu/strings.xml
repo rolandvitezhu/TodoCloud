@@ -94,5 +94,6 @@
     <string name="resetpassword_passwordresetsuccessful">A jelszó alaphelyzetbe állítása sikeres.</string>
     <string name="loginuser_linktoresetpasswordbutton">Elfelejtette a jelszavát?</string>
     <string name="resetpassword_resetpasswordlabel">Add meg az email címed és küldjük az új jelszót.</string>
+    <string name="all_drag_handle">Vonszolás fogantyú</string>
 
 </resources>

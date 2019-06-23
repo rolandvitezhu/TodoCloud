@@ -94,5 +94,6 @@
     <string name="resetpassword_passwordresetsuccessful">Password reset successful.</string>
     <string name="loginuser_linktoresetpasswordbutton">Forgot password?</string>
     <string name="resetpassword_resetpasswordlabel">Enter your email address and we will send you a new password.</string>
+    <string name="all_drag_handle">Drag handle</string>
 
 </resources>
