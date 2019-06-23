@@ -25,6 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
         android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+        app:layout_goneMarginRight="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+        app:layout_goneMarginEnd="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
         android:ellipsize="end"
         android:lines="1"
         android:textColor="@android:color/black"
@@ -48,37 +50,38 @@
         app:layout_constraintTop_toBottomOf="@id/textview_todo_title"
         tools:text="@tools:sample/date/mmddyy"/>
 
-    <ImageView
-        android:id="@+id/imageview_todo_priority"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/all_priority"
-        android:src="@drawable/ic_priority_high_black_24dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/imageview_todo_draghandle"/>
+<ImageView
+    android:id="@+id/imageview_todo_priority"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/all_priority"
+    android:src="@drawable/ic_priority_high_black_24dp"
+    android:visibility="visible"
+    app:layout_constraintStart_toEndOf="@id/textview_todo_title"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/imageview_todo_draghandle"/>
 
-    <ImageView
-        android:id="@+id/imageview_todo_draghandle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/all_drag_handle"
-        android:src="@drawable/baseline_drag_handle_black_24"
-        android:tint="@color/colorControlNormal"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/g_parent_end"/>
+<ImageView
+    android:id="@+id/imageview_todo_draghandle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/all_drag_handle"
+    android:src="@drawable/baseline_drag_handle_black_24"
+    android:tint="@color/colorControlNormal"
+    android:visibility="visible"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintEnd_toEndOf="@id/g_parent_end"/>
 
-    <android.support.constraint.Guideline
-        android:id="@+id/g_parent_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
-        app:layout_constraintTop_toTopOf="parent"/>
+<android.support.constraint.Guideline
+    android:id="@+id/g_parent_end"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
+    app:layout_constraintTop_toTopOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>

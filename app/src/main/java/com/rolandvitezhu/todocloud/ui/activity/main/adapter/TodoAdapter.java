@@ -176,7 +176,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     holder.cbCompleted.setChecked(todo.isCompleted());
     holder.tvTitle.setText(todo.getTitle());
     holder.tvDueDate.setText(todo.getFormattedDueDateForListItem());
-    holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.INVISIBLE);
+    holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.GONE);
     holder.ivDragHandle.setVisibility(AppController.isActionMode() ? View.VISIBLE : View.GONE);
 
     holder.ivDragHandle.setOnTouchListener(new View.OnTouchListener() {
