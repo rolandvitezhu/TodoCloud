@@ -5,7 +5,7 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -93,8 +93,8 @@ public class MainListFragment extends ListFragment implements
 
   @BindView(R.id.swiperefreshlayout_mainlist)
   SwipeRefreshLayout swipeRefreshLayout;
-  @BindView(R.id.coordinatorlayout_mainlist)
-  CoordinatorLayout coordinatorLayout;
+  @BindView(R.id.constraintlayout_mainlist)
+  ConstraintLayout constraintLayout;
 
   @BindView(R.id.scrollview_mainlist)
   ScrollView scrollView;
@@ -1126,7 +1126,7 @@ public class MainListFragment extends ListFragment implements
     // Android Studio hotswap/coldswap may cause getView == null
     try {
       Snackbar snackbar = Snackbar.make(
-          coordinatorLayout,
+          constraintLayout,
           R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
@@ -1139,7 +1139,7 @@ public class MainListFragment extends ListFragment implements
   private void showAnErrorOccurredError() {
     try {
       Snackbar snackbar = Snackbar.make(
-          coordinatorLayout,
+          constraintLayout,
           R.string.all_anerroroccurred,
           Snackbar.LENGTH_LONG
       );
