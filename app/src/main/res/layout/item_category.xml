@@ -1,48 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:gravity="center_vertical">
+    android:background="?android:attr/activatedBackgroundIndicator">
 
     <ImageView
+        android:id="@+id/icon_itemcategory"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/height_item"
         app:srcCompat="@drawable/baseline_folder_24"
         android:tint="@color/navigationViewItemIconTint"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"/>
+        android:layout_marginStart="@dimen/margin_activity_horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/textview_itemcategory_actiontext"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:layout_width="0dp"
         android:layout_height="@dimen/height_item"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
         android:layout_marginStart="@dimen/margin_activity_horizontal"
+        android:layout_marginRight="@dimen/margin_activity_horizontal_double"
+        android:layout_marginEnd="@dimen/margin_activity_horizontal_double"
+        android:gravity="center_vertical"
+        android:lines="1"
+        android:ellipsize="end"
+        app:layout_constraintLeft_toRightOf="@id/icon_itemcategory"
+        app:layout_constraintStart_toEndOf="@id/icon_itemcategory"
+        app:layout_constraintRight_toLeftOf="@id/g_parent_end"
+        app:layout_constraintEnd_toStartOf="@id/g_parent_end"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="@tools:sample/lorem/random"/>
+
+    <android.support.constraint.Guideline
+        android:id="@+id/g_parent_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <ImageView
+        android:id="@+id/imageview_itemcategory_groupindicator"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/height_item"
         android:layout_marginRight="@dimen/margin_activity_horizontal"
-        android:layout_marginEnd="@dimen/margin_activity_horizontal">
+        android:layout_marginEnd="@dimen/margin_activity_horizontal"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@drawable/baseline_expand_more_black_24"/>
 
-        <TextView
-            android:id="@+id/textview_itemcategory_actiontext"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/height_item"
-            android:layout_marginRight="@dimen/margin_activity_horizontal_double"
-            android:layout_marginEnd="@dimen/margin_activity_horizontal_double"
-            android:gravity="center_vertical"
-            android:lines="1"
-            android:ellipsize="end"/>
-
-        <ImageView
-            android:id="@+id/imageview_itemcategory_groupindicator"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/height_item"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
-
-    </RelativeLayout>
-
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
