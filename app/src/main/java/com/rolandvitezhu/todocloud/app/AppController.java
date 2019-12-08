@@ -3,16 +3,17 @@ package com.rolandvitezhu.todocloud.app;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Color;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.view.ActionMode;
 import android.widget.TextView;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.rolandvitezhu.todocloud.di.component.AppComponent;
 import com.rolandvitezhu.todocloud.di.component.DaggerAppComponent;
 import com.rolandvitezhu.todocloud.di.module.AppModule;
+
+import androidx.appcompat.view.ActionMode;
 
 public class AppController extends Application {
 
@@ -70,7 +71,7 @@ public class AppController extends Application {
 
   public static void showWhiteTextSnackbar(Snackbar snackbar) {
     TextView snackbarTextView = snackbar.getView()
-        .findViewById(android.support.design.R.id.snackbar_text);
+        .findViewById(com.google.android.material.R.id.snackbar_text);
     TextView lastShownSnackbarTextView;
 
     CharSequence snackbarText = snackbarTextView.getText();
@@ -78,7 +79,7 @@ public class AppController extends Application {
 
     if (lastShownSnackbar != null) {
       lastShownSnackbarTextView = lastShownSnackbar.getView()
-          .findViewById(android.support.design.R.id.snackbar_text);
+          .findViewById(com.google.android.material.R.id.snackbar_text);
       lastShownSnackbarText = lastShownSnackbarTextView.getText();
     }
 

@@ -1,8 +1,5 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.adapter;
 
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +21,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 

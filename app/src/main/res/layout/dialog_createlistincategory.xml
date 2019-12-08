@@ -14,7 +14,7 @@
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp">
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textinputlayout_createlistincategory_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,14 +22,14 @@
             android:textColorHint="@color/colorControlNormal"
             android:theme="@style/MyMaterialTheme">
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textinputedittext_createlistincategory_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
                 android:textColor="@color/textColorSecondary"
                 android:theme="@style/MyEditTextTheme"/>
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
 

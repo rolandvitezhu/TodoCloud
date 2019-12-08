@@ -1,15 +1,6 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.fragment;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ListFragment;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,6 +16,7 @@ import android.widget.ExpandableListView;
 import android.widget.ScrollView;
 
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.android.material.snackbar.Snackbar;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView;
@@ -59,6 +51,14 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.view.ActionMode;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.ListFragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;

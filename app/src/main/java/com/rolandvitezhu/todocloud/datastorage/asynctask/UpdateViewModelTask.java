@@ -1,10 +1,8 @@
 package com.rolandvitezhu.todocloud.datastorage.asynctask;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
@@ -22,6 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProviders;
 
 public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
 

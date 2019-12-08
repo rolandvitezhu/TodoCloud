@@ -4,8 +4,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatDialogFragment;
 import android.widget.DatePicker;
 
 import com.rolandvitezhu.todocloud.R;
@@ -14,6 +12,9 @@ import com.rolandvitezhu.todocloud.ui.activity.main.fragment.CreateTodoFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.ModifyTodoFragment;
 
 import org.threeten.bp.LocalDateTime;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDialogFragment;
 
 public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment implements
     DatePickerDialog.OnDateSetListener {

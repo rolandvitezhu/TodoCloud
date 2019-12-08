@@ -1,6 +1,6 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.viewmodel;
 
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModel;
 
 public class SearchListsViewModel extends ViewModel {
 

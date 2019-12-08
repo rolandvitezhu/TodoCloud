@@ -1,12 +1,7 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment;
 
 import android.app.Dialog;
-import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AppCompatDialogFragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -19,11 +14,16 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Category;
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewModel;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.lifecycle.ViewModelProviders;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;

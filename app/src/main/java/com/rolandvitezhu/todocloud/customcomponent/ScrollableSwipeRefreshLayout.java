@@ -1,9 +1,10 @@
 package com.rolandvitezhu.todocloud.customcomponent;
 
 import android.content.Context;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.AttributeSet;
 import android.widget.ListView;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 /**
  * Provide proper scrolling function, if the child view of SwipeRefreshLayout is a ListView. In

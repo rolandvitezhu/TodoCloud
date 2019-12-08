@@ -1,10 +1,10 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.viewmodel;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
-
 import com.rolandvitezhu.todocloud.data.User;
+
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 public class UserViewModel extends ViewModel {
 

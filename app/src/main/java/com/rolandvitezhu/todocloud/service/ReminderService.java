@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.annotation.NonNull;
 
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
@@ -17,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import javax.inject.Inject;
+
+import androidx.annotation.NonNull;
 
 public class ReminderService extends IntentService {
 

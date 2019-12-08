@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.preference.PreferenceScreen
+<androidx.preference.PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <android.support.v7.preference.PreferenceCategory
+    <androidx.preference.PreferenceCategory
         android:title="@string/settings_reminderstitle">
 
         <android.support.v7.preference.SwitchPreferenceCompat
@@ -20,15 +20,15 @@
             android:title="@string/settings_ledlighttitle"
             android:defaultValue="true"/>
 
-    </android.support.v7.preference.PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-    <android.support.v7.preference.PreferenceCategory
+    <androidx.preference.PreferenceCategory
         android:title="@string/settings_accounttitle">
 
         <android.support.v7.preference.Preference
             android:key="modify_password_preference"
             android:title="@string/settings_modifypasswordtitle"/>
 
-    </android.support.v7.preference.PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-</android.support.v7.preference.PreferenceScreen>
+</androidx.preference.PreferenceScreen>

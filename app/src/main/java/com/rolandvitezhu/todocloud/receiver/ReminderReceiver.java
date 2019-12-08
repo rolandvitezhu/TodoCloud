@@ -9,12 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.support.v4.app.NotificationCompat;
-import android.support.v7.preference.PreferenceManager;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
+
+import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
 
 import static com.rolandvitezhu.todocloud.app.Constant.NOTIFICATION_CHANNEL_REMINDER;
 

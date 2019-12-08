@@ -1,8 +1,6 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatDialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +8,8 @@ import android.view.ViewGroup;
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDialogFragment;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;

@@ -3,7 +3,6 @@ package com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatDialogFragment;
 import android.widget.TimePicker;
 
 import com.rolandvitezhu.todocloud.R;
@@ -12,6 +11,8 @@ import com.rolandvitezhu.todocloud.ui.activity.main.fragment.CreateTodoFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.ModifyTodoFragment;
 
 import org.threeten.bp.LocalDateTime;
+
+import androidx.appcompat.app.AppCompatDialogFragment;
 
 public class ReminderTimePickerDialogFragment extends AppCompatDialogFragment implements TimePickerDialog.OnTimeSetListener {
 

@@ -1,7 +1,5 @@
 package com.rolandvitezhu.todocloud.di.module;
 
-import android.support.annotation.NonNull;
-
 import com.google.gson.GsonBuilder;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.datasynchronizer.CategoryDataSynchronizer;
@@ -14,6 +12,7 @@ import java.io.IOException;
 
 import javax.inject.Singleton;
 
+import androidx.annotation.NonNull;
 import dagger.Module;
 import dagger.Provides;
 import okhttp3.Headers;

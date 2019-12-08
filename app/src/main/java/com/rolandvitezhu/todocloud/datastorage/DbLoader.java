@@ -3,7 +3,6 @@ package com.rolandvitezhu.todocloud.datastorage;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.rolandvitezhu.todocloud.data.Category;
@@ -20,6 +19,8 @@ import org.threeten.bp.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
 
 public class DbLoader {
 
