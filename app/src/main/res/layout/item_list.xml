@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:gravity="center_vertical">
+    android:background="?android:attr/activatedBackgroundIndicator">
 
     <ImageView
+        android:id="@+id/imageview_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/baseline_list_24"
         android:tint="@color/navigationViewItemIconTint"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"/>
+        android:layout_marginStart="@dimen/margin_activity_horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
         android:id="@+id/textview_itemlist_actiontext"
         android:textSize="18sp"
         android:textColor="@android:color/black"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="@dimen/height_item"
         android:layout_marginLeft="@dimen/margin_activity_horizontal"
         android:layout_marginStart="@dimen/margin_activity_horizontal"
@@ -28,6 +32,11 @@
         android:layout_marginEnd="@dimen/margin_activity_horizontal"
         android:gravity="center_vertical"
         android:lines="1"
-        android:ellipsize="end"/>
+        android:ellipsize="end"
+        tools:text="@tools:sample/lorem/random"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/imageview_list"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1132,7 +1132,7 @@ public class MainListFragment extends ListFragment implements
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      // Snackbar or coordinatorLayout doesn't exists already.
+      // Snackbar or constraintLayout doesn't exists already.
     }
   }
 
@@ -1145,7 +1145,7 @@ public class MainListFragment extends ListFragment implements
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      // Snackbar or coordinatorLayout doesn't exists already.
+      // Snackbar or constraintLayout doesn't exists already.
     }
   }
 

@@ -66,6 +66,7 @@
         <item name="android:textColorPrimary">@color/textColorSecondary</item>
         <item name="android:textSize">16sp</item>
         <item name="android:colorForeground">@color/colorControlNormal</item>
+        <item name="android:switchTextAppearance">@style/Preference.SwitchPreferenceCompat</item>
     </style>
 
     <style name="ListSeparatorTextView">

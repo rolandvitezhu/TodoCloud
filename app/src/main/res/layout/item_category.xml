@@ -42,16 +42,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         tools:text="@tools:sample/lorem/random"/>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/g_parent_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
-        app:layout_constraintTop_toTopOf="parent"/>
-
     <ImageView
         android:id="@+id/imageview_itemcategory_groupindicator"
         android:layout_width="wrap_content"
@@ -63,5 +53,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:src="@drawable/baseline_expand_more_black_24"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/g_parent_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

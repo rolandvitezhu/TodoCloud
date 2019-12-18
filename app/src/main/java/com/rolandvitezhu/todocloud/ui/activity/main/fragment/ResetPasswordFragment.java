@@ -31,7 +31,7 @@ import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 import javax.inject.Inject;
 
 import androidx.annotation.Nullable;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import butterknife.BindView;
@@ -57,8 +57,8 @@ public class ResetPasswordFragment extends Fragment {
   @Inject
   Retrofit retrofit;
 
-  @BindView(R.id.coordinatorlayout_resetpassword)
-  CoordinatorLayout coordinatorLayout;
+  @BindView(R.id.constraintlayout_resetpassword)
+  ConstraintLayout constraintLayout;
   @BindView(R.id.textview_resetpassword_formsubmissionerrors)
   TextView tvFormSubmissionErrors;
 
@@ -260,13 +260,13 @@ public class ResetPasswordFragment extends Fragment {
   private void showFailedToConnectError() {
     try {
       Snackbar snackbar = Snackbar.make(
-          coordinatorLayout,
+          constraintLayout,
           R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      // Snackbar or coordinatorLayout doesn't exists already.
+      // Snackbar or constraintLayout doesn't exists already.
     }
   }
 
@@ -282,13 +282,13 @@ public class ResetPasswordFragment extends Fragment {
   private void showAnErrorOccurredError() {
     try {
       Snackbar snackbar = Snackbar.make(
-          coordinatorLayout,
+          constraintLayout,
           R.string.all_anerroroccurred,
           Snackbar.LENGTH_LONG
       );
       AppController.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
-      // Snackbar or coordinatorLayout doesn't exists already.
+      // Snackbar or constraintLayout doesn't exists already.
     }
   }
 

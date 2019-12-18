@@ -6,6 +6,8 @@
     <dimen name="margin_activity_horizontal">16dp</dimen>
     <dimen name="margin_activity_horizontal_double">32dp</dimen>
     <dimen name="margin_activity_vertical">16dp</dimen>
+    <dimen name="margin_activity_vertical_user_form">10dp</dimen>
+    <dimen name="margin_activity_horizontal_user_form">30dp</dimen>
     <dimen name="margin_fab">16dp</dimen>
     <dimen name="height_nav_header">160dp</dimen>
     <dimen name="height_toolbar">56dp</dimen>
