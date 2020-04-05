@@ -108,9 +108,9 @@ public class ModifyTodoFragment extends Fragment {
 
     setTvDueDateText(dueDate);
     setTvReminderDateTimeText(reminderDateTime);
-    AppController.setText(todo.getTitle(), tietTitle, tilTitle);
+    AppController.Companion.setText(todo.getTitle(), tietTitle, tilTitle);
     switchPriority.setChecked(todo.isPriority());
-    AppController.setText(todo.getDescription(), tietDescription, tilDescription);
+    AppController.Companion.setText(todo.getDescription(), tietDescription, tilDescription);
 
 	  return view;
   }
@@ -147,7 +147,7 @@ public class ModifyTodoFragment extends Fragment {
 
       if (titleOnUi.isEmpty()) {
         String originalTitle = todo.getTitle();
-        AppController.setText(originalTitle, tietTitle, tilTitle);
+        AppController.Companion.setText(originalTitle, tietTitle, tilTitle);
       } else {
         todo = prepareTodo(todo);
         todosViewModel.setTodo(todo);
@@ -221,7 +221,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
       dueDateLong = zdtDueDate.toInstant().toEpochMilli();
       dueDateDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           dueDateLong,
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
       );
@@ -272,7 +272,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
       reminderDateTimeLong = zdtReminderDateTime.toInstant().toEpochMilli();
       reminderDateTimeDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           reminderDateTimeLong,
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_TIME
       );
@@ -289,7 +289,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
       dueDateLong = zdtDueDate.toInstant().toEpochMilli();
       dueDateDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           dueDateLong,
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
       );
@@ -302,7 +302,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtDueDate = dueDate.atStartOfDay(ZoneId.systemDefault());
       dueDateLong = todo.getDueDate();
       dueDateDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           dueDateLong,
           DateUtils.FORMAT_SHOW_DATE
               | DateUtils.FORMAT_NUMERIC_DATE
@@ -317,7 +317,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
       reminderDateTimeLong = zdtReminderDateTime.toInstant().toEpochMilli();
       reminderDateTimeDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           reminderDateTimeLong,
           DateUtils.FORMAT_SHOW_DATE
               | DateUtils.FORMAT_NUMERIC_DATE
@@ -334,7 +334,7 @@ public class ModifyTodoFragment extends Fragment {
       zdtReminderDateTime = reminderDateTime.atZone(ZoneId.systemDefault());
       reminderDateTimeLong = todo.getReminderDateTime();
       reminderDateTimeDisp = DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           reminderDateTimeLong,
           DateUtils.FORMAT_SHOW_DATE
               | DateUtils.FORMAT_NUMERIC_DATE

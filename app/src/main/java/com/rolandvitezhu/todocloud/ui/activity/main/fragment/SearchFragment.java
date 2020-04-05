@@ -34,9 +34,11 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.SearchListsViewMod
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.view.ActionMode;
 import androidx.fragment.app.Fragment;
@@ -70,11 +72,16 @@ public class SearchFragment extends Fragment {
   Unbinder unbinder;
 
   @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
+
+  @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-
-    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
     searchListsViewModel = ViewModelProviders.of(SearchFragment.this.getActivity()).get(SearchListsViewModel.class);
@@ -189,7 +196,7 @@ public class SearchFragment extends Fragment {
       @Override
       public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         int swipeFlags;
-        if (AppController.isActionMode()) swipeFlags = 0;
+        if (AppController.Companion.isActionMode()) swipeFlags = 0;
         else swipeFlags = ItemTouchHelper.START;
         return makeMovementFlags(0, swipeFlags);
       }
@@ -299,7 +306,7 @@ public class SearchFragment extends Fragment {
 
   private void setActionMode(ActionMode actionMode) {
     this.actionMode = actionMode;
-    AppController.setActionMode(actionMode);
+    AppController.Companion.setActionMode(actionMode);
   }
 
   private void openConfirmDeleteTodosDialog() {

@@ -8,13 +8,17 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
+import com.rolandvitezhu.todocloud.di.FragmentScope;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+@FragmentScope
 public class ListAdapter extends BaseAdapter {
 
   private List<com.rolandvitezhu.todocloud.data.List> lists;
@@ -22,6 +26,7 @@ public class ListAdapter extends BaseAdapter {
   @BindView(R.id.textview_itemlist_actiontext)
   TextView tvTitle;
 
+  @Inject
   public ListAdapter() {
     lists = new ArrayList<>();
   }

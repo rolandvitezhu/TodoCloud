@@ -1,5 +1,6 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -48,6 +49,7 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -117,10 +119,16 @@ public class MainListFragment extends ListFragment implements
   Unbinder unbinder;
 
   @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    ((AppController) Objects.requireNonNull(getActivity()).getApplication()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
+
+  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     categoriesViewModel = ViewModelProviders.of(getActivity()).get(CategoriesViewModel.class);
     listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
@@ -224,7 +232,7 @@ public class MainListFragment extends ListFragment implements
           }
 
           private boolean shouldSwipeRefresh(int scrollY) {
-            return scrollY == 0 && !AppController.isActionModeEnabled();
+            return scrollY == 0 && !AppController.Companion.isActionModeEnabled();
           }
 
         });
@@ -260,7 +268,7 @@ public class MainListFragment extends ListFragment implements
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-          AppController.setActionModeEnabled(true);
+          AppController.Companion.setActionModeEnabled(true);
           actionMode = mode;
           fixExpandableListViewBehavior();
 
@@ -291,7 +299,7 @@ public class MainListFragment extends ListFragment implements
           selectedListsInCategory.clear();
           selectedLists.clear();
 
-          AppController.setActionModeEnabled(false);
+          AppController.Companion.setActionModeEnabled(false);
           expandableHeightExpandableListView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
           ehlvList.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
         }
@@ -660,7 +668,7 @@ public class MainListFragment extends ListFragment implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      if (!AppController.isActionModeEnabled()) {
+      if (!AppController.Companion.isActionModeEnabled()) {
         PredefinedList predefinedList = (PredefinedList) parent.getAdapter().getItem(
             position);
         ((MainActivity)MainListFragment.this.getActivity()).onClickPredefinedList(predefinedList);
@@ -675,7 +683,7 @@ public class MainListFragment extends ListFragment implements
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       com.rolandvitezhu.todocloud.data.List clickedList =
           (com.rolandvitezhu.todocloud.data.List) listAdapter.getItem(position);
-      if (!AppController.isActionModeEnabled()) {
+      if (!AppController.Companion.isActionModeEnabled()) {
         ((MainActivity)MainListFragment.this.getActivity()).onClickList(clickedList);
       } else {
         handleItemSelection(position, clickedList);
@@ -714,7 +722,7 @@ public class MainListFragment extends ListFragment implements
 
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-          if (!AppController.isActionModeEnabled()) {
+          if (!AppController.Companion.isActionModeEnabled()) {
             startActionMode(position);
           }
 
@@ -747,7 +755,7 @@ public class MainListFragment extends ListFragment implements
               childPosition
           );
           int position = parent.getFlatListPosition(packedPosition);
-          if (!AppController.isActionModeEnabled()) {
+          if (!AppController.Companion.isActionModeEnabled()) {
             ((MainActivity)MainListFragment.this.getActivity()).onClickList(clickedList);
           } else {
             handleItemSelection(parent, clickedList, position);
@@ -794,7 +802,7 @@ public class MainListFragment extends ListFragment implements
         public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
           long packedPosition = ExpandableListView.getPackedPositionForGroup(groupPosition);
           int position = parent.getFlatListPosition(packedPosition);
-          if (!AppController.isActionModeEnabled()) {
+          if (!AppController.Companion.isActionModeEnabled()) {
             handleGroupExpanding(parent, groupPosition);
           } else {
             handleItemSelection(parent, position);
@@ -848,7 +856,7 @@ public class MainListFragment extends ListFragment implements
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
-      if (!AppController.isActionModeEnabled()) {
+      if (!AppController.Companion.isActionModeEnabled()) {
         ExpandableListView.ExpandableListContextMenuInfo info =
             (ExpandableListView.ExpandableListContextMenuInfo) menuInfo;
         long packedPosition = info.packedPosition;
@@ -1130,7 +1138,7 @@ public class MainListFragment extends ListFragment implements
           R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or constraintLayout doesn't exists already.
     }
@@ -1143,7 +1151,7 @@ public class MainListFragment extends ListFragment implements
           R.string.all_anerroroccurred,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or constraintLayout doesn't exists already.
     }

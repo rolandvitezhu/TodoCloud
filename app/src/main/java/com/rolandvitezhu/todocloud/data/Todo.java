@@ -12,6 +12,8 @@ import com.rolandvitezhu.todocloud.app.AppController;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 import static com.rolandvitezhu.todocloud.datastorage.DbConstants.Todo.KEY_COMPLETED;
 import static com.rolandvitezhu.todocloud.datastorage.DbConstants.Todo.KEY_DELETED;
 import static com.rolandvitezhu.todocloud.datastorage.DbConstants.Todo.KEY_DESCRIPTION;
@@ -210,19 +212,19 @@ public class Todo implements Parcelable {
 	public String getFormattedDueDate() {
     if (dueDate != null) {
       return DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           dueDate,
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
       );
     } else {
-      return AppController.getAppContext().getString(R.string.all_noduedate);
+      return Objects.requireNonNull(AppController.Companion.getAppContext()).getString(R.string.all_noduedate);
     }
   }
 
   public String getFormattedDueDateForListItem() {
     if (dueDate != null && dueDate != 0) {
       return DateUtils.formatDateTime(
-          AppController.getAppContext(),
+          AppController.Companion.getAppContext(),
           dueDate,
           DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR
       );

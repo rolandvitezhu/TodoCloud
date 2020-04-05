@@ -12,23 +12,37 @@ public class SharedPreferencesHelper {
   public static final String KEY_SORT_BY_PRIORITY = "sortByPriority";
 
   public static void setBooleanPreference(String preferenceName, String preferenceKey, boolean preferenceValue) {
-    Context applicationContext = AppController.getAppContext();
-    SharedPreferences sharedPreferences = applicationContext.getSharedPreferences(
-        preferenceName,
-        Context.MODE_PRIVATE
-    );
-    SharedPreferences.Editor editor = sharedPreferences.edit();
-    editor.putBoolean(preferenceKey, preferenceValue);
-    editor.apply();
+    Context applicationContext = AppController.Companion.getAppContext();
+    SharedPreferences sharedPreferences = null;
+    if (applicationContext != null) {
+      sharedPreferences = applicationContext.getSharedPreferences(
+          preferenceName,
+          Context.MODE_PRIVATE
+      );
+    }
+    SharedPreferences.Editor editor = null;
+    if (sharedPreferences != null) {
+      editor = sharedPreferences.edit();
+    }
+    if (editor != null) {
+      editor.putBoolean(preferenceKey, preferenceValue);
+      editor.apply();
+    }
   }
 
   public static boolean getPreference(String preferenceName, String preferenceKey) {
-    Context applicationContext = AppController.getAppContext();
-    SharedPreferences sharedPreferences = applicationContext.getSharedPreferences(
-        preferenceName,
-        Context.MODE_PRIVATE
-    );
+    Context applicationContext = AppController.Companion.getAppContext();
+    SharedPreferences sharedPreferences = null;
+    if (applicationContext != null) {
+      sharedPreferences = applicationContext.getSharedPreferences(
+          preferenceName,
+          Context.MODE_PRIVATE
+      );
+    }
 
-    return sharedPreferences.getBoolean(preferenceKey, true);
+    if (sharedPreferences != null) {
+      return sharedPreferences.getBoolean(preferenceKey, true);
+    } else
+      return false;
   }
 }

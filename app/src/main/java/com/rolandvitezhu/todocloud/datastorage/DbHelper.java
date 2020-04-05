@@ -16,7 +16,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
 	private DbHelper() {
 	  super(
-	      AppController.getAppContext(),
+        AppController.Companion.getAppContext(),
         DbConstants.DATABASE_NAME,
         null,
         DbConstants.DATABASE_VERSION

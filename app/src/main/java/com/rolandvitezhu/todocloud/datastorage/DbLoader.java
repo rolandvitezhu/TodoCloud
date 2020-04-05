@@ -20,8 +20,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import androidx.annotation.NonNull;
 
+@Singleton
 public class DbLoader {
 
   private static final String TAG = DbLoader.class.getSimpleName();
@@ -74,6 +78,7 @@ public class DbLoader {
       + ", "
       + DbConstants.Todo.KEY_TITLE;
 
+  @Inject
   public DbLoader() {
 	}
 

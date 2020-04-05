@@ -3,10 +3,14 @@ package com.rolandvitezhu.todocloud.datasynchronizer;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import retrofit2.Retrofit;
 
+@Singleton
 public class BaseDataSynchronizer {
 
   @Inject
@@ -16,7 +20,8 @@ public class BaseDataSynchronizer {
 
   int nextRowVersion;
 
+  @Inject
   public BaseDataSynchronizer() {
-    AppController.getInstance().getAppComponent().inject(this);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().inject(this);
   }
 }

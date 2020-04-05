@@ -1,4 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     signingConfigs {
@@ -59,9 +62,18 @@ android {
             }
         }
     }
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
+    def androidx_version = "1.1.0"
+    def dagger_version = "2.27"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "androidx.core:core-ktx:$androidx_version"
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
@@ -69,9 +81,9 @@ dependencies {
     implementation 'com.jakewharton.threetenabp:threetenabp:1.2.0'
     implementation 'com.github.clans:fab:1.6.4'
     implementation 'com.jakewharton:butterknife:10.2.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.0'
-    implementation 'com.google.dagger:dagger:2.19'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.19'
+    kapt 'com.jakewharton:butterknife-compiler:10.2.0'
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
     // Testing
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

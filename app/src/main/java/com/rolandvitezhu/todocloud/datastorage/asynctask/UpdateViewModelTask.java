@@ -39,7 +39,7 @@ public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
   public UpdateViewModelTask(Object viewModel, FragmentActivity activity) {
     this.viewModel = viewModel;
     this.activity = activity;
-    AppController.getInstance().getAppComponent().inject(this);
+    AppController.Companion.getInstance().getAppComponent().inject(this);
   }
 
   @Override
@@ -98,7 +98,7 @@ public class UpdateViewModelTask extends AsyncTask<Bundle, Void, Void> {
     String allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere();
     String completedPredefinedListWhere = dbLoader.prepareCompletedPredefinedListWhere();
 
-    Context context = AppController.getAppContext();
+    Context context = AppController.Companion.getAppContext();
 
     predefinedLists = new ArrayList<>();
 

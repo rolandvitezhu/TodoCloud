@@ -29,8 +29,11 @@ import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserRequest;
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -85,10 +88,15 @@ public class LoginUserFragment extends Fragment {
   Unbinder unbinder;
 
   @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    ((AppController) Objects.requireNonNull(getActivity()).getApplication()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
+
+  @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     apiService = retrofit.create(ApiService.class);
 
@@ -307,7 +315,7 @@ public class LoginUserFragment extends Fragment {
           R.string.all_failedtoconnect,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or constraintLayout doesn't exists already.
     }
@@ -329,7 +337,7 @@ public class LoginUserFragment extends Fragment {
           R.string.all_anerroroccurred,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or constraintLayout doesn't exists already.
     }

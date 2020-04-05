@@ -61,10 +61,12 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
     unbinder = ButterKnife.bind(this, view);
 
     Dialog dialog = getDialog();
-    dialog.setTitle(R.string.modifylist_title);
+    if (dialog != null) {
+      dialog.setTitle(R.string.modifylist_title);
+    }
     setSoftInputMode();
 
-    AppController.setText(list.getTitle(), tietTitle, tilTitle);
+    AppController.Companion.setText(list.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorActionEvents();
 
@@ -79,7 +81,10 @@ public class ModifyListDialogFragment extends AppCompatDialogFragment {
 
   private void setSoftInputMode() {
     Dialog dialog = getDialog();
-    Window window = dialog.getWindow();
+    Window window = null;
+    if (dialog != null) {
+      window = dialog.getWindow();
+    }
     if (window != null) {
       int hiddenSoftInputAtOpenDialog = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
       int softInputNotCoverFooterButtons = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;

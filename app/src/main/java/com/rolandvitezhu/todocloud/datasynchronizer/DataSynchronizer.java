@@ -2,10 +2,14 @@ package com.rolandvitezhu.todocloud.datasynchronizer;
 
 import com.rolandvitezhu.todocloud.app.AppController;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import io.reactivex.disposables.CompositeDisposable;
 
+@Singleton
 public class DataSynchronizer implements
     TodoDataSynchronizer.OnSyncTodoDataListener,
     ListDataSynchronizer.OnSyncListDataListener,
@@ -24,8 +28,9 @@ public class DataSynchronizer implements
   private boolean isLastListRequestProcessed;
   private boolean isLastCategoryRequestProcessed;
 
+  @Inject
   public DataSynchronizer() {
-    AppController.getInstance().getAppComponent().inject(this);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().inject(this);
     todoDataSynchronizer.setOnSyncTodoDataListener(this);
     listDataSynchronizer.setOnSyncListDataListener(this);
     categoryDataSynchronizer.setOnSyncCategoryDataListener(this);

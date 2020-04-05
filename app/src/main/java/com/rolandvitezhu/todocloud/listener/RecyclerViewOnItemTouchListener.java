@@ -57,7 +57,7 @@ public class RecyclerViewOnItemTouchListener implements RecyclerView.OnItemTouch
           (int) e.getRawX(),
           (int) e.getRawY()
       );
-      if (!touchCheckBoxCompleted(nonViewGroupView) || AppController.isActionMode())
+      if (!touchCheckBoxCompleted(nonViewGroupView) || AppController.Companion.isActionMode())
         onClickListener.onClick(childView, childViewAdapterPosition);
     }
     return false;

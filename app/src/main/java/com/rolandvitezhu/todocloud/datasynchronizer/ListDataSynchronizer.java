@@ -16,6 +16,10 @@ import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVers
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
+import java.util.Objects;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -24,6 +28,7 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
+@Singleton
 public class ListDataSynchronizer extends BaseDataSynchronizer {
 
   private static final String TAG = ListDataSynchronizer.class.getSimpleName();
@@ -43,8 +48,9 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
   private ArrayList<List> listsToUpdate;
   private ArrayList<List> listsToInsert;
 
+  @Inject
   public ListDataSynchronizer() {
-    AppController.getInstance().getAppComponent().inject(this);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().inject(this);
 
     apiService = retrofit.create(ApiService.class);
   }

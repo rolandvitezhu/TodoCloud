@@ -88,11 +88,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    ((AppController) getApplication()).getAppComponent().inject(this);
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     ButterKnife.bind(this);
-
-    ((AppController) getApplication()).getAppComponent().inject(this);
 
     userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
     todosViewModel = ViewModelProviders.of(this).get(TodosViewModel.class);
@@ -498,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
           R.string.modifypassword_passwordchangedsuccessfully,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or coordinatorLayout doesn't exists already.
     }
@@ -511,7 +510,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
           R.string.resetpassword_passwordresetsuccessful,
           Snackbar.LENGTH_LONG
       );
-      AppController.showWhiteTextSnackbar(snackbar);
+      AppController.Companion.showWhiteTextSnackbar(snackbar);
     } catch (NullPointerException e) {
       // Snackbar or coordinatorLayout doesn't exists already.
     }

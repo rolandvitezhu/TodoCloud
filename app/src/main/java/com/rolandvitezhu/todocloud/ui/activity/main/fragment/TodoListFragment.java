@@ -1,6 +1,7 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.fragment;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,9 +31,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.view.ActionMode;
 import androidx.fragment.app.Fragment;
@@ -65,11 +68,16 @@ public class TodoListFragment extends Fragment implements SortTodoListDialog.Pre
   Unbinder unbinder;
 
   @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
+
+  @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-
-    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
 
     todosViewModel = ViewModelProviders.of(getActivity()).get(TodosViewModel.class);
     listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);
@@ -233,7 +241,7 @@ public class TodoListFragment extends Fragment implements SortTodoListDialog.Pre
       public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         int dragFlags;
         int swipeFlags;
-        if (AppController.isActionMode()) {
+        if (AppController.Companion.isActionMode()) {
           dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
           swipeFlags = 0;
         }
@@ -367,7 +375,7 @@ public class TodoListFragment extends Fragment implements SortTodoListDialog.Pre
 
   private void setActionMode(ActionMode actionMode) {
     this.actionMode = actionMode;
-    AppController.setActionMode(actionMode);
+    AppController.Companion.setActionMode(actionMode);
   }
 
   private void openConfirmDeleteTodosDialog() {

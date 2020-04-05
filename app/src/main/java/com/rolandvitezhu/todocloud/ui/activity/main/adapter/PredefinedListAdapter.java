@@ -10,13 +10,17 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.PredefinedList;
+import com.rolandvitezhu.todocloud.di.FragmentScope;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+@FragmentScope
 public class PredefinedListAdapter extends BaseAdapter {
 
   private List<PredefinedList> predefinedLists;
@@ -26,6 +30,7 @@ public class PredefinedListAdapter extends BaseAdapter {
   @BindView(R.id.imageview_predefinedlist)
   ImageView ivPredefinedList;
 
+  @Inject
   public PredefinedListAdapter() {
     predefinedLists = new ArrayList<>();
   }

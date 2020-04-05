@@ -14,6 +14,7 @@ import com.rolandvitezhu.todocloud.receiver.ReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -41,7 +42,7 @@ public class ReminderService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
-    AppController.getInstance().getAppComponent().inject(this);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().inject(this);
   }
 
   @Override

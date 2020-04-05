@@ -64,7 +64,7 @@ public class ModifyCategoryDialogFragment extends AppCompatDialogFragment {
     dialog.setTitle(R.string.modifycategory_title);
     setSoftInputMode();
 
-    AppController.setText(category.getTitle(), tietTitle, tilTitle);
+    AppController.Companion.setText(category.getTitle(), tietTitle, tilTitle);
     applyTextChangedEvents();
     applyEditorEvents(btnOK);
 

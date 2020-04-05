@@ -16,9 +16,12 @@ public class InstallationIdHelper {
   private static final String FILE_NAME = "INSTALLATION_ID";
 
   public synchronized static String getInstallationId() {
-    Context context = AppController.getAppContext();
+    Context context = AppController.Companion.getAppContext();
     if (installationId == null) {
-      File installationIdDir = context.getFilesDir();
+      File installationIdDir = null;
+      if (context != null) {
+        installationIdDir = context.getFilesDir();
+      }
       File installationIdFile = new File(installationIdDir, FILE_NAME);
       try {
         if (!installationIdFile.exists()) {
@@ -33,8 +36,11 @@ public class InstallationIdHelper {
   }
 
   public synchronized static String getNewInstallationId() {
-    Context context = AppController.getAppContext();
-    File installationIdDir = context.getFilesDir();
+    Context context = AppController.Companion.getAppContext();
+    File installationIdDir = null;
+    if (context != null) {
+      installationIdDir = context.getFilesDir();
+    }
     File installationIdFile = new File(installationIdDir, FILE_NAME);
     try {
       writeInstallationId(installationIdFile);

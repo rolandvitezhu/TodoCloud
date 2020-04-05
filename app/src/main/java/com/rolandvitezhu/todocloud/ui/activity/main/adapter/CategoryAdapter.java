@@ -10,14 +10,18 @@ import android.widget.TextView;
 
 import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.data.Category;
+import com.rolandvitezhu.todocloud.di.FragmentScope;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+@FragmentScope
 public class CategoryAdapter extends BaseExpandableListAdapter {
 
   private final List<Category> categories;
@@ -26,6 +30,7 @@ public class CategoryAdapter extends BaseExpandableListAdapter {
   @BindView(R.id.textview_itemcategory_actiontext)
   TextView tvTitle;
 
+  @Inject
   public CategoryAdapter() {
     categories = new ArrayList<>();
     lhmCategories = new LinkedHashMap<>();

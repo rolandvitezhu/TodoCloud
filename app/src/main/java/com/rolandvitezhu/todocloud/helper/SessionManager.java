@@ -5,6 +5,10 @@ import android.content.SharedPreferences;
 
 import com.rolandvitezhu.todocloud.app.AppController;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class SessionManager {
 
   private SharedPreferences sharedPreferences;
@@ -12,12 +16,15 @@ public class SessionManager {
   private static final String PREFERENCE_NAME = "Login";
   private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
 
-  public SessionManager() {
-    Context applicationContext = AppController.getAppContext();
-    sharedPreferences = applicationContext.getSharedPreferences(
-        PREFERENCE_NAME,
-        Context.MODE_PRIVATE
-    );
+  @Inject
+  public SessionManager () {
+    Context applicationContext = AppController.Companion.getAppContext();
+    if (applicationContext != null) {
+      sharedPreferences = applicationContext.getSharedPreferences(
+          PREFERENCE_NAME,
+          Context.MODE_PRIVATE
+      );
+    }
     editor = sharedPreferences.edit();
   }
 

@@ -14,6 +14,8 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 
+import java.util.Objects;
+
 import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
 
@@ -52,7 +54,7 @@ public class ReminderReceiver extends BroadcastReceiver {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       String notificationChannelName =
-          AppController.getAppContext().getString(R.string.all_reminder);
+          Objects.requireNonNull(AppController.Companion.getAppContext()).getString(R.string.all_reminder);
 
       NotificationChannel channel = new NotificationChannel(
           NOTIFICATION_CHANNEL_REMINDER,

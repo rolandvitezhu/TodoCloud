@@ -1,6 +1,7 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +20,11 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewMode
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.lifecycle.ViewModelProviders;
 import butterknife.BindView;
@@ -43,9 +46,15 @@ public class MoveListDialogFragment extends AppCompatDialogFragment {
   Unbinder unbinder;
 
   @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    ((AppController) Objects.requireNonNull(getActivity()).getApplication()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
+
+  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    ((AppController) getActivity().getApplication()).getAppComponent().inject(this);
     setStyle(STYLE_NORMAL, R.style.MyDialogTheme);
     categoriesViewModel = ViewModelProviders.of(getActivity()).get(CategoriesViewModel.class);
     listsViewModel = ViewModelProviders.of(getActivity()).get(ListsViewModel.class);

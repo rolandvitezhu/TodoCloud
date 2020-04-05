@@ -11,6 +11,7 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.di.FragmentScope;
 import com.rolandvitezhu.todocloud.helper.SharedPreferencesHelper;
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter;
 
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -27,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+@FragmentScope
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder> {
 
   @Inject
@@ -35,8 +38,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   private List<Todo> todos;
   private ItemTouchHelper itemTouchHelper;
 
+  @Inject
   public TodoAdapter() {
-    AppController.getInstance().getAppComponent().inject(this);
+    Objects.requireNonNull(AppController.Companion.getInstance()).getAppComponent().
+        fragmentComponent().create().inject(this);
     todos = new ArrayList<>();
   }
 
@@ -177,7 +182,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
     holder.tvTitle.setText(todo.getTitle());
     holder.tvDueDate.setText(todo.getFormattedDueDateForListItem());
     holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.GONE);
-    holder.ivDragHandle.setVisibility(AppController.isActionMode() ? View.VISIBLE : View.GONE);
+    holder.ivDragHandle.setVisibility(AppController.Companion.isActionMode() ? View.VISIBLE : View.GONE);
 
     holder.ivDragHandle.setOnTouchListener(new View.OnTouchListener() {
       @Override
@@ -235,7 +240,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   private boolean shouldHandleCheckBoxTouchEvent(MotionEvent event, ItemViewHolder holder) {
     // To reproduce "holder.getAdapterPosition() == -1", do the following: select 1 todo and
     // touch it's CheckBox.
-    return !AppController.isActionMode()
+    return !AppController.Companion.isActionMode()
         && event.getAction() == MotionEvent.ACTION_UP
         && holder.getAdapterPosition() != -1;
   }
