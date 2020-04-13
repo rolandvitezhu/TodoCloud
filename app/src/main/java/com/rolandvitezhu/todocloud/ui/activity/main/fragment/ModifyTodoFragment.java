@@ -109,7 +109,7 @@ public class ModifyTodoFragment extends Fragment {
     setTvDueDateText(dueDate);
     setTvReminderDateTimeText(reminderDateTime);
     AppController.Companion.setText(todo.getTitle(), tietTitle, tilTitle);
-    switchPriority.setChecked(todo.isPriority());
+    switchPriority.setChecked(todo.getPriority());
     AppController.Companion.setText(todo.getDescription(), tietDescription, tilDescription);
 
 	  return view;

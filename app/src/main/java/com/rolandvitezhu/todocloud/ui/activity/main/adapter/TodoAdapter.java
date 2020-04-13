@@ -124,7 +124,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
       Collections.sort(todos, new Comparator<Todo>() {
         @Override
         public int compare(Todo o1, Todo o2) {
-          return !o1.isPriority() && o2.isPriority() ? 1 : (o1.isPriority() && !o2.isPriority()) ? -1 : 0;
+          return !o1.getPriority() && o2.getPriority() ? 1 : (o1.getPriority() && !o2.getPriority()) ? -1 : 0;
         }
       });
     } else {
@@ -132,7 +132,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
       Collections.sort(todos, new Comparator<Todo>() {
         @Override
         public int compare(Todo o1, Todo o2) {
-          return o1.isPriority() && !o2.isPriority() ? 1 : (!o1.isPriority() && o2.isPriority()) ? -1 : 0;
+          return o1.getPriority() && !o2.getPriority() ? 1 : (!o1.getPriority() && o2.getPriority()) ? -1 : 0;
         }
       });
     }
@@ -178,10 +178,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   public void onBindViewHolder(final ItemViewHolder holder, int position) {
     final Todo todo = todos.get(position);
 
-    holder.cbCompleted.setChecked(todo.isCompleted());
+    holder.cbCompleted.setChecked(todo.getCompleted());
     holder.tvTitle.setText(todo.getTitle());
     holder.tvDueDate.setText(todo.getFormattedDueDateForListItem());
-    holder.ivPriority.setVisibility(todo.isPriority() ? View.VISIBLE : View.GONE);
+    holder.ivPriority.setVisibility(todo.getPriority() ? View.VISIBLE : View.GONE);
     holder.ivDragHandle.setVisibility(AppController.Companion.isActionMode() ? View.VISIBLE : View.GONE);
 
     holder.ivDragHandle.setOnTouchListener(new View.OnTouchListener() {
@@ -214,7 +214,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private void toggleCompleted(Todo todo) {
-    todo.setCompleted(!todo.isCompleted());
+    todo.setCompleted(!todo.getCompleted());
   }
 
   private void updateTodo(Todo todo) {
@@ -230,7 +230,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ItemViewHolder
   }
 
   private void handleReminderService(Todo todo) {
-    if (todo.isCompleted()) {
+    if (todo.getCompleted()) {
       ReminderSetter.cancelReminderService(todo);
     } else if (isSetReminder(todo)) {
       ReminderSetter.createReminderService(todo);

@@ -125,10 +125,10 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
         Log.d(
             TAG,
             "Get Next Row Version Response: "
-                + RetrofitResponseHelper.ResponseToJson(response)
+                + RetrofitResponseHelper.Companion.ResponseToJson(response)
         );
 
-        if (RetrofitResponseHelper.IsNoError(response)) {
+        if (RetrofitResponseHelper.Companion.IsNoError(response)) {
           nextRowVersion = response.body() != null ? response.body().getNextRowVersion() : 0;
 
           setRowVersionsForLists(listsToUpdate);

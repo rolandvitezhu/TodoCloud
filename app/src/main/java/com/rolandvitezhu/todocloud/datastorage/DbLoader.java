@@ -290,7 +290,8 @@ public class DbLoader {
       contentValues.put(DbConstants.Todo.KEY_LIST_ONLINE_ID, todo.getListOnlineId());
     }
     contentValues.put(DbConstants.Todo.KEY_TITLE, todo.getTitle());
-    contentValues.put(DbConstants.Todo.KEY_PRIORITY, todo.isPriority() ? 1 : 0);
+    if (todo.getPriority() != null)
+      contentValues.put(DbConstants.Todo.KEY_PRIORITY, todo.getPriority() ? 1 : 0);
     if (todo.getDueDate() == null || todo.getDueDate().equals("")) {
       contentValues.putNull(DbConstants.Todo.KEY_DUE_DATE);
     } else {
@@ -306,10 +307,13 @@ public class DbLoader {
     } else {
       contentValues.put(DbConstants.Todo.KEY_DESCRIPTION, todo.getDescription());
     }
-    contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.isCompleted() ? 1 : 0);
+    if (todo.getCompleted() != null)
+      contentValues.put(DbConstants.Todo.KEY_COMPLETED, todo.getCompleted() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_ROW_VERSION, todo.getRowVersion());
-    contentValues.put(DbConstants.Todo.KEY_DELETED, todo.getDeleted() ? 1 : 0);
-    contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
+    if (todo.getDeleted() != null)
+      contentValues.put(DbConstants.Todo.KEY_DELETED, todo.getDeleted() ? 1 : 0);
+    if (todo.getDirty() != null)
+      contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_POSITION, todo.getPosition());
     return contentValues;
   }
@@ -879,8 +883,10 @@ public class DbLoader {
     }
     contentValues.put(DbConstants.List.KEY_TITLE, list.getTitle());
     contentValues.put(DbConstants.List.KEY_ROW_VERSION, list.getRowVersion());
-    contentValues.put(DbConstants.List.KEY_DELETED, list.getDeleted() ? 1 : 0);
-    contentValues.put(DbConstants.List.KEY_DIRTY, list.getDirty() ? 1 : 0);
+    if (list.getDeleted() != null)
+      contentValues.put(DbConstants.List.KEY_DELETED, list.getDeleted() ? 1 : 0);
+    if (list.getDirty() != null)
+      contentValues.put(DbConstants.List.KEY_DIRTY, list.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.List.KEY_POSITION, list.getPosition());
     return contentValues;
   }
@@ -889,7 +895,7 @@ public class DbLoader {
     open();
     ContentValues contentValues = prepareListContentValues(list);
 
-    if (list.get_id() != 0) {
+    if (list.get_id() != null && list.get_id() != 0) {
       // The List has been modified offline, therefore list_online_id is null in the local
       // database yet
       String whereClause = DbConstants.List.KEY_ROW_ID + "=" + list.get_id();
@@ -1165,8 +1171,10 @@ public class DbLoader {
     contentValues.put(DbConstants.Category.KEY_USER_ONLINE_ID, category.getUserOnlineId());
     contentValues.put(DbConstants.Category.KEY_TITLE, category.getTitle());
     contentValues.put(DbConstants.Category.KEY_ROW_VERSION, category.getRowVersion());
-    contentValues.put(DbConstants.Category.KEY_DELETED, category.getDeleted() ? 1 : 0);
-    contentValues.put(DbConstants.Category.KEY_DIRTY, category.getDirty() ? 1 : 0);
+    if (category.getDeleted() != null)
+      contentValues.put(DbConstants.Category.KEY_DELETED, category.getDeleted() ? 1 : 0);
+    if (category.getDirty() != null)
+      contentValues.put(DbConstants.Category.KEY_DIRTY, category.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Category.KEY_POSITION, category.getPosition());
     return contentValues;
   }

@@ -489,7 +489,7 @@ public class SearchFragment extends Fragment {
   }
 
   private boolean isNotCompleted(Todo todo) {
-    return !todo.isCompleted();
+    return !todo.getCompleted();
   }
 
   private boolean shouldCreateReminderService(Todo todoToModify) {

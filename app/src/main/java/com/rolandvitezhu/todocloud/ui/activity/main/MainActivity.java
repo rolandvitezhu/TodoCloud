@@ -600,7 +600,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
   }
 
   private boolean isNotCompleted(Todo todo) {
-    return !todo.isCompleted();
+    return !todo.getCompleted();
   }
 
   private boolean isNotDeleted(Todo todo) {

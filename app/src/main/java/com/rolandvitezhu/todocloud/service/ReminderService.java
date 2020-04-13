@@ -66,7 +66,7 @@ public class ReminderService extends IntentService {
 
   private void handleReminder(Todo todo, String action) {
     Intent receiverIntent = prepareReceiverIntent(todo);
-    int id = (int) todo.get_id();
+    int id = Objects.requireNonNull(todo.get_id()).intValue();
     PendingIntent pendingIntent = PendingIntent.getBroadcast(
         this,
         id,
@@ -95,7 +95,7 @@ public class ReminderService extends IntentService {
     ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
     for (Todo todo:todos) {
       Intent receiverIntent = prepareReceiverIntent(todo);
-      int id = (int) todo.get_id();
+      int id = Objects.requireNonNull(todo.get_id()).intValue();
       PendingIntent pendingIntent = PendingIntent.getBroadcast(
           this,
           id,

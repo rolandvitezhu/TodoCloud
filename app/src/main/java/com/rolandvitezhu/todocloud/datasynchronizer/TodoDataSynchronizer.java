@@ -137,11 +137,11 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         updateTodoRequest.setTodoOnlineId(todoToUpdate.getTodoOnlineId());
         updateTodoRequest.setListOnlineId(todoToUpdate.getListOnlineId());
         updateTodoRequest.setTitle(todoToUpdate.getTitle());
-        updateTodoRequest.setPriority(todoToUpdate.isPriority());
+        updateTodoRequest.setPriority(todoToUpdate.getPriority());
         updateTodoRequest.setDueDate(todoToUpdate.getDueDate());
         updateTodoRequest.setReminderDateTime(todoToUpdate.getReminderDateTime());
         updateTodoRequest.setDescription(todoToUpdate.getDescription());
-        updateTodoRequest.setCompleted(todoToUpdate.isCompleted());
+        updateTodoRequest.setCompleted(todoToUpdate.getCompleted());
         updateTodoRequest.setRowVersion(todoToUpdate.getRowVersion());
         updateTodoRequest.setDeleted(todoToUpdate.getDeleted());
         updateTodoRequest.setPosition(todoToUpdate.getPosition());
@@ -229,11 +229,11 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         insertTodoRequest.setTodoOnlineId(todoToInsert.getTodoOnlineId());
         insertTodoRequest.setListOnlineId(todoToInsert.getListOnlineId());
         insertTodoRequest.setTitle(todoToInsert.getTitle());
-        insertTodoRequest.setPriority(todoToInsert.isPriority());
+        insertTodoRequest.setPriority(todoToInsert.getPriority());
         insertTodoRequest.setDueDate(todoToInsert.getDueDate());
         insertTodoRequest.setReminderDateTime(todoToInsert.getReminderDateTime());
         insertTodoRequest.setDescription(todoToInsert.getDescription());
-        insertTodoRequest.setCompleted(todoToInsert.isCompleted());
+        insertTodoRequest.setCompleted(todoToInsert.getCompleted());
         insertTodoRequest.setRowVersion(todoToInsert.getRowVersion());
         insertTodoRequest.setDeleted(todoToInsert.getDeleted());
         insertTodoRequest.setPosition(todoToInsert.getPosition());
@@ -327,9 +327,10 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
           Call<GetNextRowVersionResponse> call,
           retrofit2.Response<GetNextRowVersionResponse> response
       ) {
-        Log.d(TAG, "Get Next Row Version Response: " + RetrofitResponseHelper.ResponseToJson(response));
+        Log.d(TAG, "Get Next Row Version Response: " + RetrofitResponseHelper.Companion.
+            ResponseToJson(response));
 
-        if (RetrofitResponseHelper.IsNoError(response)) {
+        if (RetrofitResponseHelper.Companion.IsNoError(response)) {
           nextRowVersion = response.body() != null ? response.body().getNextRowVersion() : 0;
 
           setRowVersionsForTodos(todosToUpdate);
