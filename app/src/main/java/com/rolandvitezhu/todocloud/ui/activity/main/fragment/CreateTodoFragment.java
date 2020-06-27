@@ -21,6 +21,7 @@ import com.rolandvitezhu.todocloud.R;
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.app.Constant;
 import com.rolandvitezhu.todocloud.data.Todo;
+import com.rolandvitezhu.todocloud.datastorage.DbLoader;
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity;
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.DatePickerDialogFragment;
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ReminderDatePickerDialogFragment;
@@ -31,6 +32,10 @@ import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
+
+import java.util.Objects;
+
+import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +49,9 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 
 public class CreateTodoFragment extends Fragment {
+
+  @Inject
+  DbLoader dbLoader;
 
   @BindView(R.id.textinputlayout_createtodo_title)
   TextInputLayout tilTitle;
@@ -75,6 +83,13 @@ public class CreateTodoFragment extends Fragment {
   private TodosViewModel todosViewModel;
 
   Unbinder unbinder;
+
+  @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    ((AppController) Objects.requireNonNull(getActivity()).getApplication()).getAppComponent().
+        fragmentComponent().create().inject(this);
+  }
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -197,18 +212,8 @@ public class CreateTodoFragment extends Fragment {
     todo.setPriority(switchPriority.isChecked());
     todo.setDueDate(dueDateLong);
     todo.setReminderDateTime(reminderDateTimeLong);
-
-    // Old code
-//    todo.setDueDate(simpleDateFormat.format(dueDate));
-//    if (tvReminderDateTime.getText().equals(getString(R.string.all_noreminder))) {
-//      todo.setReminderDateTime("-1");
-//    } else {
-//      String reminderDateTime = reminderDateTimeFormat.format(this.reminderDateTime);
-//      todo.setReminderDateTime(reminderDateTime);
-//    }
-
-    String giveDescription = tietDescription.getText().toString().trim();
-    if (!giveDescription.equals("")) {
+    String givenDescription = tietDescription.getText().toString().trim();
+    if (!givenDescription.equals("")) {
       todo.setDescription(tietDescription.getText().toString());
     } else {
       todo.setDescription(null);
@@ -217,8 +222,7 @@ public class CreateTodoFragment extends Fragment {
     todo.setRowVersion(0);
     todo.setDeleted(false);
     todo.setDirty(true);
-    // TODO: Set position - get last position and increment by 100
-    // todo.setPosition();
+    todo.setPosition((dbLoader.getNextFirstTodoPosition()));
 
     return todo;
   }

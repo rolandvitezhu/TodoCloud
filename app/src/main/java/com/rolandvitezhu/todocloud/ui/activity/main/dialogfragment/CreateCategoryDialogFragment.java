@@ -141,10 +141,13 @@ public class CreateCategoryDialogFragment extends AppCompatDialogFragment {
   @NonNull
   private Category prepareCategoryToCreate(String givenTitle) {
     Category categoryToCreate = new Category();
+
     categoryToCreate.setTitle(givenTitle);
     categoryToCreate.setRowVersion(0);
     categoryToCreate.setDeleted(false);
     categoryToCreate.setDirty(true);
+    categoryToCreate.setPosition(5.0);
+
     return categoryToCreate;
   }
 

@@ -12,7 +12,6 @@ import com.rolandvitezhu.todocloud.network.api.list.dto.InsertListResponse;
 import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListRequest;
 import com.rolandvitezhu.todocloud.network.api.list.dto.UpdateListResponse;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
-import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
@@ -110,9 +109,7 @@ public class ListDataSynchronizer extends BaseDataSynchronizer {
   }
 
   private void updateOrInsertLists() {
-    GetNextRowVersionService getNextRowVersionService = retrofit.create(GetNextRowVersionService.class);
-
-    Call<GetNextRowVersionResponse> call = getNextRowVersionService.getNextRowVersion(
+    Call<GetNextRowVersionResponse> call = apiService.getNextRowVersion(
         DbConstants.List.DATABASE_TABLE, dbLoader.getApiKey()
     );
 

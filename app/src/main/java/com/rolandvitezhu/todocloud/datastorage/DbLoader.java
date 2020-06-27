@@ -18,7 +18,6 @@ import org.threeten.bp.ZonedDateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -71,12 +70,7 @@ public class DbLoader {
       DbConstants.Category.KEY_DIRTY,
       DbConstants.Category.KEY_POSITION
   };
-  private final String todoOrderBy = DbConstants.Todo.KEY_DUE_DATE
-      + ", "
-      + DbConstants.Todo.KEY_PRIORITY
-      + " DESC"
-      + ", "
-      + DbConstants.Todo.KEY_TITLE;
+  private final String todoOrderBy = DbConstants.Todo.KEY_POSITION;
 
   @Inject
   public DbLoader() {
@@ -101,17 +95,17 @@ public class DbLoader {
   }
 
   private void dropTables() {
-    sqLiteDatabase.execSQL(DbConstants.User.DATABASE_DROP);
-    sqLiteDatabase.execSQL(DbConstants.Todo.DATABASE_DROP);
-    sqLiteDatabase.execSQL(DbConstants.List.DATABASE_DROP);
-    sqLiteDatabase.execSQL(DbConstants.Category.DATABASE_DROP);
+    sqLiteDatabase.execSQL(DbConstants.User.DROP_TABLE);
+    sqLiteDatabase.execSQL(DbConstants.Todo.DROP_TABLE);
+    sqLiteDatabase.execSQL(DbConstants.List.DROP_TABLE);
+    sqLiteDatabase.execSQL(DbConstants.Category.DROP_TABLE);
   }
 
   private void createTables() {
-    sqLiteDatabase.execSQL(DbConstants.User.DATABASE_CREATE);
-    sqLiteDatabase.execSQL(DbConstants.Todo.DATABASE_CREATE);
-    sqLiteDatabase.execSQL(DbConstants.List.DATABASE_CREATE);
-    sqLiteDatabase.execSQL(DbConstants.Category.DATABASE_CREATE);
+    sqLiteDatabase.execSQL(DbConstants.User.CREATE_TABLE);
+    sqLiteDatabase.execSQL(DbConstants.Todo.CREATE_TABLE_2);
+    sqLiteDatabase.execSQL(DbConstants.List.CREATE_TABLE_3);
+    sqLiteDatabase.execSQL(DbConstants.Category.CREATE_TABLE_3);
   }
 
   public Integer getLowestPositionForGivenTable(String givenTable) {
@@ -241,7 +235,8 @@ public class DbLoader {
 		open();
     ContentValues contentValues = prepareTodoContentValues(todo);
     long _Id = sqLiteDatabase.insert(DbConstants.Todo.DATABASE_TABLE, null, contentValues);
-    fixTodoPositions();
+    fixTodoPositions(null);
+
     return _Id;
 	}
 
@@ -250,7 +245,7 @@ public class DbLoader {
     ContentValues contentValues = prepareTodoContentValues(todo);
     boolean successful = false;
 
-    if (todo.get_id() != 0) {
+    if (todo != null && todo.get_id() != null && todo.get_id() > 0) {
       // The Todo has been modified offline, therefore todo_online_id is null in the local
       // database yet
       String whereClause = DbConstants.Todo.KEY_ROW_ID + "=" + todo.get_id();
@@ -260,7 +255,7 @@ public class DbLoader {
           whereClause,
           null
       ) > 0;
-//      fixTodoPositions();
+
       return successful;
     } else {
       // The Todo has been modified online, therefore _id is unknown yet
@@ -274,7 +269,7 @@ public class DbLoader {
           whereClause,
           null
       ) > 0;
-//      fixTodoPositions();
+
       return successful;
     }
   }
@@ -282,6 +277,7 @@ public class DbLoader {
   @NonNull
   private ContentValues prepareTodoContentValues(Todo todo) {
     ContentValues contentValues = new ContentValues();
+
     contentValues.put(DbConstants.Todo.KEY_TODO_ONLINE_ID, todo.getTodoOnlineId());
     contentValues.put(DbConstants.Todo.KEY_USER_ONLINE_ID, todo.getUserOnlineId());
     if (todo.getListOnlineId() == null || todo.getListOnlineId().equals("")) {
@@ -315,11 +311,13 @@ public class DbLoader {
     if (todo.getDirty() != null)
       contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_POSITION, todo.getPosition());
+
     return contentValues;
   }
 
   public ArrayList<Todo> getTodos(String wherePrefix) {
     open();
+
     String standardWherePostfix = prepareStandardWherePostfix();
     String where = wherePrefix + standardWherePostfix;
     Cursor cursor = sqLiteDatabase.query(
@@ -337,11 +335,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return todos;
   }
 
   public ArrayList<Todo> getPredefinedListTodos(String where) {
     open();
+
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.Todo.DATABASE_TABLE,
         todoColumns,
@@ -357,11 +357,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return predefinedListTodos;
   }
 
   private ArrayList<Integer> getDuplicatePositionValuesForTodos() {
 	  open();
+
 	  Cursor cursor = sqLiteDatabase.query(
         DbConstants.Todo.DATABASE_TABLE,
         new String[]{ DbConstants.Todo.KEY_POSITION + ", COUNT(*) c" },
@@ -386,6 +388,7 @@ public class DbLoader {
   private HashMap<Integer, ArrayList<Integer>> get_IdForDuplicatePositionValues() {
     ArrayList<Integer> duplicatePositionValuesForTodos = getDuplicatePositionValuesForTodos();
 	  open();
+
     HashMap<Integer, ArrayList<Integer>> _IdForDuplicatePositionValues = new HashMap<>();
     ArrayList<Integer> _IdForDuplicatePositionValue = new ArrayList<>();
     for (Integer nextPositionValue : duplicatePositionValuesForTodos) {
@@ -404,31 +407,188 @@ public class DbLoader {
         cursor.moveToNext();
       }
       cursor.close();
+
       _IdForDuplicatePositionValues.put(nextPositionValue, _IdForDuplicatePositionValue);
     }
 
     return _IdForDuplicatePositionValues;
   }
 
-  public void fixTodoPositions() {
-    HashMap<Integer, ArrayList<Integer>> _IdForDuplicatePositionValues = get_IdForDuplicatePositionValues();
-	  open();
-    for (Map.Entry<Integer, ArrayList<Integer>> duplicatePosition : _IdForDuplicatePositionValues.entrySet()) {
-      for (int i = 1; i < duplicatePosition.getValue().size(); i++) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(
-            DbConstants.Todo.KEY_POSITION,
-            getLowestPositionForGivenTable(DbConstants.Todo.DATABASE_TABLE) - 100
-        );
-        contentValues.put(DbConstants.Todo.KEY_DIRTY, true);
-        sqLiteDatabase.update(
-            DbConstants.Todo.DATABASE_TABLE,
-            contentValues,
-            DbConstants.Todo.KEY_ROW_ID + " = " + duplicatePosition.getValue().get(i),
-            null
-        );
-      }
+  /**
+   * Get the todos which has the same position values for a single position value.
+   * @return The list of todos which has the same position values.
+   * @param db
+   */
+  private ArrayList<Todo> getDuplicatePositionTodosForASinglePosition(SQLiteDatabase db) {
+    if (db == null)
+      open();
+    else
+      sqLiteDatabase = db;
+
+    String sql =
+        "SELECT " +
+            "t.* " +
+            "FROM " +
+            DbConstants.Todo.DATABASE_TABLE + " t " +
+            "JOIN " +
+            "     (SELECT " + DbConstants.Todo.KEY_POSITION + " " +
+            "      FROM " + DbConstants.Todo.DATABASE_TABLE + " " +
+            "      GROUP BY " + DbConstants.Todo.KEY_POSITION + " " +
+            "      HAVING COUNT(*) > 1 " +
+            "      LIMIT 1 " +
+            "     ) p " +
+            "     ON t." + DbConstants.Todo.KEY_POSITION + " = p." + DbConstants.Todo.KEY_POSITION + " " +
+            "     ORDER BY " +
+                  DbConstants.Todo.KEY_ROW_VERSION + " ASC " +
+            ";";
+
+    Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
+    cursor.moveToFirst();
+    ArrayList<Todo> duplicatePositionTodos = new ArrayList<>();
+    while (!cursor.isAfterLast()) {
+      duplicatePositionTodos.add(new Todo(cursor));
+      cursor.moveToNext();
     }
+    cursor.close();
+
+    return duplicatePositionTodos;
+  }
+
+  /**
+   * Get the position value of the next todo from the local database. If the position parameter
+   * has the value of the last todo position, the returned position value will be between the last
+   * todo position value and the biggest double value.
+   * @param position The previous todo position value.
+   * @return The next todo position value.
+   */
+  private double getNextTodoPosition(double position) {
+    open();
+
+    String sql =
+        "SELECT " +
+            DbConstants.Todo.KEY_POSITION + " " +
+        "FROM " +
+            DbConstants.Todo.DATABASE_TABLE + " " +
+        "WHERE " +
+            DbConstants.Todo.KEY_POSITION + " > " + ((Double)position).toString() + " " +
+        "ORDER BY " +
+            DbConstants.Todo.KEY_POSITION + " ASC " +
+        "LIMIT 1 " +
+            ";";
+
+    Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
+    cursor.moveToFirst();
+    double nextTodoPosition = -1;
+    while (!cursor.isAfterLast()) {
+      nextTodoPosition = cursor.getDouble(0);
+      cursor.moveToNext();
+    }
+    cursor.close();
+
+    if (nextTodoPosition == -1)
+      nextTodoPosition = getPositionBetween(position, Double.MAX_VALUE);
+
+    return nextTodoPosition;
+  }
+
+  /**
+   * Get the next first todo position from the database. If the local todo table is empty, this
+   * value will be half of the biggest double number. Otherwise this position value will be in
+   * between the smallest position value in the todo table and the smallest double value.
+   * @return
+   */
+  public double getNextFirstTodoPosition() {
+    open();
+
+    String sql =
+        "SELECT " +
+            DbConstants.Todo.KEY_POSITION + " " +
+        "FROM " +
+            DbConstants.Todo.DATABASE_TABLE + " " +
+        "ORDER BY " +
+            DbConstants.Todo.KEY_POSITION + " ASC " +
+        "LIMIT 1 " +
+            ";";
+
+    Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
+    cursor.moveToFirst();
+    double nextFirstTodoPosition = -1;
+    while (!cursor.isAfterLast()) {
+      nextFirstTodoPosition = cursor.getDouble(0);
+      cursor.moveToNext();
+    }
+    cursor.close();
+
+    if (nextFirstTodoPosition == -1)
+      nextFirstTodoPosition = Double.MAX_VALUE / 2;
+    else
+      nextFirstTodoPosition = getPositionBetween(1, nextFirstTodoPosition);
+
+    return nextFirstTodoPosition;
+  }
+
+  /**
+   * Fix the duplicated position field value of the all the todos in the database. We use this
+   * method to prevent the duplication of the position values when using multiple devices
+   * simultaneously. The fixed position value will be right between the previous and the next
+   * position.
+   * @param db
+   */
+  public void fixTodoPositions(SQLiteDatabase db) {
+    ArrayList<Todo> duplicatePositionTodos = getDuplicatePositionTodosForASinglePosition(db);
+    while (!duplicatePositionTodos.isEmpty())
+    {
+      if (db == null)
+        open();
+      else
+        sqLiteDatabase = db;
+      for (int i = 0; i < duplicatePositionTodos.size() - 1; i++) {
+        Todo todoToBeFixed = duplicatePositionTodos.get(i + 1);
+        double previousPosition = duplicatePositionTodos.get(i).getPosition();
+        double nextPosition = getNextTodoPosition(todoToBeFixed.getPosition());
+
+        fixTodoPosition(todoToBeFixed, previousPosition, nextPosition);
+      }
+
+      duplicatePositionTodos.clear();
+      duplicatePositionTodos = getDuplicatePositionTodosForASinglePosition(db);
+    }
+  }
+
+  /**
+   * Fix the duplicated position field value of the todo in the database. We use this method to
+   * prevent the duplication of the position values when using multiple devices simultaneously.
+   * The fixed position value will be right between the previous and the next position.
+   * @param todoToBeFixed The todo which has the duplicated position value.
+   * @param previousPosition The position of the todo which is right before the todo which's
+   * position should be fixed.
+   * @param nextPosition The position of the todo which is right after the todo which's
+   * position should be fixed.
+   */
+  private void fixTodoPosition(Todo todoToBeFixed, double previousPosition, double nextPosition) {
+    if (todoToBeFixed.get_id() != null) {
+      double fixedPosition = getPositionBetween(previousPosition, nextPosition);
+
+      ContentValues contentValues = new ContentValues();
+      contentValues.put(DbConstants.Todo.KEY_POSITION, fixedPosition);
+      contentValues.put(DbConstants.Todo.KEY_DIRTY, true);
+      sqLiteDatabase.update(
+          DbConstants.Todo.DATABASE_TABLE,
+          contentValues,
+          DbConstants.Todo.KEY_ROW_ID + " = " + todoToBeFixed.get_id(),
+          null
+      );
+    }
+  }
+
+  /**
+   * Return a position value between the given position values.
+   * @param previousPosition
+   * @param nextPosition
+   * @return
+   */
+  private double getPositionBetween(double previousPosition, double nextPosition) {
+    return ((nextPosition - previousPosition) / 2) + previousPosition;
   }
 
   @NonNull
@@ -453,21 +613,6 @@ public class DbLoader {
    * @return
    */
   private DateTimeRange today() {
-    // Old code
-//    String pattern = "yyyy.MM.dd.";
-//    Locale defaultLocale = Locale.getDefault();
-//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-//        pattern,
-//        defaultLocale
-//    );
-//    Date today = new Date();
-//    return simpleDateFormat.format(today);
-    // TODO:
-    // 1. Modify return value: we need an interval.
-    // 2. Modify the database to use this interval.
-    // Important: don't delete the old code first, only comment it out and only delete it after
-    // tested the new code and it works good.
-
     LocalDate today;
     LocalDateTime startOfToday;
     LocalDateTime endOfToday;
@@ -491,21 +636,6 @@ public class DbLoader {
    * @return
    */
   private DateTimeRange next7Days() {
-    // Old code
-//    String pattern = "yyyy.MM.dd.";
-//    Locale defaultLocale = Locale.getDefault();
-//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-//        pattern,
-//        defaultLocale
-//    );
-//    Date today = new Date();
-//    return simpleDateFormat.format(today);
-    // TODO:
-    // 1. Modify return value: we need an interval.
-    // 2. Modify the database to use this interval.
-    // Important: don't delete the old code first, only comment it out and only delete it after
-    // tested the new code and it works good.
-
     LocalDate today;
     LocalDateTime startOf7Days;
     LocalDateTime endOf7Days;
@@ -542,27 +672,6 @@ public class DbLoader {
   }
 
   private String prepareNext7DaysPredefinedListWherePrefix() {
-    // Old code
-//    String pattern = "yyyy.MM.dd.";
-//    Locale defaultLocale = Locale.getDefault();
-//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-//        pattern,
-//        defaultLocale
-//    );
-//    Date today = new Date();
-//    Calendar calendar = Calendar.getInstance();
-//    calendar.setTime(today);
-//
-//    StringBuilder whereStringBuilder = new StringBuilder();
-//    String todayString = simpleDateFormat.format(today);
-//    appendToday(whereStringBuilder, todayString);
-//    for (int i = 0; i < 6; i++) {
-//      String nextDayString = prepareNextDayStringWhere(simpleDateFormat, calendar);
-//      appendNextDay(whereStringBuilder, nextDayString);
-//    }
-//    prepareWhereStringBuilderPostfix(whereStringBuilder);
-//    String where = whereStringBuilder.toString();
-//    return where;
     DateTimeRange next7DaysDateTimeRange = next7Days();
     return DbConstants.Todo.KEY_DUE_DATE
         + " BETWEEN "
@@ -570,41 +679,6 @@ public class DbLoader {
         + " AND "
         + next7DaysDateTimeRange.getEndOfRangeLong();
   }
-
-  // Old method. Should be deleted, because now it's useless
-//  private void appendToday(StringBuilder whereStringBuilder, String todayString) {
-//    whereStringBuilder.append(
-//        "("
-//            + DbConstants.Todo.KEY_DUE_DATE
-//            + "='"
-//            + todayString
-//            + "' OR "
-//    );
-//  }
-
-  // Old method. Should be deleted, because now it's useless
-//  private String prepareNextDayStringWhere(SimpleDateFormat simpleDateFormat, Calendar calendar) {
-//    calendar.roll(Calendar.DAY_OF_MONTH, true);
-//    Date nextDay = new Date();
-//    nextDay.setTime(calendar.getTimeInMillis());
-//    return simpleDateFormat.format(nextDay);
-//  }
-
-  // Old method. Should be deleted, because now it's useless
-//  private void appendNextDay(StringBuilder whereStringBuilder, String nextDayString) {
-//    whereStringBuilder.append(
-//        DbConstants.Todo.KEY_DUE_DATE
-//            + "='"
-//            + nextDayString
-//            + "' OR "
-//    );
-//  }
-
-  // Old method. Should be deleted, because now it's useless
-//  private void prepareWhereStringBuilderPostfix(StringBuilder whereStringBuilder) {
-//    whereStringBuilder.delete(whereStringBuilder.length()-4, whereStringBuilder.length());
-//    whereStringBuilder.append(')');
-//  }
 
   @NonNull
   public String prepareNext7DaysPredefinedListWhere() {
@@ -669,6 +743,7 @@ public class DbLoader {
             + " IS NOT NULL AND "
             + DbConstants.Todo.KEY_REMINDER_DATE_TIME
             + " != \"\"";
+
     return getTodos(where);
   }
 
@@ -679,6 +754,7 @@ public class DbLoader {
 
   private ArrayList<String> getTodoOnlineIdsByListOnlineId(String listOnlineId) {
     open();
+
     String[] columns = {DbConstants.Todo.KEY_TODO_ONLINE_ID};
     String where = DbConstants.Todo.KEY_LIST_ONLINE_ID + "='" + listOnlineId + "'";
     Cursor cursor = sqLiteDatabase.query(
@@ -695,11 +771,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return todoOnlineIds;
   }
 
   public ArrayList<Todo> getTodosToUpdate() {
     open();
+
     String where = DbConstants.Todo.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -725,11 +803,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return todosToUpdate;
   }
 
   public ArrayList<Todo> getTodosToInsert() {
     open();
+
     String where = DbConstants.Todo.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -755,11 +835,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return todosToInsert;
   }
 
   public boolean isTodoExists(String todoOnlineId) {
     open();
+
     String[] columns = {DbConstants.Todo.KEY_TODO_ONLINE_ID};
     String where = DbConstants.Todo.KEY_TODO_ONLINE_ID + "= ?";
     String[] whereArguments = {todoOnlineId};
@@ -772,11 +854,13 @@ public class DbLoader {
     );
     boolean exists = cursor.getCount() > 0;
     cursor.close();
+
     return exists;
   }
 
   public int getLastTodoRowVersion() {
     open();
+
     String[] columns = {"MAX(" + DbConstants.Todo.KEY_ROW_VERSION + ")"};
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.Todo.DATABASE_TABLE,
@@ -786,11 +870,13 @@ public class DbLoader {
     cursor.moveToFirst();
     int row_version = cursor.getInt(0);
     cursor.close();
+
     return row_version;
   }
 
 	public Todo getTodo(String todoOnlineId) {
     open();
+
     String where = DbConstants.Todo.KEY_TODO_ONLINE_ID + "='" + todoOnlineId + "'";
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.Todo.DATABASE_TABLE, 
@@ -810,6 +896,7 @@ public class DbLoader {
 
   public Todo getTodo(Long _id) {
     open();
+
     String where = DbConstants.Todo.KEY_ROW_ID + "=" + _id;
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.Todo.DATABASE_TABLE, 
@@ -829,17 +916,20 @@ public class DbLoader {
 
   public boolean softDeleteTodo(String todoOnlineId) {
     open();
+
     ContentValues contentValues = new ContentValues();
     contentValues.put(DbConstants.Todo.KEY_DELETED, 1);
     contentValues.put(DbConstants.Todo.KEY_DIRTY, 1);
     String whereClause = DbConstants.Todo.KEY_TODO_ONLINE_ID + "='" + todoOnlineId + "'";
+
     boolean successful = sqLiteDatabase.update(
         DbConstants.Todo.DATABASE_TABLE,
         contentValues,
         whereClause,
         null
     ) > 0;
-    fixTodoPositions();
+    fixTodoPositions(null);
+
     return successful;
   }
 
@@ -856,7 +946,8 @@ public class DbLoader {
         whereClause,
         null
     ) > 0;
-    fixTodoPositions();
+    fixTodoPositions(null);
+
     return successful;
   }
 
@@ -874,6 +965,7 @@ public class DbLoader {
   @NonNull
   private ContentValues prepareListContentValues(List list) {
     ContentValues contentValues = new ContentValues();
+
     contentValues.put(DbConstants.List.KEY_LIST_ONLINE_ID, list.getListOnlineId());
     contentValues.put(DbConstants.List.KEY_USER_ONLINE_ID, list.getUserOnlineId());
     if (list.getCategoryOnlineId() == null || list.getCategoryOnlineId().equals("")) {
@@ -888,6 +980,7 @@ public class DbLoader {
     if (list.getDirty() != null)
       contentValues.put(DbConstants.List.KEY_DIRTY, list.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.List.KEY_POSITION, list.getPosition());
+
     return contentValues;
   }
 
@@ -944,6 +1037,7 @@ public class DbLoader {
 
   public ArrayList<List> getListsNotInCategory() {
     open();
+
     String where = DbConstants.List.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -970,11 +1064,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return listsNotInCategory;
   }
 
   public ArrayList<List> getListsByCategoryOnlineId(String categoryOnlineId) {
     open();
+
     String where = DbConstants.List.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1002,11 +1098,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return lists;
   }
 
   public boolean isListExists(String listOnlineId) {
     open();
+
     String[] columns = {DbConstants.List.KEY_LIST_ONLINE_ID};
     String where = DbConstants.List.KEY_LIST_ONLINE_ID + "= ?";
     String[] whereArguments = {listOnlineId};
@@ -1019,11 +1117,13 @@ public class DbLoader {
     );
     boolean exists = cursor.getCount() > 0;
     cursor.close();
+
     return exists;
   }
 
   public int getLastListRowVersion() {
     open();
+
     String[] columns = {"MAX(" + DbConstants.List.KEY_ROW_VERSION + ")"};
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.List.DATABASE_TABLE,
@@ -1033,11 +1133,13 @@ public class DbLoader {
     cursor.moveToFirst();
     int row_version = cursor.getInt(0);
     cursor.close();
+
     return row_version;
   }
 
   public ArrayList<List> getListsToUpdate() {
     open();
+
     String where = DbConstants.List.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1063,11 +1165,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return listsToUpdate;
   }
 
   public ArrayList<List> getListsToInsert() {
     open();
+
     String where = DbConstants.List.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1093,6 +1197,7 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return listsToInsert;
   }
 
@@ -1109,6 +1214,7 @@ public class DbLoader {
 
   public boolean softDeleteCategory(String categoryOnlineId) {
     open();
+
     ContentValues contentValues = new ContentValues();
     contentValues.put(DbConstants.Category.KEY_DELETED, 1);
     contentValues.put(DbConstants.Category.KEY_DIRTY, 1);
@@ -1137,6 +1243,7 @@ public class DbLoader {
 
   public boolean updateCategory(Category category) {
     open();
+
     ContentValues contentValues = prepareCategoryContentValues(category);
 
     if (category.get_id() != 0) {
@@ -1167,6 +1274,7 @@ public class DbLoader {
   @NonNull
   private ContentValues prepareCategoryContentValues(Category category) {
     ContentValues contentValues = new ContentValues();
+
     contentValues.put(DbConstants.Category.KEY_CATEGORY_ONLINE_ID, category.getCategoryOnlineId());
     contentValues.put(DbConstants.Category.KEY_USER_ONLINE_ID, category.getUserOnlineId());
     contentValues.put(DbConstants.Category.KEY_TITLE, category.getTitle());
@@ -1176,11 +1284,13 @@ public class DbLoader {
     if (category.getDirty() != null)
       contentValues.put(DbConstants.Category.KEY_DIRTY, category.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Category.KEY_POSITION, category.getPosition());
+
     return contentValues;
   }
 
   public Category getCategoryByCategoryOnlineId(String categoryOnlineId) {
     open();
+
     String where = DbConstants.Category.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1203,11 +1313,13 @@ public class DbLoader {
     cursor.moveToFirst();
     Category category = new Category(cursor);
     cursor.close();
+
     return category;
   }
 
   public ArrayList<Category> getCategories() {
     open();
+
     String where = DbConstants.Category.KEY_USER_ONLINE_ID + "='" + getUserOnlineId() + "'" + " AND " +
         DbConstants.Category.KEY_DELETED + "=" + 0;
     String orderBy = DbConstants.Category.KEY_TITLE;
@@ -1226,11 +1338,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return categories;
   }
 
   public ArrayList<Category> getCategoriesToUpdate() {
     open();
+
     String where = DbConstants.Category.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1256,11 +1370,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return categoriesToUpdate;
   }
 
   public ArrayList<Category> getCategoriesToInsert() {
     open();
+
     String where = DbConstants.Category.KEY_USER_ONLINE_ID
         + "='"
         + getUserOnlineId()
@@ -1285,11 +1401,13 @@ public class DbLoader {
       cursor.moveToNext();
     }
     cursor.close();
+
     return categoriesToInsert;
   }
 
   public boolean isCategoryExists(String categoryOnlineId) {
     open();
+
     String[] columns = {DbConstants.Category.KEY_CATEGORY_ONLINE_ID};
     String where = DbConstants.Category.KEY_CATEGORY_ONLINE_ID + "= ?";
     String[] whereArguments = {categoryOnlineId};
@@ -1302,11 +1420,13 @@ public class DbLoader {
     );
     boolean exists = cursor.getCount() > 0;
     cursor.close();
+
     return exists;
   }
 
   public int getLastCategoryRowVersion() {
     open();
+
     String[] columns = {
         "MAX("
             + DbConstants.Category.KEY_ROW_VERSION
@@ -1320,7 +1440,7 @@ public class DbLoader {
     cursor.moveToFirst();
     int row_version = cursor.getInt(0);
     cursor.close();
+
     return row_version;
   }
-
 }

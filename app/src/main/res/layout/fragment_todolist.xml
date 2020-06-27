@@ -1,24 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.activity.main.MainActivity">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <include layout="@layout/layout_recyclerview_todolist"/>
+    <data>
+        <variable
+            name="todoListFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.TodoListFragment" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.activity.main.MainActivity">
 
-    <com.github.clans.fab.FloatingActionButton
-        android:id="@+id/floatingactionbutton_todolist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_fab"
-        android:src="@drawable/baseline_add_white_24"
-        app:fab_colorNormal="@color/colorAccent"
-        app:fab_colorPressed="@color/colorAccent"
-        app:fab_colorRipple="@color/colorAccent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        <include layout="@layout/layout_recyclerview_todolist"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/floatingactionbutton_todolist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/margin_fab"
+            android:src="@drawable/baseline_add_white_24"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccent"
+            app:fab_colorRipple="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:onClick="@{(view) -> todoListFragment.onFABClick(view)}"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

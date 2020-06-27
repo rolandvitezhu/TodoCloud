@@ -1,6 +1,7 @@
 package com.rolandvitezhu.todocloud.di.component
 
 import android.content.Context
+import com.rolandvitezhu.todocloud.datastorage.DbHelper
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
 import com.rolandvitezhu.todocloud.datasynchronizer.BaseDataSynchronizer
 import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer
@@ -26,6 +27,7 @@ interface AppComponent {
     fun inject(baseDataSynchronizer: BaseDataSynchronizer?)
     fun inject(reminderService: ReminderService?)
     fun inject(dataSynchronizer: DataSynchronizer?)
+    fun inject(dbHelper: DbHelper?)
 
     fun fragmentComponent(): FragmentComponent.Factory
 }

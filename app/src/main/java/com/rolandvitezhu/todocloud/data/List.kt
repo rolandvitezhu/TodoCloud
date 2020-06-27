@@ -22,7 +22,7 @@ data class List (
         var deleted: Boolean?,
         var dirty: Boolean?,
         @SerializedName("position")
-        var position: Int?
+        var position: Double?
 ) : Parcelable {
     constructor() : this(
             null,
@@ -44,6 +44,6 @@ data class List (
         cursor.getInt(5),
         cursor.getInt(6) != 0,
         cursor.getInt(7) != 0,
-        cursor.getInt(8)
+        cursor.getDouble(8)
     )
 }

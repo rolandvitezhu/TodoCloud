@@ -7,7 +7,6 @@ import com.rolandvitezhu.todocloud.data.Todo;
 import com.rolandvitezhu.todocloud.datastorage.DbConstants;
 import com.rolandvitezhu.todocloud.network.ApiService;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
-import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.GetTodosResponse;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.InsertTodoRequest;
 import com.rolandvitezhu.todocloud.network.api.todo.dto.InsertTodoResponse;
@@ -213,7 +212,7 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
   private void makeTodoUpToDate(Todo todoToUpdate) {
     todoToUpdate.setDirty(false);
     dbLoader.updateTodo(todoToUpdate);
-    dbLoader.fixTodoPositions();
+    dbLoader.fixTodoPositions(null);
   }
 
   private void insertTodos() {
@@ -309,15 +308,13 @@ public class TodoDataSynchronizer extends BaseDataSynchronizer {
         dbLoader.createTodo(todo);
       } else {
         dbLoader.updateTodo(todo);
-        dbLoader.fixTodoPositions();
+        dbLoader.fixTodoPositions(null);
       }
     }
   }
 
   private void updateOrInsertTodos() {
-    GetNextRowVersionService getNextRowVersionService = retrofit.create(GetNextRowVersionService.class);
-
-    Call<GetNextRowVersionResponse> call = getNextRowVersionService.getNextRowVersion(
+    Call<GetNextRowVersionResponse> call = apiService.getNextRowVersion(
         DbConstants.Todo.DATABASE_TABLE, dbLoader.getApiKey()
     );
 

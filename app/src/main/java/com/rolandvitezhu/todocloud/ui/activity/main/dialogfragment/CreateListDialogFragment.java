@@ -141,10 +141,13 @@ public class CreateListDialogFragment extends AppCompatDialogFragment {
   @NonNull
   private List prepareListToCreate(String givenTitle) {
     List listToCreate = new List();
+
     listToCreate.setTitle(givenTitle);
     listToCreate.setRowVersion(0);
     listToCreate.setDeleted(false);
     listToCreate.setDirty(true);
+    listToCreate.setPosition(5.0);
+
     return listToCreate;
   }
 

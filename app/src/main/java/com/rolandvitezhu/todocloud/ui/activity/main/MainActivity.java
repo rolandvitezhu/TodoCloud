@@ -563,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Todo todo = todosViewModel.getTodo();
 
     dbLoader.updateTodo(todo);
-    dbLoader.fixTodoPositions();
+    dbLoader.fixTodoPositions(null);
     updateTodosViewModel();
 
     if (isSetReminder(todo)) {
@@ -628,7 +628,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     todoToCreate.setTodoOnlineId(todoOnlineId);
 
     dbLoader.updateTodo(todoToCreate);
-    dbLoader.fixTodoPositions();
+    dbLoader.fixTodoPositions(null);
   }
 
   private boolean isPredefinedListCompleted() {

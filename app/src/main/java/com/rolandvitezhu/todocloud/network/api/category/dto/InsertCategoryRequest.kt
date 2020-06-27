@@ -15,7 +15,7 @@ data class InsertCategoryRequest (
         @SerializedName("deleted")
         var deleted: Boolean?,
         @SerializedName("position")
-        var position: Int?
+        var position: Double?
 ) : Parcelable {
     constructor() : this(
             null,

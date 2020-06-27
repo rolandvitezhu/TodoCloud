@@ -23,5 +23,6 @@ interface FragmentComponent {
     fun inject(todoListFragment: TodoListFragment?)
     fun inject(searchFragment: SearchFragment?)
     fun inject(moveListDialogFragment: MoveListDialogFragment?)
+    fun inject(createTodoFragment: CreateTodoFragment?)
     fun inject(todoAdapter: TodoAdapter?)
 }

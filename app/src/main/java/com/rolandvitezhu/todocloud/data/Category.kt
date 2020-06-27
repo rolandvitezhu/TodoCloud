@@ -20,7 +20,7 @@ data class Category (
         var deleted: Boolean?,
         var dirty: Boolean?,
         @SerializedName("position")
-        var position: Int?
+        var position: Double?
 ) : Parcelable {
     constructor() : this(
             null,
@@ -50,6 +50,10 @@ data class Category (
         cursor.getInt(4),
         cursor.getInt(5) != 0,
         cursor.getInt(6) != 0,
-        cursor.getInt(7)
+        cursor.getDouble(7)
     )
+
+    override fun toString(): String {
+        return title ?: ""
+    }
 }

@@ -51,18 +51,6 @@ public class ReminderDatePickerDialogFragment extends AppCompatDialogFragment im
         getString(R.string.reminderdatepicker_positivebuttontext),
         datePickerDialog
     );
-//    datePickerDialog.setButton(
-//        DialogInterface.BUTTON_NEGATIVE,
-//        getString(R.string.all_delete),
-//        new DialogInterface.OnClickListener() {
-//
-//          @Override
-//          public void onClick(DialogInterface dialog, int which) {
-//            listener.onDeleteReminder();
-//          }
-//
-//        }
-//    );
   }
 
   @Override

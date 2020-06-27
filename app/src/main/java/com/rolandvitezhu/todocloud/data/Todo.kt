@@ -35,7 +35,7 @@ data class Todo (
         var deleted: Boolean?,
         var dirty: Boolean?,
         @SerializedName("position")
-        var position: Int?,
+        var position: Double?,
         var isSelected: Boolean?
 ) : Parcelable {
     constructor() : this(
@@ -69,7 +69,7 @@ data class Todo (
             cursor.getInt(10),
             cursor.getInt(11) != 0,
             cursor.getInt(12) != 0,
-            cursor.getInt(13),
+            cursor.getDouble(13),
 
             false
     )

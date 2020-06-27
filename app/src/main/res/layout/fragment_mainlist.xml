@@ -1,91 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/constraintlayout_mainlist"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swiperefreshlayout_mainlist"
+    <data>
+        <variable
+            name="mainListFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintlayout_mainlist"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent">
 
-        <ScrollView
-            android:id="@+id/scrollview_mainlist"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swiperefreshlayout_mainlist"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <LinearLayout
+            <ScrollView
+                android:id="@+id/scrollview_mainlist"
                 android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ListView
+                        android:id="@android:id/list"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
+                        android:id="@+id/expandableheightlistview_mainlist_predefinedlist"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView
+                        android:id="@+id/expandableheightexpandablelistview_mainlist_category"
+                        android:groupIndicator="@null"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                    </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView>
+
+                    <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
+                        android:id="@+id/expandableheightlistview_mainlist_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                    </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.github.clans.fab.FloatingActionMenu
+            android:id="@+id/main_fam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            app:menu_colorNormal="@color/colorAccent"
+            app:menu_colorPressed="@color/colorAccent"
+            app:menu_colorRipple="@color/colorAccent"
+            app:menu_icon="@drawable/baseline_add_white_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/main_fab_create_category"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                app:fab_label="@string/all_createcategory"
+                android:src="@drawable/baseline_add_white_24"
+                app:fab_size="mini"
+                app:fab_colorNormal="@color/colorAccent"
+                app:fab_colorPressed="@color/colorAccent"
+                app:fab_colorRipple="@color/colorAccent"
+                android:onClick="@{(view) -> mainListFragment.onFABCreateCategoryClick(view)}" />
 
-                <ListView
-                    android:id="@android:id/list"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/main_fab_create_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_label="@string/all_createlist"
+                android:src="@drawable/baseline_add_white_24"
+                app:fab_size="mini"
+                app:fab_colorNormal="@color/colorAccent"
+                app:fab_colorPressed="@color/colorAccent"
+                app:fab_colorRipple="@color/colorAccent"
+                android:onClick="@{(view) -> mainListFragment.onFABCreateListClick(view)}" />
+        </com.github.clans.fab.FloatingActionMenu>
 
-                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
-                    android:id="@+id/expandableheightlistview_mainlist_predefinedlist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView
-                    android:id="@+id/expandableheightexpandablelistview_mainlist_category"
-                    android:groupIndicator="@null"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView>
-
-                <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
-                    android:id="@+id/expandableheightlistview_mainlist_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-                </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView>
-
-            </LinearLayout>
-
-        </ScrollView>
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/main_fam"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        app:menu_colorNormal="@color/colorAccent"
-        app:menu_colorPressed="@color/colorAccent"
-        app:menu_colorRipple="@color/colorAccent"
-        app:menu_icon="@drawable/baseline_add_white_24"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/main_fab_create_category"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:fab_label="@string/all_createcategory"
-            android:src="@drawable/baseline_add_white_24"
-            app:fab_size="mini"
-            app:fab_colorNormal="@color/colorAccent"
-            app:fab_colorPressed="@color/colorAccent"
-            app:fab_colorRipple="@color/colorAccent"/>
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/main_fab_create_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:fab_label="@string/all_createlist"
-            android:src="@drawable/baseline_add_white_24"
-            app:fab_size="mini"
-            app:fab_colorNormal="@color/colorAccent"
-            app:fab_colorPressed="@color/colorAccent"
-            app:fab_colorRipple="@color/colorAccent"/>
-    </com.github.clans.fab.FloatingActionMenu>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

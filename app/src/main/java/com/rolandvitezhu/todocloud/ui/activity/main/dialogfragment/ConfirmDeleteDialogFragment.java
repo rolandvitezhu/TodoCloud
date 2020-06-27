@@ -1,6 +1,7 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.fragment.app.Fragment;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -222,4 +224,12 @@ public class ConfirmDeleteDialogFragment extends AppCompatDialogFragment {
     dismiss();
   }
 
+  @Override
+  public void onDismiss(@NonNull DialogInterface dialog) {
+    super.onDismiss(dialog);
+    Fragment targetFragment = getTargetFragment();
+    if (targetFragment instanceof DialogInterface.OnDismissListener) {
+      ((DialogInterface.OnDismissListener)targetFragment).onDismiss(dialog);
+    }
+  }
 }

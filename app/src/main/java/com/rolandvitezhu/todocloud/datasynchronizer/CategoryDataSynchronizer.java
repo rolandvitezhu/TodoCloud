@@ -12,7 +12,6 @@ import com.rolandvitezhu.todocloud.network.api.category.dto.InsertCategoryRespon
 import com.rolandvitezhu.todocloud.network.api.category.dto.UpdateCategoryRequest;
 import com.rolandvitezhu.todocloud.network.api.category.dto.UpdateCategoryResponse;
 import com.rolandvitezhu.todocloud.network.api.rowversion.dto.GetNextRowVersionResponse;
-import com.rolandvitezhu.todocloud.network.api.rowversion.service.GetNextRowVersionService;
 import com.rolandvitezhu.todocloud.network.helper.RetrofitResponseHelper;
 
 import java.util.ArrayList;
@@ -111,9 +110,7 @@ public class CategoryDataSynchronizer extends BaseDataSynchronizer {
   }
 
   private void updateOrInsertCategories() {
-    GetNextRowVersionService getNextRowVersionService = retrofit.create(GetNextRowVersionService.class);
-
-    Call<GetNextRowVersionResponse> call = getNextRowVersionService.getNextRowVersion(
+    Call<GetNextRowVersionResponse> call = apiService.getNextRowVersion(
         DbConstants.Category.DATABASE_TABLE, dbLoader.getApiKey()
     );
 
