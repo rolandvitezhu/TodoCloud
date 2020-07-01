@@ -7,27 +7,23 @@ import android.text.TextWatcher
 import android.text.format.DateUtils
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
-import androidx.appcompat.widget.SwitchCompat
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.appContext
 import com.rolandvitezhu.todocloud.app.Constant
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.databinding.FragmentCreatetodoBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.DatePickerDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ReminderDatePickerDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ReminderTimePickerDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
+import kotlinx.android.synthetic.main.fragment_createtodo.*
+import kotlinx.android.synthetic.main.fragment_createtodo.view.*
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneId
@@ -40,30 +36,6 @@ class CreateTodoFragment : Fragment() {
     @Inject
     lateinit var dbLoader: DbLoader
 
-    @BindView(R.id.textinputlayout_createtodo_title)
-    lateinit var tilTitle: TextInputLayout
-
-    @BindView(R.id.textinputedittext_createtodo_title)
-    lateinit var tietTitle: TextInputEditText
-
-    @BindView(R.id.switch_createtodo_priority)
-    lateinit var switchPriority: SwitchCompat
-
-    @BindView(R.id.textview_createtodo_duedate)
-    lateinit var tvDueDate: TextView
-
-    @BindView(R.id.textview_createtodo_reminderdatetime)
-    lateinit var tvReminderDateTime: TextView
-
-    @BindView(R.id.button_createtodo_clearduedate)
-    lateinit var btnClearDueDate: TextView
-
-    @BindView(R.id.button_createtodo_clearreminder)
-    lateinit var btnClearReminder: TextView
-
-    @BindView(R.id.textinputedittext_createtodo_description)
-    lateinit var tietDescription: TextInputEditText
-
     private var dueDate: LocalDate? = null
     private var zdtDueDate: ZonedDateTime? = null
     private var dueDateLong: Long = 0
@@ -73,8 +45,6 @@ class CreateTodoFragment : Fragment() {
     private var reminderDateTimeLong: Long = 0
     private var reminderDateTimeDisp: String? = null
     private lateinit var todosViewModel: TodosViewModel
-
-    lateinit var unbinder: Unbinder
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -94,18 +64,20 @@ class CreateTodoFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_createtodo, container, false)
-        unbinder = ButterKnife.bind(this, view)
+        val fragmentCreatetodoBinding: FragmentCreatetodoBinding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_createtodo, container, false)
+        val view: View = fragmentCreatetodoBinding.root
+        fragmentCreatetodoBinding.createTodoFragment = this
 
-        tietTitle!!.addTextChangedListener(object : TextWatcher {
+        view.textinputedittext_createtodo_title!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
                 validateTitle()
             }
         })
-        setTvDueDateText(dueDate)
-        setTvReminderDateTimeText(null)
+        setTvDueDateText(dueDate, view)
+        setTvReminderDateTimeText(null, view)
 
         return view
     }
@@ -115,11 +87,6 @@ class CreateTodoFragment : Fragment() {
         (activity as MainActivity?)!!.onSetActionBarTitle(getString(R.string.all_createtodo))
         setClearDueDateVisibility()
         setClearReminderDateTimeVisibility()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder!!.unbind()
     }
 
     private fun initDueDate() {
@@ -149,12 +116,15 @@ class CreateTodoFragment : Fragment() {
     }
 
     private fun setClearDueDateVisibility() {
-        if (dueDate != null) btnClearDueDate!!.visibility = View.VISIBLE else btnClearDueDate!!.visibility = View.GONE
+        if (dueDate != null)
+            this.button_createtodo_clearduedate!!.visibility = View.VISIBLE
+        else
+            this.button_createtodo_clearduedate!!.visibility = View.GONE
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
+        val givenTitle = this.textinputedittext_createtodo_title!!.text.toString().trim { it <= ' ' }
         if (!givenTitle.isEmpty()) {
             menu.clear()
             inflater.inflate(R.menu.fragment_createtodo, menu)
@@ -176,13 +146,13 @@ class CreateTodoFragment : Fragment() {
     private fun prepareTodoToCreate(): Todo {
         val todo = Todo()
 
-        todo.title = tietTitle!!.text.toString().trim { it <= ' ' }
-        todo.priority = switchPriority!!.isChecked
+        todo.title = this.textinputedittext_createtodo_title!!.text.toString().trim { it <= ' ' }
+        todo.priority = this.switch_createtodo_priority!!.isChecked
         todo.dueDate = dueDateLong
         todo.reminderDateTime = reminderDateTimeLong
-        val givenDescription = tietDescription!!.text.toString().trim { it <= ' ' }
+        val givenDescription = this.textinputedittext_createtodo_description!!.text.toString().trim { it <= ' ' }
         if (givenDescription != "") {
-            todo.description = tietDescription!!.text.toString()
+            todo.description = this.textinputedittext_createtodo_description!!.text.toString()
         } else {
             todo.description = null
         }
@@ -209,8 +179,11 @@ class CreateTodoFragment : Fragment() {
 
     private fun validateTitle() {
         activity!!.invalidateOptionsMenu()
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
-        if (givenTitle.isEmpty()) tilTitle!!.error = getString(R.string.all_entertitle) else tilTitle!!.isErrorEnabled = false
+        val givenTitle = this.textinputedittext_createtodo_title!!.text.toString().trim { it <= ' ' }
+        if (givenTitle.isEmpty())
+            this.textinputlayout_createtodo_title!!.error = getString(R.string.all_entertitle)
+        else
+            this.textinputlayout_createtodo_title!!.isErrorEnabled = false
     }
 
     private fun openDatePickerDialogFragment() {
@@ -235,11 +208,11 @@ class CreateTodoFragment : Fragment() {
     }
 
     fun onSelectDate(date: LocalDate?) {
-        setTvDueDateText(date)
+        setTvDueDateText(date, null)
         setClearDueDateVisibility()
     }
 
-    private fun setTvDueDateText(date: LocalDate?) {
+    private fun setTvDueDateText(date: LocalDate?, view: View?) {
         if (date != null) {
             dueDate = date
             zdtDueDate = dueDate!!.atStartOfDay(ZoneId.systemDefault())
@@ -249,9 +222,15 @@ class CreateTodoFragment : Fragment() {
                     dueDateLong,
                     DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NUMERIC_DATE or DateUtils.FORMAT_SHOW_YEAR
             )
-            tvDueDate!!.text = dueDateDisp
+            if (view != null)
+                view.textview_createtodo_duedate!!.text = dueDateDisp
+            else
+                this.textview_createtodo_duedate!!.text = dueDateDisp
         } else {
-            tvDueDate!!.setText(R.string.all_noduedate)
+            if (view != null)
+                view.textview_createtodo_duedate!!.setText(R.string.all_noduedate)
+            else
+                this.textview_createtodo_duedate!!.setText(R.string.all_noduedate)
         }
     }
 
@@ -272,19 +251,22 @@ class CreateTodoFragment : Fragment() {
     }
 
     fun onDeleteReminder() {
-        tvReminderDateTime!!.text = getString(R.string.all_noreminder)
+        this.textview_createtodo_reminderdatetime!!.text = getString(R.string.all_noreminder)
     }
 
     fun onSelectReminderDateTime(date: LocalDateTime?) {
-        setTvReminderDateTimeText(date)
+        setTvReminderDateTimeText(date, null)
         setClearReminderDateTimeVisibility()
     }
 
     private fun setClearReminderDateTimeVisibility() {
-        if (reminderDateTime != null) btnClearReminder!!.visibility = View.VISIBLE else btnClearReminder!!.visibility = View.GONE
+        if (reminderDateTime != null)
+            this.button_createtodo_clearreminder!!.visibility = View.VISIBLE
+        else
+            this.button_createtodo_clearreminder!!.visibility = View.GONE
     }
 
-    private fun setTvReminderDateTimeText(date: LocalDateTime?) {
+    private fun setTvReminderDateTimeText(date: LocalDateTime?, view: View?) {
         if (date != null) {
             reminderDateTime = date
             zdtReminderDateTime = reminderDateTime!!.atZone(ZoneId.systemDefault())
@@ -294,14 +276,20 @@ class CreateTodoFragment : Fragment() {
                     reminderDateTimeLong,
                     DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NUMERIC_DATE or DateUtils.FORMAT_SHOW_YEAR or DateUtils.FORMAT_SHOW_TIME
             )
-            tvReminderDateTime!!.text = reminderDateTimeDisp
+            if (view != null)
+                view.textview_createtodo_reminderdatetime!!.text = reminderDateTimeDisp
+            else
+                this.textview_createtodo_reminderdatetime!!.text = reminderDateTimeDisp
         } else {
-            tvReminderDateTime!!.setText(R.string.all_noreminder)
+            if (view != null)
+                view.textview_createtodo_reminderdatetime!!.setText(R.string.all_noreminder)
+            else
+                this.textview_createtodo_reminderdatetime!!.setText(R.string.all_noreminder)
         }
     }
 
     private fun clearDueDate() {
-        tvDueDate!!.setText(R.string.all_noduedate)
+        this.textview_createtodo_duedate!!.setText(R.string.all_noduedate)
         dueDate = null
         zdtDueDate = null
         dueDateLong = 0
@@ -309,32 +297,28 @@ class CreateTodoFragment : Fragment() {
     }
 
     private fun clearReminder() {
-        tvReminderDateTime!!.setText(R.string.all_noreminder)
+        this.textview_createtodo_reminderdatetime!!.setText(R.string.all_noreminder)
         reminderDateTime = null
         zdtReminderDateTime = null
         reminderDateTimeLong = 0
         reminderDateTimeDisp = null
     }
 
-    @OnClick(R.id.textview_createtodo_duedate)
-    fun onTvDueDateClick(view: View?) {
+    fun onTvDueDateClick(view: View) {
         openDatePickerDialogFragment()
     }
 
-    @OnClick(R.id.button_createtodo_clearduedate)
-    fun onBtnClearDueDateClick(view: View?) {
+    fun onBtnClearDueDateClick(view: View) {
         clearDueDate()
         setClearDueDateVisibility()
     }
 
-    @OnClick(R.id.button_createtodo_clearreminder)
-    fun onBtnClearReminderClick(view: View?) {
+    fun onBtnClearReminderClick(view: View) {
         clearReminder()
         setClearReminderDateTimeVisibility()
     }
 
-    @OnClick(R.id.textview_createtodo_reminderdatetime)
-    fun onTvReminderDateTimeClick(view: View?) {
+    fun onTvReminderDateTimeClick(view: View) {
         openReminderDatePickerDialogFragment()
     }
 }

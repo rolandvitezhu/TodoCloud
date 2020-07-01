@@ -12,22 +12,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
 import com.rolandvitezhu.todocloud.data.User
+import com.rolandvitezhu.todocloud.databinding.FragmentLoginuserBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.SessionManager
 import com.rolandvitezhu.todocloud.network.ApiService
@@ -38,6 +31,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_loginuser.*
+import kotlinx.android.synthetic.main.fragment_loginuser.view.*
 import retrofit2.Retrofit
 import java.util.*
 import javax.inject.Inject
@@ -57,35 +52,6 @@ class LoginUserFragment : Fragment() {
     @Inject
     lateinit var retrofit: Retrofit
 
-    @BindView(R.id.constraintlayout_loginuser)
-    lateinit var constraintLayout: ConstraintLayout
-
-    @BindView(R.id.textview_loginuser_formsubmissionerrors)
-    lateinit var tvFormSubmissionErrors: TextView
-
-    @BindView(R.id.textinputlayout_loginuser_email)
-    lateinit var tilEmail: TextInputLayout
-
-    @BindView(R.id.textinputlayout_loginuser_password)
-    lateinit var tilPassword: TextInputLayout
-
-    @BindView(R.id.textinputedittext_loginuser_email)
-    lateinit var tietEmail: TextInputEditText
-
-    @BindView(R.id.textinputedittext_loginuser_password)
-    lateinit var tietPassword: TextInputEditText
-
-    @BindView(R.id.button_loginuser_login)
-    lateinit var btnLogin: Button
-
-    @BindView(R.id.button_loginuser_linktoregister)
-    lateinit var btnLinkToRegister: Button
-
-    @BindView(R.id.button_loginuser_linktoresetpassword)
-    lateinit var btnLinkToResetPassword: Button
-
-    lateinit var unbinder: Unbinder
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         (Objects.requireNonNull(activity)?.application as AppController).appComponent.
@@ -102,12 +68,14 @@ class LoginUserFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_loginuser, container, false)
-        unbinder = ButterKnife.bind(this, view)
+        val fragmentLoginuserBinding: FragmentLoginuserBinding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_loginuser, container, false)
+        val view: View = fragmentLoginuserBinding.root
+        fragmentLoginuserBinding.loginUserFragment = this
 
-        applyTextChangedEvents()
-        applyEditorActionEvents()
-        preventButtonTextCapitalization()
+        applyTextChangedEvents(view)
+        applyEditorActionEvents(view)
+        preventButtonTextCapitalization(view)
 
         return view
     }
@@ -129,7 +97,6 @@ class LoginUserFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        unbinder!!.unbind()
         disposable.clear()
     }
 
@@ -152,8 +119,8 @@ class LoginUserFragment : Fragment() {
         val areFieldsValid = validateEmail() and validatePassword()
         if (areFieldsValid) {
             dbLoader!!.reCreateDb()
-            val email = tietEmail!!.text.toString().trim { it <= ' ' }
-            val password = tietPassword!!.text.toString().trim { it <= ' ' }
+            val email = this.textinputedittext_loginuser_email!!.text.toString().trim { it <= ' ' }
+            val password = this.textinputedittext_loginuser_password!!.text.toString().trim { it <= ' ' }
             val loginUserRequest = LoginUserRequest()
             loginUserRequest.email = email
             loginUserRequest.password = password
@@ -195,13 +162,14 @@ class LoginUserFragment : Fragment() {
         sessionManager!!.setLogin(true)
     }
 
-    private fun preventButtonTextCapitalization() {
-        btnLinkToRegister!!.transformationMethod = null
-        btnLinkToResetPassword!!.transformationMethod = null
+    private fun preventButtonTextCapitalization(view: View) {
+        view.button_loginuser_linktoregister!!.transformationMethod = null
+        view.button_loginuser_linktoresetpassword!!.transformationMethod = null
     }
 
-    private fun applyEditorActionEvents() {
-        tietPassword!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorActionEvents(view: View) {
+        view.textinputedittext_loginuser_password!!.setOnEditorActionListener(
+                OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -209,16 +177,18 @@ class LoginUserFragment : Fragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnLogin!!.performClick()
+                view.button_loginuser_login!!.performClick()
                 return@OnEditorActionListener true
             }
             false
         })
     }
 
-    private fun applyTextChangedEvents() {
-        tietEmail!!.addTextChangedListener(MyTextWatcher(tietEmail!!))
-        tietPassword!!.addTextChangedListener(MyTextWatcher(tietPassword!!))
+    private fun applyTextChangedEvents(view: View) {
+        view.textinputedittext_loginuser_email!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_loginuser_email!!))
+        view.textinputedittext_loginuser_password!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_loginuser_password!!))
     }
 
     private fun applyOrientationPortrait() {
@@ -230,23 +200,23 @@ class LoginUserFragment : Fragment() {
     }
 
     private fun validateEmail(): Boolean {
-        val givenEmail = tietEmail!!.text.toString().trim { it <= ' ' }
+        val givenEmail = this.textinputedittext_loginuser_email!!.text.toString().trim { it <= ' ' }
         return if (givenEmail.isEmpty()) {
-            tilEmail!!.error = getString(R.string.registeruser_enteremailhint)
+            this.textinputlayout_loginuser_email!!.error = getString(R.string.registeruser_enteremailhint)
             false
         } else {
-            tilEmail!!.isErrorEnabled = false
+            this.textinputlayout_loginuser_email!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validatePassword(): Boolean {
-        val givenPassword = tietPassword!!.text.toString().trim { it <= ' ' }
+        val givenPassword = this.textinputedittext_loginuser_password!!.text.toString().trim { it <= ' ' }
         return if (givenPassword.isEmpty()) {
-            tilPassword!!.error = getString(R.string.registeruser_enterpasswordhint)
+            this.textinputlayout_loginuser_password!!.error = getString(R.string.registeruser_enterpasswordhint)
             false
         } else {
-            tilPassword!!.isErrorEnabled = false
+            this.textinputlayout_loginuser_password!!.isErrorEnabled = false
             true
         }
     }
@@ -274,8 +244,8 @@ class LoginUserFragment : Fragment() {
 
     private fun hideFormSubmissionErrors() {
         try {
-            tvFormSubmissionErrors!!.text = ""
-            tvFormSubmissionErrors!!.visibility = View.GONE
+            this.textview_loginuser_formsubmissionerrors!!.text = ""
+            this.textview_loginuser_formsubmissionerrors!!.visibility = View.GONE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -284,7 +254,7 @@ class LoginUserFragment : Fragment() {
     private fun showFailedToConnectError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_loginuser!!,
                     R.string.all_failedtoconnect,
                     Snackbar.LENGTH_LONG
             )
@@ -296,8 +266,8 @@ class LoginUserFragment : Fragment() {
 
     private fun showIncorrectCredentialsError() {
         try {
-            tvFormSubmissionErrors!!.setText(R.string.loginuser_error)
-            tvFormSubmissionErrors!!.visibility = View.VISIBLE
+            this.textview_loginuser_formsubmissionerrors!!.setText(R.string.loginuser_error)
+            this.textview_loginuser_formsubmissionerrors!!.visibility = View.VISIBLE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -306,7 +276,7 @@ class LoginUserFragment : Fragment() {
     private fun showAnErrorOccurredError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_loginuser!!,
                     R.string.all_anerroroccurred,
                     Snackbar.LENGTH_LONG
             )
@@ -316,19 +286,16 @@ class LoginUserFragment : Fragment() {
         }
     }
 
-    @OnClick(R.id.button_loginuser_login)
-    fun onBtnLoginClick(view: View?) {
+    fun onBtnLoginClick(view: View) {
         hideSoftInput()
         handleLoginUser()
     }
 
-    @OnClick(R.id.button_loginuser_linktoregister)
-    fun onBtnLinkToRegisterClick(view: View?) {
+    fun onBtnLinkToRegisterClick(view: View) {
         (activity as MainActivity?)!!.onClickLinkToRegisterUser()
     }
 
-    @OnClick(R.id.button_loginuser_linktoresetpassword)
-    fun onBtnLinkToResetPasswordClick(view: View?) {
+    fun onBtnLinkToResetPasswordClick(view: View) {
         (activity as MainActivity?)!!.onClickLinkToResetPassword()
     }
 

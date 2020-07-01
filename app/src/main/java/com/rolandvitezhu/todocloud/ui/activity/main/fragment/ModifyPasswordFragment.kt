@@ -12,21 +12,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
+import com.rolandvitezhu.todocloud.databinding.FragmentModifypasswordBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.network.ApiService
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest
@@ -36,6 +29,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_modifypassword.*
+import kotlinx.android.synthetic.main.fragment_modifypassword.view.*
 import retrofit2.Retrofit
 import java.util.*
 import javax.inject.Inject
@@ -51,35 +46,6 @@ class ModifyPasswordFragment : Fragment() {
 
     @Inject
     lateinit var retrofit: Retrofit
-
-    @BindView(R.id.constraintlayout_modifypassword)
-    lateinit var constraintLayout: ConstraintLayout
-
-    @BindView(R.id.textview_modifypassword_formsubmissionerrors)
-    lateinit var tvFormSubmissionErrors: TextView
-
-    @BindView(R.id.textinputlayout_modifypassword_currentpassword)
-    lateinit var tilCurrentPassword: TextInputLayout
-
-    @BindView(R.id.textinputlayout_modifypassword_newpassword)
-    lateinit var tilNewPassword: TextInputLayout
-
-    @BindView(R.id.textinputlayout_modifypassword_confirmpassword)
-    lateinit var tilConfirmPassword: TextInputLayout
-
-    @BindView(R.id.textinputedittext_modifypassword_currentpassword)
-    lateinit var tietCurrentPassword: TextInputEditText
-
-    @BindView(R.id.textinputedittext_modifypassword_newpassword)
-    lateinit var tietNewPassword: TextInputEditText
-
-    @BindView(R.id.textinputedittext_modifypassword_confirmpassword)
-    lateinit var tietConfirmPassword: TextInputEditText
-
-    @BindView(R.id.button_changepassword)
-    lateinit var btnChangePassword: Button
-
-    lateinit var unbinder: Unbinder
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -97,11 +63,13 @@ class ModifyPasswordFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_modifypassword, container, false)
-        unbinder = ButterKnife.bind(this, view)
+        val fragmentModifypasswordBinding: FragmentModifypasswordBinding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_modifypassword, container, false)
+        val view: View = fragmentModifypasswordBinding.root
+        fragmentModifypasswordBinding.modifyPasswordFragment = this
 
-        applyTextChangedEvents()
-        applyEditorActionEvents()
+        applyTextChangedEvents(view)
+        applyEditorActionEvents(view)
 
         return view
     }
@@ -119,18 +87,21 @@ class ModifyPasswordFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        unbinder!!.unbind()
         disposable.clear()
     }
 
-    private fun applyTextChangedEvents() {
-        tietCurrentPassword!!.addTextChangedListener(MyTextWatcher(tietCurrentPassword!!))
-        tietNewPassword!!.addTextChangedListener(MyTextWatcher(tietNewPassword!!))
-        tietConfirmPassword!!.addTextChangedListener(MyTextWatcher(tietConfirmPassword!!))
+    private fun applyTextChangedEvents(view: View) {
+        view.textinputedittext_modifypassword_currentpassword!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_modifypassword_currentpassword!!))
+        view.textinputedittext_modifypassword_newpassword!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_modifypassword_newpassword!!))
+        view.textinputedittext_modifypassword_confirmpassword!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_modifypassword_confirmpassword!!))
     }
 
-    private fun applyEditorActionEvents() {
-        tietConfirmPassword!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorActionEvents(view: View) {
+        view.textinputedittext_modifypassword_confirmpassword!!.setOnEditorActionListener(
+                OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -138,7 +109,7 @@ class ModifyPasswordFragment : Fragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnChangePassword!!.performClick()
+                view.button_changepassword!!.performClick()
                 return@OnEditorActionListener true
             }
             false
@@ -165,8 +136,9 @@ class ModifyPasswordFragment : Fragment() {
                 and validateNewPassword()
                 and validateConfirmPassword())
         if (areFieldsValid) {
-            val currentPassword = tietCurrentPassword!!.text.toString().trim { it <= ' ' }
-            val newPassword = tietNewPassword!!.text.toString().trim { it <= ' ' }
+            val currentPassword =
+                    this.textinputedittext_modifypassword_currentpassword!!.text.toString().trim { it <= ' ' }
+            val newPassword = this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
             val modifyPasswordRequest = ModifyPasswordRequest()
             modifyPasswordRequest.currentPassword = currentPassword
             modifyPasswordRequest.newPassword = newPassword
@@ -210,38 +182,40 @@ class ModifyPasswordFragment : Fragment() {
     }
 
     private fun validateCurrentPassword(): Boolean {
-        val givenName = tietCurrentPassword!!.text.toString().trim { it <= ' ' }
+        val givenName = this.textinputedittext_modifypassword_currentpassword!!.text.toString().trim { it <= ' ' }
         return if (givenName.isEmpty()) {
-            tilCurrentPassword!!.error = getString(R.string.modifypassword_currentpassworderrorlabel)
+            this.textinputlayout_modifypassword_currentpassword!!.error = getString(R.string.modifypassword_currentpassworderrorlabel)
             false
         } else {
-            tilCurrentPassword!!.isErrorEnabled = false
+            this.textinputlayout_modifypassword_currentpassword!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validateNewPassword(): Boolean {
-        val givenPassword = tietNewPassword!!.text.toString().trim { it <= ' ' }
+        val givenPassword = this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
         val isGivenPasswordValid = !givenPassword.isEmpty() && isValidPassword(givenPassword)
         return if (!isGivenPasswordValid) {
-            tilNewPassword!!.error = getString(R.string.registeruser_enterproperpasswordhint)
+            this.textinputlayout_modifypassword_newpassword!!.error = getString(R.string.registeruser_enterproperpasswordhint)
             false
         } else {
-            tilNewPassword!!.isErrorEnabled = false
+            this.textinputlayout_modifypassword_newpassword!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validateConfirmPassword(): Boolean {
-        val givenPassword = tietNewPassword!!.text.toString().trim { it <= ' ' }
-        val givenConfirmPassword = tietConfirmPassword!!.text.toString().trim { it <= ' ' }
+        val givenPassword =
+                this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
+        val givenConfirmPassword =
+                this.textinputedittext_modifypassword_confirmpassword!!.text.toString().trim { it <= ' ' }
         val isGivenConfirmPasswordValid = (!givenConfirmPassword.isEmpty()
                 && givenPassword == givenConfirmPassword)
         return if (!isGivenConfirmPasswordValid) {
-            tilConfirmPassword!!.error = getString(R.string.registeruser_confirmpassworderrorlabel)
+            this.textinputlayout_modifypassword_confirmpassword!!.error = getString(R.string.registeruser_confirmpassworderrorlabel)
             false
         } else {
-            tilConfirmPassword!!.isErrorEnabled = false
+            this.textinputlayout_modifypassword_confirmpassword!!.isErrorEnabled = false
             true
         }
     }
@@ -278,8 +252,8 @@ class ModifyPasswordFragment : Fragment() {
 
     private fun hideFormSubmissionErrors() {
         try {
-            tvFormSubmissionErrors!!.text = ""
-            tvFormSubmissionErrors!!.visibility = View.GONE
+            this.textview_modifypassword_formsubmissionerrors!!.text = ""
+            this.textview_modifypassword_formsubmissionerrors!!.visibility = View.GONE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -288,7 +262,7 @@ class ModifyPasswordFragment : Fragment() {
     private fun showFailedToConnectError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_modifypassword!!,
                     R.string.all_failedtoconnect,
                     Snackbar.LENGTH_LONG
             )
@@ -300,8 +274,8 @@ class ModifyPasswordFragment : Fragment() {
 
     private fun showIncorrectCurrentPasswordError() {
         try {
-            tvFormSubmissionErrors!!.setText(R.string.modifypassword_incorrectcurrentpassword)
-            tvFormSubmissionErrors!!.visibility = View.VISIBLE
+            this.textview_modifypassword_formsubmissionerrors!!.setText(R.string.modifypassword_incorrectcurrentpassword)
+            this.textview_modifypassword_formsubmissionerrors!!.visibility = View.VISIBLE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -310,7 +284,7 @@ class ModifyPasswordFragment : Fragment() {
     private fun showAnErrorOccurredError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_modifypassword!!,
                     R.string.all_anerroroccurred,
                     Snackbar.LENGTH_LONG
             )
@@ -334,8 +308,7 @@ class ModifyPasswordFragment : Fragment() {
 
     }
 
-    @OnClick(R.id.button_changepassword)
-    fun onBtnChangePasswordClick(view: View?) {
+    fun onBtnChangePasswordClick(view: View) {
         hideSoftInput()
         handleChangePassword()
     }

@@ -76,7 +76,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
         val fragmentTodoListBinding: FragmentTodolistBinding =
                 DataBindingUtil.inflate(inflater, R.layout.fragment_todolist, container, false)
         val view: View = fragmentTodoListBinding.root
-        fragmentTodoListBinding.todoListFragment = this;
+        fragmentTodoListBinding.todoListFragment = this
 
         prepareRecyclerView(view)
         applyClickEvents(view)

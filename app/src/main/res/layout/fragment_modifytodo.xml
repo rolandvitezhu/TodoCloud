@@ -1,142 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <data>
+        <variable
+            name="modifyTodoFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.ModifyTodoFragment" />
+    </data>
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
-        android:layout_marginRight="@dimen/margin_activity_horizontal"
-        android:layout_marginEnd="@dimen/margin_activity_horizontal"
-        android:layout_marginTop="@dimen/margin_activity_vertical"
-        android:layout_marginBottom="@dimen/margin_activity_vertical">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textinputlayout_modifytodo_title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="4dp"
-            android:hint="@string/all_create"
-            android:textColorHint="@color/colorControlNormal"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_marginLeft="@dimen/margin_activity_horizontal"
+            android:layout_marginStart="@dimen/margin_activity_horizontal"
+            android:layout_marginRight="@dimen/margin_activity_horizontal"
+            android:layout_marginEnd="@dimen/margin_activity_horizontal"
+            android:layout_marginTop="@dimen/margin_activity_vertical"
+            android:layout_marginBottom="@dimen/margin_activity_vertical">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/textinputedittext_modifytodo_title"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/textinputlayout_modifytodo_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/textColorSecondary"
-                android:theme="@style/MyEditTextTheme"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:hint="@string/all_create"
+                android:textColorHint="@color/colorControlNormal"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switch_modifytodo_priority"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:text="@string/all_priority"
-            android:textColor="@color/colorControlNormal"
-            android:textSize="16sp"
-            android:theme="@style/MyAppCompatSwitchTheme"
-            app:layout_constraintTop_toBottomOf="@id/textinputlayout_modifytodo_title"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/textinputedittext_modifytodo_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/textColorSecondary"
+                    android:theme="@style/MyEditTextTheme"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:id="@+id/textview_modifytodo_duedatetitle"
-            android:text="@string/all_duedatetitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="12sp"
-            android:textColor="@color/colorControlNormal"
-            app:layout_constraintTop_toBottomOf="@id/switch_modifytodo_priority"/>
-        <TextView
-            android:id="@+id/textview_modifytodo_duedate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"
-            tools:text="@tools:sample/date/ddmmyy"
-            app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_duedatetitle"/>
-
-        <Button
-            android:id="@+id/button_modifytodo_clearduedate"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/roundedbutton"
-            android:drawableTop="@drawable/round_clear_white_24"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:visibility="gone"
-            tools:visibility="visible"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textview_modifytodo_duedatetitle"
-            app:layout_constraintBottom_toBottomOf="@id/textview_modifytodo_duedate"/>
-
-        <TextView
-            android:id="@+id/textview_modifytodo_reminderdatetimetitle"
-            android:text="@string/all_reminder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="12sp"
-            android:textColor="@color/colorControlNormal"
-            app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_duedate"/>
-        <TextView
-            android:id="@+id/textview_modifytodo_reminderdatetime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"
-            tools:text="@tools:sample/date/ddmmyy"
-            app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_reminderdatetimetitle"/>
-
-        <Button
-            android:id="@+id/button_modifytodo_clearreminder"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/roundedbutton"
-            android:drawableTop="@drawable/round_clear_white_24"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:visibility="gone"
-            tools:visibility="visible"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textview_modifytodo_reminderdatetimetitle"
-            app:layout_constraintBottom_toBottomOf="@id/textview_modifytodo_reminderdatetime"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textinputlayout_modifytodo_description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="16dp"
-            android:hint="@string/all_descriptionhint"
-            android:textColorHint="@color/colorControlNormal"
-            app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_reminderdatetime">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/textinputedittext_modifytodo_description"
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_modifytodo_priority"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
-                android:textColor="@color/textColorSecondary"
-                android:theme="@style/MyEditTextTheme"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="@string/all_priority"
+                android:textColor="@color/colorControlNormal"
+                android:textSize="16sp"
+                android:theme="@style/MyAppCompatSwitchTheme"
+                app:layout_constraintTop_toBottomOf="@id/textinputlayout_modifytodo_title"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/textview_modifytodo_duedatetitle"
+                android:text="@string/all_duedatetitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textSize="12sp"
+                android:textColor="@color/colorControlNormal"
+                app:layout_constraintTop_toBottomOf="@id/switch_modifytodo_priority"/>
+            <TextView
+                android:id="@+id/textview_modifytodo_duedate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                tools:text="@tools:sample/date/ddmmyy"
+                app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_duedatetitle"
+                android:onClick="@{(view) -> modifyTodoFragment.onDueDateClick(view)}" />
 
-</ScrollView>
+            <Button
+                android:id="@+id/button_modifytodo_clearduedate"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/roundedbutton"
+                android:drawableTop="@drawable/round_clear_white_24"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/textview_modifytodo_duedatetitle"
+                app:layout_constraintBottom_toBottomOf="@id/textview_modifytodo_duedate"
+                android:onClick="@{(view) -> modifyTodoFragment.onBtnClearDueDateClick(view)}" />
+
+            <TextView
+                android:id="@+id/textview_modifytodo_reminderdatetimetitle"
+                android:text="@string/all_reminder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textSize="12sp"
+                android:textColor="@color/colorControlNormal"
+                app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_duedate"/>
+            <TextView
+                android:id="@+id/textview_modifytodo_reminderdatetime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                tools:text="@tools:sample/date/ddmmyy"
+                app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_reminderdatetimetitle"
+                android:onClick="@{(view) -> modifyTodoFragment.onReminderDateTimeClick(view)}" />
+
+            <Button
+                android:id="@+id/button_modifytodo_clearreminder"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/roundedbutton"
+                android:drawableTop="@drawable/round_clear_white_24"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/textview_modifytodo_reminderdatetimetitle"
+                app:layout_constraintBottom_toBottomOf="@id/textview_modifytodo_reminderdatetime"
+                android:onClick="@{(view) -> modifyTodoFragment.onBtnClearReminderClick(view)}" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/textinputlayout_modifytodo_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp"
+                android:hint="@string/all_descriptionhint"
+                android:textColorHint="@color/colorControlNormal"
+                app:layout_constraintTop_toBottomOf="@id/textview_modifytodo_reminderdatetime">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/textinputedittext_modifytodo_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:textColor="@color/textColorSecondary"
+                    android:theme="@style/MyEditTextTheme"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+</layout>

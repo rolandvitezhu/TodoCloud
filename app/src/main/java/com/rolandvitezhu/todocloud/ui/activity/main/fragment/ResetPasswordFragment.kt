@@ -13,21 +13,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
+import com.rolandvitezhu.todocloud.databinding.FragmentResetpasswordBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.network.ApiService
 import com.rolandvitezhu.todocloud.network.api.user.dto.ResetPasswordRequest
@@ -37,6 +30,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_resetpassword.*
+import kotlinx.android.synthetic.main.fragment_resetpassword.view.*
 import retrofit2.Retrofit
 import java.util.*
 import javax.inject.Inject
@@ -53,23 +48,6 @@ class ResetPasswordFragment : Fragment() {
     @Inject
     lateinit var retrofit: Retrofit
 
-    @BindView(R.id.constraintlayout_resetpassword)
-    lateinit var constraintLayout: ConstraintLayout
-
-    @BindView(R.id.textview_resetpassword_formsubmissionerrors)
-    lateinit var tvFormSubmissionErrors: TextView
-
-    @BindView(R.id.textinputlayout_resetpassword_email)
-    lateinit var tilEmail: TextInputLayout
-
-    @BindView(R.id.textinputedittext_resetpassword_email)
-    lateinit var tietEmail: TextInputEditText
-
-    @BindView(R.id.button_resetpassword)
-    lateinit var btnSubmit: Button
-
-    lateinit var unbinder: Unbinder
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         (Objects.requireNonNull(activity)?.application as AppController).appComponent.fragmentComponent().create().inject(this)
@@ -85,10 +63,14 @@ class ResetPasswordFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_resetpassword, container, false)
-        unbinder = ButterKnife.bind(this, view)
-        applyTextChangedEvents()
-        applyEditorActionEvents()
+        val fragmentResetpasswordBinding: FragmentResetpasswordBinding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_resetpassword, container, false)
+        val view: View = fragmentResetpasswordBinding.root
+        fragmentResetpasswordBinding.resetPasswordFragment = this
+
+        applyTextChangedEvents(view)
+        applyEditorActionEvents(view)
+
         return view
     }
 
@@ -100,16 +82,16 @@ class ResetPasswordFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        unbinder!!.unbind()
         disposable.clear()
     }
 
-    private fun applyTextChangedEvents() {
-        tietEmail!!.addTextChangedListener(MyTextWatcher(tietEmail!!))
+    private fun applyTextChangedEvents(view: View) {
+        view.textinputedittext_resetpassword_email!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_resetpassword_email!!))
     }
 
-    private fun applyEditorActionEvents() {
-        tietEmail!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorActionEvents(view: View) {
+        view.textinputedittext_resetpassword_email!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -117,7 +99,7 @@ class ResetPasswordFragment : Fragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnSubmit!!.performClick()
+                view.button_resetpassword!!.performClick()
                 return@OnEditorActionListener true
             }
             false
@@ -141,7 +123,7 @@ class ResetPasswordFragment : Fragment() {
 
     private fun handleResetPassword() {
         if (validateEmail()) {
-            val email = tietEmail!!.text.toString().trim { it <= ' ' }
+            val email = this.textinputedittext_resetpassword_email!!.text.toString().trim { it <= ' ' }
             val resetPasswordRequest = ResetPasswordRequest()
             resetPasswordRequest.email = email
             apiService
@@ -189,13 +171,13 @@ class ResetPasswordFragment : Fragment() {
     }
 
     private fun validateEmail(): Boolean {
-        val givenEmail = tietEmail!!.text.toString().trim { it <= ' ' }
+        val givenEmail = this.textinputedittext_resetpassword_email!!.text.toString().trim { it <= ' ' }
         val isGivenEmailValid = !givenEmail.isEmpty() && isValidEmail(givenEmail)
         return if (!isGivenEmailValid) {
-            tilEmail!!.error = getString(R.string.registeruser_entervalidemailhint)
+            this.textinputlayout_resetpassword_email!!.error = getString(R.string.registeruser_entervalidemailhint)
             false
         } else {
-            tilEmail!!.isErrorEnabled = false
+            this.textinputlayout_resetpassword_email!!.isErrorEnabled = false
             true
         }
     }
@@ -227,8 +209,8 @@ class ResetPasswordFragment : Fragment() {
 
     private fun hideFormSubmissionErrors() {
         try {
-            tvFormSubmissionErrors!!.text = ""
-            tvFormSubmissionErrors!!.visibility = View.GONE
+            this.textview_resetpassword_formsubmissionerrors!!.text = ""
+            this.textview_resetpassword_formsubmissionerrors!!.visibility = View.GONE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -237,7 +219,7 @@ class ResetPasswordFragment : Fragment() {
     private fun showFailedToConnectError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_resetpassword!!,
                     R.string.all_failedtoconnect,
                     Snackbar.LENGTH_LONG
             )
@@ -249,8 +231,8 @@ class ResetPasswordFragment : Fragment() {
 
     private fun showFailedToResetPasswordError() {
         try {
-            tvFormSubmissionErrors!!.setText(R.string.modifypassword_failedtoresetpassword)
-            tvFormSubmissionErrors!!.visibility = View.VISIBLE
+            this.textview_resetpassword_formsubmissionerrors!!.setText(R.string.modifypassword_failedtoresetpassword)
+            this.textview_resetpassword_formsubmissionerrors!!.visibility = View.VISIBLE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -259,7 +241,7 @@ class ResetPasswordFragment : Fragment() {
     private fun showAnErrorOccurredError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_resetpassword!!,
                     R.string.all_anerroroccurred,
                     Snackbar.LENGTH_LONG
             )
@@ -269,8 +251,7 @@ class ResetPasswordFragment : Fragment() {
         }
     }
 
-    @OnClick(R.id.button_resetpassword)
-    fun onBtnSubmitClick(view: View?) {
+    fun onBtnSubmitClick(view: View) {
         hideSoftInput()
         handleResetPassword()
     }

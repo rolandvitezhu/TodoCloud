@@ -13,22 +13,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
 import com.rolandvitezhu.todocloud.data.User
+import com.rolandvitezhu.todocloud.databinding.FragmentRegisteruserBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.InstallationIdHelper
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
@@ -41,6 +34,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_registeruser.*
+import kotlinx.android.synthetic.main.fragment_registeruser.view.*
 import retrofit2.Retrofit
 import java.util.*
 import javax.inject.Inject
@@ -59,41 +54,6 @@ class RegisterUserFragment : Fragment() {
 
     @Inject
     lateinit var retrofit: Retrofit
-
-    @BindView(R.id.constraintlayout_registeruser)
-    lateinit var constraintLayout: ConstraintLayout
-
-    @BindView(R.id.textview_registeruser_formsubmissionerrors)
-    lateinit var tvFormSubmissionErrors: TextView
-
-    @BindView(R.id.textinputlayout_registeruser_name)
-    lateinit var tilName: TextInputLayout
-
-    @BindView(R.id.textinputlayout_registeruser_email)
-    lateinit var tilEmail: TextInputLayout
-
-    @BindView(R.id.textinputlayout_registeruser_password)
-    lateinit var tilPassword: TextInputLayout
-
-    @BindView(R.id.textinputlayout_registeruser_confirmpassword)
-    lateinit var tilConfirmPassword: TextInputLayout
-
-    @BindView(R.id.textinputedittext_registeruser_name)
-    lateinit var tietName: TextInputEditText
-
-    @BindView(R.id.textinputedittext_registeruser_email)
-    lateinit var tietEmail: TextInputEditText
-
-    @BindView(R.id.textinputedittext_registeruser_password)
-    lateinit var tietPassword: TextInputEditText
-
-    @BindView(R.id.textinputedittext_registeruser_confirmpassword)
-    lateinit var tietConfirmPassword: TextInputEditText
-
-    @BindView(R.id.button_registeruser)
-    lateinit var btnRegister: Button
-
-    lateinit var unbinder: Unbinder
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -114,10 +74,14 @@ class RegisterUserFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_registeruser, container, false)
-        unbinder = ButterKnife.bind(this, view)
-        applyTextChangedEvents()
-        applyEditorActionEvents()
+        val fragmentRegisteruserBinding: FragmentRegisteruserBinding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_registeruser, container, false)
+        val view: View = fragmentRegisteruserBinding.root
+        fragmentRegisteruserBinding.registerUserFragment = this
+
+        applyTextChangedEvents(view)
+        applyEditorActionEvents(view)
+
         return view
     }
 
@@ -129,19 +93,23 @@ class RegisterUserFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        unbinder!!.unbind()
         disposable.clear()
     }
 
-    private fun applyTextChangedEvents() {
-        tietName!!.addTextChangedListener(MyTextWatcher(tietName!!))
-        tietEmail!!.addTextChangedListener(MyTextWatcher(tietEmail!!))
-        tietPassword!!.addTextChangedListener(MyTextWatcher(tietPassword!!))
-        tietConfirmPassword!!.addTextChangedListener(MyTextWatcher(tietConfirmPassword!!))
+    private fun applyTextChangedEvents(view: View) {
+        view.textinputedittext_registeruser_name!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_registeruser_name!!))
+        view.textinputedittext_registeruser_email!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_registeruser_email!!))
+        view.textinputedittext_registeruser_password!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_registeruser_password!!))
+        view.textinputedittext_registeruser_confirmpassword!!.addTextChangedListener(
+                MyTextWatcher(view.textinputedittext_registeruser_confirmpassword!!))
     }
 
-    private fun applyEditorActionEvents() {
-        tietConfirmPassword!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorActionEvents(view: View) {
+        view.textinputedittext_registeruser_confirmpassword!!.setOnEditorActionListener(
+                OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -149,7 +117,7 @@ class RegisterUserFragment : Fragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnRegister!!.performClick()
+                view.button_registeruser!!.performClick()
                 return@OnEditorActionListener true
             }
             false
@@ -181,9 +149,9 @@ class RegisterUserFragment : Fragment() {
             val user = User()
             val _id = dbLoader!!.createUser(user)
             val user_online_id = OnlineIdGenerator.generateUserOnlineId(_id)
-            val name = tietName!!.text.toString().trim { it <= ' ' }
-            val email = tietEmail!!.text.toString().trim { it <= ' ' }
-            val password = tietPassword!!.text.toString().trim { it <= ' ' }
+            val name = this.textinputedittext_registeruser_name!!.text.toString().trim { it <= ' ' }
+            val email = this.textinputedittext_registeruser_email!!.text.toString().trim { it <= ' ' }
+            val password = this.textinputedittext_registeruser_password!!.text.toString().trim { it <= ' ' }
             val registerUserRequest = RegisterUserRequest()
             registerUserRequest.userOnlineId = user_online_id
             registerUserRequest.name = name
@@ -263,50 +231,50 @@ class RegisterUserFragment : Fragment() {
     }
 
     private fun validateName(): Boolean {
-        val givenName = tietName!!.text.toString().trim { it <= ' ' }
+        val givenName = this.textinputedittext_registeruser_name!!.text.toString().trim { it <= ' ' }
         return if (givenName.isEmpty()) {
-            tilName!!.error = getString(R.string.registeruser_nameerrorlabel)
+            this.textinputlayout_registeruser_name!!.error = getString(R.string.registeruser_nameerrorlabel)
             false
         } else {
-            tilName!!.isErrorEnabled = false
+            this.textinputlayout_registeruser_name!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validateEmail(): Boolean {
-        val givenEmail = tietEmail!!.text.toString().trim { it <= ' ' }
+        val givenEmail = this.textinputedittext_registeruser_email!!.text.toString().trim { it <= ' ' }
         val isGivenEmailValid = !givenEmail.isEmpty() && isValidEmail(givenEmail)
         return if (!isGivenEmailValid) {
-            tilEmail!!.error = getString(R.string.registeruser_entervalidemailhint)
+            this.textinputlayout_registeruser_email!!.error = getString(R.string.registeruser_entervalidemailhint)
             false
         } else {
-            tilEmail!!.isErrorEnabled = false
+            this.textinputlayout_registeruser_email!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validatePassword(): Boolean {
-        val givenPassword = tietPassword!!.text.toString().trim { it <= ' ' }
+        val givenPassword = this.textinputedittext_registeruser_password!!.text.toString().trim { it <= ' ' }
         val isGivenPasswordValid = !givenPassword.isEmpty() && isValidPassword(givenPassword)
         return if (!isGivenPasswordValid) {
-            tilPassword!!.error = getString(R.string.registeruser_enterproperpasswordhint)
+            this.textinputlayout_registeruser_password!!.error = getString(R.string.registeruser_enterproperpasswordhint)
             false
         } else {
-            tilPassword!!.isErrorEnabled = false
+            this.textinputlayout_registeruser_password!!.isErrorEnabled = false
             true
         }
     }
 
     private fun validateConfirmPassword(): Boolean {
-        val givenPassword = tietPassword!!.text.toString().trim { it <= ' ' }
-        val givenConfirmPassword = tietConfirmPassword!!.text.toString().trim { it <= ' ' }
+        val givenPassword = this.textinputedittext_registeruser_password!!.text.toString().trim { it <= ' ' }
+        val givenConfirmPassword = this.textinputedittext_registeruser_confirmpassword!!.text.toString().trim { it <= ' ' }
         val isGivenConfirmPasswordValid = (!givenConfirmPassword.isEmpty()
                 && givenPassword == givenConfirmPassword)
         return if (!isGivenConfirmPasswordValid) {
-            tilConfirmPassword!!.error = getString(R.string.registeruser_confirmpassworderrorlabel)
+            this.textinputlayout_registeruser_confirmpassword!!.error = getString(R.string.registeruser_confirmpassworderrorlabel)
             false
         } else {
-            tilConfirmPassword!!.isErrorEnabled = false
+            this.textinputlayout_registeruser_confirmpassword!!.isErrorEnabled = false
             true
         }
     }
@@ -347,8 +315,8 @@ class RegisterUserFragment : Fragment() {
 
     private fun hideFormSubmissionErrors() {
         try {
-            tvFormSubmissionErrors!!.text = ""
-            tvFormSubmissionErrors!!.visibility = View.GONE
+            this.textview_registeruser_formsubmissionerrors!!.text = ""
+            this.textview_registeruser_formsubmissionerrors!!.visibility = View.GONE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -357,7 +325,7 @@ class RegisterUserFragment : Fragment() {
     private fun showFailedToConnectError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_registeruser!!,
                     R.string.all_failedtoconnect,
                     Snackbar.LENGTH_LONG
             )
@@ -369,8 +337,8 @@ class RegisterUserFragment : Fragment() {
 
     private fun showThisEmailAlreadyExistedError() {
         try {
-            tvFormSubmissionErrors!!.setText(R.string.registeruser_thisemailalreadyexisted)
-            tvFormSubmissionErrors!!.visibility = View.VISIBLE
+            this.textview_registeruser_formsubmissionerrors!!.setText(R.string.registeruser_thisemailalreadyexisted)
+            this.textview_registeruser_formsubmissionerrors!!.visibility = View.VISIBLE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -379,7 +347,7 @@ class RegisterUserFragment : Fragment() {
     private fun showAnErrorOccurredError() {
         try {
             val snackbar = Snackbar.make(
-                    constraintLayout!!,
+                    this.constraintlayout_registeruser!!,
                     R.string.all_anerroroccurred,
                     Snackbar.LENGTH_LONG
             )
@@ -389,8 +357,7 @@ class RegisterUserFragment : Fragment() {
         }
     }
 
-    @OnClick(R.id.button_registeruser)
-    fun onBtnRegisterClick(view: View?) {
+    fun onBtnRegisterClick(view: View) {
         hideSoftInput()
         handleRegisterUser()
     }
