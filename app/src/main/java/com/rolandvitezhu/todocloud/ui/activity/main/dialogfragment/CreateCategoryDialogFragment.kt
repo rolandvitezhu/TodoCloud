@@ -5,36 +5,22 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.view.inputmethod.EditorInfo
-import android.widget.Button
 import android.widget.TextView.OnEditorActionListener
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.Category
+import com.rolandvitezhu.todocloud.databinding.DialogCreatecategoryBinding
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewModel
+import kotlinx.android.synthetic.main.dialog_createcategory.*
+import kotlinx.android.synthetic.main.dialog_createcategory.view.*
 
 class CreateCategoryDialogFragment : AppCompatDialogFragment() {
 
-    @BindView(R.id.textinputlayout_createcategory_title)
-    lateinit var tilTitle: TextInputLayout
-
-    @BindView(R.id.textinputedittext_createcategory_title)
-    lateinit var tietTitle: TextInputEditText
-
-    @BindView(R.id.button_createcategory_ok)
-    lateinit var btnOK: Button
-
     private var categoriesViewModel: CategoriesViewModel? = null
-
-    lateinit var unbinder: Unbinder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,21 +33,18 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.dialog_createcategory, container)
-        unbinder = ButterKnife.bind(this, view)
+        val dialogCreatecategoryBinding: DialogCreatecategoryBinding =
+                DataBindingUtil.inflate(inflater, R.layout.dialog_createcategory, container, false)
+        val view: View = dialogCreatecategoryBinding.root
+        dialogCreatecategoryBinding.createCategoryDialogFragment = this
 
         val dialog = dialog
         dialog!!.setTitle(R.string.all_createcategory)
         setSoftInputMode()
-        applyTextChangeEvent()
-        applyEditorActionEvents()
+        applyTextChangeEvent(view)
+        applyEditorActionEvents(view)
 
         return view
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder!!.unbind()
     }
 
     private fun setSoftInputMode() {
@@ -74,8 +57,8 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
         }
     }
 
-    private fun applyTextChangeEvent() {
-        tietTitle!!.addTextChangedListener(object : TextWatcher {
+    private fun applyTextChangeEvent(view: View) {
+        view.textinputedittext_createcategory_title!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
@@ -84,8 +67,8 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
         })
     }
 
-    private fun applyEditorActionEvents() {
-        tietTitle!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorActionEvents(view: View) {
+        view.textinputedittext_createcategory_title!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -93,7 +76,7 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnOK!!.performClick()
+                view.button_createcategory_ok!!.performClick()
                 return@OnEditorActionListener true
             }
             false
@@ -101,12 +84,12 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
     }
 
     private fun validateTitle(): Boolean {
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
+        val givenTitle = this.textinputedittext_createcategory_title!!.text.toString().trim { it <= ' ' }
         return if (givenTitle.isEmpty()) {
-            tilTitle!!.error = getString(R.string.all_entertitle)
+            this.textinputlayout_createcategory_title!!.error = getString(R.string.all_entertitle)
             false
         } else {
-            tilTitle!!.isErrorEnabled = false
+            this.textinputlayout_createcategory_title!!.isErrorEnabled = false
             true
         }
     }
@@ -121,9 +104,8 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
         return categoryToCreate
     }
 
-    @OnClick(R.id.button_createcategory_ok)
-    fun onBtnOkClick(view: View?) {
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
+    fun onBtnOkClick(view: View) {
+        val givenTitle = this.textinputedittext_createcategory_title!!.text.toString().trim { it <= ' ' }
         if (validateTitle()) {
             val categoryToCreate = prepareCategoryToCreate(givenTitle)
             categoriesViewModel!!.category = categoryToCreate
@@ -132,8 +114,7 @@ class CreateCategoryDialogFragment : AppCompatDialogFragment() {
         }
     }
 
-    @OnClick(R.id.button_createcategory_cancel)
-    fun onBtnCancelClick(view: View?) {
+    fun onBtnCancelClick(view: View) {
         dismiss()
     }
 }

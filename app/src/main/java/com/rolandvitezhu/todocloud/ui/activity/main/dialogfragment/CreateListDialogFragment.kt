@@ -5,36 +5,22 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.view.inputmethod.EditorInfo
-import android.widget.Button
 import android.widget.TextView.OnEditorActionListener
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.List
+import com.rolandvitezhu.todocloud.databinding.DialogCreatelistBinding
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
+import kotlinx.android.synthetic.main.dialog_createlist.*
+import kotlinx.android.synthetic.main.dialog_createlist.view.*
 
 class CreateListDialogFragment : AppCompatDialogFragment() {
 
-    @BindView(R.id.textinputlayout_createlist_title)
-    lateinit var tilTitle: TextInputLayout
-
-    @BindView(R.id.textinputedittext_createlist_title)
-    lateinit var tietTitle: TextInputEditText
-
-    @BindView(R.id.button_createlist_ok)
-    lateinit var btnOK: Button
-
     private var listsViewModel: ListsViewModel? = null
-
-    lateinit var unbinder: Unbinder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,21 +33,18 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.dialog_createlist, container)
-        unbinder = ButterKnife.bind(this, view)
+        val dialogCreatelistBinding: DialogCreatelistBinding =
+                DataBindingUtil.inflate(inflater, R.layout.dialog_createlist, container, false)
+        val view: View = dialogCreatelistBinding.root
+        dialogCreatelistBinding.createListDialogFragment = this
 
         val dialog = dialog
         dialog!!.setTitle(R.string.all_createlist)
         setSoftInputMode()
-        applyTextChangedEvents()
-        applyEditorEvents()
+        applyTextChangedEvents(view)
+        applyEditorEvents(view)
 
         return view
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder!!.unbind()
     }
 
     private fun setSoftInputMode() {
@@ -74,8 +57,8 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
         }
     }
 
-    private fun applyTextChangedEvents() {
-        tietTitle!!.addTextChangedListener(object : TextWatcher {
+    private fun applyTextChangedEvents(view: View) {
+        view.textinputedittext_createlist_title!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
@@ -84,8 +67,8 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
         })
     }
 
-    private fun applyEditorEvents() {
-        tietTitle!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+    private fun applyEditorEvents(view: View) {
+        view.textinputedittext_createlist_title!!.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
             val pressDone = actionId == EditorInfo.IME_ACTION_DONE
             var pressEnter = false
             if (event != null) {
@@ -93,7 +76,7 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
                 pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
             }
             if (pressEnter || pressDone) {
-                btnOK!!.performClick()
+                view.button_createlist_ok!!.performClick()
                 return@OnEditorActionListener true
             }
             false
@@ -101,12 +84,12 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
     }
 
     private fun validateTitle(): Boolean {
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
+        val givenTitle = this.textinputedittext_createlist_title!!.text.toString().trim { it <= ' ' }
         return if (givenTitle.isEmpty()) {
-            tilTitle!!.error = getString(R.string.all_entertitle)
+            this.textinputlayout_createlist_title!!.error = getString(R.string.all_entertitle)
             false
         } else {
-            tilTitle!!.isErrorEnabled = false
+            this.textinputlayout_createlist_title!!.isErrorEnabled = false
             true
         }
     }
@@ -123,9 +106,8 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
         return listToCreate
     }
 
-    @OnClick(R.id.button_createlist_ok)
-    fun onBtnOkClick(view: View?) {
-        val givenTitle = tietTitle!!.text.toString().trim { it <= ' ' }
+    fun onBtnOkClick(view: View) {
+        val givenTitle = this.textinputedittext_createlist_title!!.text.toString().trim { it <= ' ' }
         if (validateTitle()) {
             val listToCreate = prepareListToCreate(givenTitle)
             listsViewModel!!.list = listToCreate
@@ -134,8 +116,7 @@ class CreateListDialogFragment : AppCompatDialogFragment() {
         }
     }
 
-    @OnClick(R.id.button_createlist_cancel)
-    fun onBtnCancelClick(view: View?) {
+    fun onBtnCancelClick(view: View) {
         dismiss()
     }
 }

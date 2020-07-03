@@ -1,43 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-              android:gravity="center_horizontal">
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView
-        android:id="@+id/textview_confirmdelete_actiontext"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
+    <data>
+        <variable
+            name="confirmDeleteDialogFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ConfirmDeleteDialogFragment" />
+    </data>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"/>
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:paddingBottom="8dp">
-
-        <Button
-            android:id="@+id/button_confirmdelete_cancel"
-            android:text="@string/all_cancel"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/textview_confirmdelete_actiontext"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="?attr/borderlessButtonStyle"/>
-        <Button
-            android:id="@+id/button_confirmdelete_ok"
-            android:text="@string/all_ok"
-            android:layout_width="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/button_confirmdelete_cancel"
-            android:layout_toRightOf="@+id/button_confirmdelete_cancel"
-            style="?attr/borderlessButtonStyle"/>
+            android:gravity="end"
+            android:paddingBottom="8dp">
 
-    </RelativeLayout>
+            <Button
+                android:id="@+id/button_confirmdelete_cancel"
+                android:text="@string/all_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> confirmDeleteDialogFragment.onBtnCancelClick(view)}" />
+            <Button
+                android:id="@+id/button_confirmdelete_ok"
+                android:text="@string/all_ok"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/button_confirmdelete_cancel"
+                android:layout_toRightOf="@+id/button_confirmdelete_cancel"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> confirmDeleteDialogFragment.onBtnOkClick(view)}" />
 
-</LinearLayout>
+        </RelativeLayout>
+
+    </LinearLayout>
+</layout>

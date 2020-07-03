@@ -6,19 +6,16 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.databinding.DialogConfirmdeleteBinding
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.SearchFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.TodoListFragment
+import kotlinx.android.synthetic.main.dialog_confirmdelete.view.*
 import java.util.*
 
 class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
@@ -26,14 +23,6 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
     private var itemType: String? = null
     private var itemsToDelete: ArrayList<*>? = null
     private var isManyItems = false
-
-    @BindView(R.id.textview_confirmdelete_actiontext)
-    lateinit var tvActionText: TextView
-
-    @BindView(R.id.button_confirmdelete_ok)
-    lateinit var btnOK: Button
-
-    lateinit var unbinder: Unbinder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +35,14 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.dialog_confirmdelete, container)
-        unbinder = ButterKnife.bind(this, view)
+        val dialogConfirmdeleteBinding: DialogConfirmdeleteBinding =
+                DataBindingUtil.inflate(inflater, R.layout.dialog_confirmdelete, container, false)
+        val view: View = dialogConfirmdeleteBinding.root
+        dialogConfirmdeleteBinding.confirmDeleteDialogFragment = this
 
-        prepareDialogTexts()
+        prepareDialogTexts(view)
 
         return view
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder!!.unbind()
     }
 
     private fun prepareItemVariables() {
@@ -72,76 +58,76 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
         }
     }
 
-    private fun prepareDialogTexts() {
+    private fun prepareDialogTexts(view: View) {
         val itemTitle = arguments!!.getString("itemTitle")
         when (itemType) {
             "todo" -> if (isManyItems) {
-                prepareConfirmDeleteTodosDialogTexts()
+                prepareConfirmDeleteTodosDialogTexts(view)
             } else {
-                prepareConfirmDeleteTodoDialogTexts()
+                prepareConfirmDeleteTodoDialogTexts(view)
             }
             "list" -> if (isManyItems) {
-                prepareConfirmDeleteListsDialogTexts()
+                prepareConfirmDeleteListsDialogTexts(view)
             } else {
-                prepareConfirmDeleteListDialogTexts(itemTitle)
+                prepareConfirmDeleteListDialogTexts(itemTitle, view)
             }
             "listInCategory" -> if (isManyItems) {
-                prepareConfirmDeleteListsDialogTexts()
+                prepareConfirmDeleteListsDialogTexts(view)
             } else {
-                prepareConfirmDeleteListDialogTexts(itemTitle)
+                prepareConfirmDeleteListDialogTexts(itemTitle, view)
             }
             "category" -> if (isManyItems) {
-                prepareConfirmDeleteCategoriesDialogTexts()
+                prepareConfirmDeleteCategoriesDialogTexts(view)
             } else {
-                prepareConfirmDeleteCategoryDialogTexts(itemTitle)
+                prepareConfirmDeleteCategoryDialogTexts(itemTitle, view)
             }
         }
     }
 
-    private fun prepareConfirmDeleteCategoryDialogTexts(itemTitle: String?) {
+    private fun prepareConfirmDeleteCategoryDialogTexts(itemTitle: String?, view: View) {
         val dialogTitle = getString(R.string.confirmdelete_deletecategorytitle)
         val actionTextPrefix = getString(R.string.confirmdelete_deletecategoryactiontext)
         val actionText = prepareActionText(actionTextPrefix, itemTitle)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
-    private fun prepareConfirmDeleteCategoriesDialogTexts() {
+    private fun prepareConfirmDeleteCategoriesDialogTexts(view: View) {
         val dialogTitle = getString(R.string.confirmdelete_categoriestitle)
         val actionText = getString(R.string.confirmdelete_categoriesactiontext)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
-    private fun prepareConfirmDeleteListDialogTexts(itemTitle: String?) {
+    private fun prepareConfirmDeleteListDialogTexts(itemTitle: String?, view: View) {
         val dialogTitle = getString(R.string.confirmdelete_deletelisttitle)
         val actionTextPrefix = getString(R.string.confirmdelete_deletelistactiontext)
         val actionText = prepareActionText(actionTextPrefix, itemTitle)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
-    private fun prepareConfirmDeleteListsDialogTexts() {
+    private fun prepareConfirmDeleteListsDialogTexts(view: View) {
         val dialogTitle = getString(R.string.confirmdelete_liststitle)
         val actionText = getString(R.string.confirmdelete_listsactiontext)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
-    private fun prepareConfirmDeleteTodoDialogTexts() {
+    private fun prepareConfirmDeleteTodoDialogTexts(view: View) {
         val dialogTitle = getString(R.string.confirmdelete_deletetodotitle)
         val itemTitle = prepareTodoItemTitle()
         val actionTextPrefix = getString(R.string.confirmdelete_deletetodoactiontext)
         val actionText = prepareActionText(actionTextPrefix, itemTitle)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
-    private fun prepareConfirmDeleteTodosDialogTexts() {
+    private fun prepareConfirmDeleteTodosDialogTexts(view: View) {
         val dialogTitle = getString(R.string.confirmdelete_todostitle)
         val actionText = getString(R.string.confirmdelete_todosactiontext)
         setDialogTitle(dialogTitle)
-        setActionText(actionText)
+        setActionText(actionText, view)
     }
 
     private fun prepareTodoItemTitle(): String? {
@@ -158,12 +144,11 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
         dialog!!.setTitle(dialogTitle)
     }
 
-    private fun setActionText(actionText: String) {
-        tvActionText!!.text = actionText
+    private fun setActionText(actionText: String, view: View) {
+        view.textview_confirmdelete_actiontext!!.text = actionText
     }
 
-    @OnClick(R.id.button_confirmdelete_ok)
-    fun onBtnOkClick(view: View?) {
+    fun onBtnOkClick(view: View) {
         if (targetFragment is MainListFragment) {
             val mainListFragment = targetFragment as MainListFragment?
             if (itemType == "todo") {
@@ -198,8 +183,7 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
         dismiss()
     }
 
-    @OnClick(R.id.button_confirmdelete_cancel)
-    fun onBtnCancelClick(view: View?) {
+    fun onBtnCancelClick(view: View) {
         dismiss()
     }
 

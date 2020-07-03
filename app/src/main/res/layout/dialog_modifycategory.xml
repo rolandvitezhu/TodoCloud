@@ -1,59 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-              android:gravity="center_horizontal">
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <data>
+        <variable
+            name="modifyCategoryDialogFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ModifyCategoryDialogFragment" />
+    </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textinputlayout_modifycategory_title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/all_create"
-            android:textColorHint="@color/colorControlNormal"
-            android:theme="@style/MyMaterialTheme">
+            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/textinputedittext_modifycategory_title"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/textinputlayout_modifycategory_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/textColorSecondary"
-                android:theme="@style/MyEditTextTheme"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/all_create"
+                android:textColorHint="@color/colorControlNormal"
+                android:theme="@style/MyMaterialTheme">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/textinputedittext_modifycategory_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/textColorSecondary"
+                    android:theme="@style/MyEditTextTheme"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/button_modifycategory_cancel"
+                android:text="@string/all_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> modifyCategoryDialogFragment.onBtnCancelClick(view)}" />
+            <Button
+                android:id="@+id/button_modifycategory_ok"
+                android:text="@string/all_ok"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/button_modifycategory_cancel"
+                android:layout_toRightOf="@+id/button_modifycategory_cancel"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> modifyCategoryDialogFragment.onBtnOkClick(view)}" />
+
+        </RelativeLayout>
 
     </LinearLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:paddingBottom="8dp">
-
-        <Button
-            android:id="@+id/button_modifycategory_cancel"
-            android:text="@string/all_cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="?attr/borderlessButtonStyle"/>
-        <Button
-            android:id="@+id/button_modifycategory_ok"
-            android:text="@string/all_ok"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/button_modifycategory_cancel"
-            android:layout_toRightOf="@+id/button_modifycategory_cancel"
-            style="?attr/borderlessButtonStyle"/>
-
-    </RelativeLayout>
-
-</LinearLayout>
+</layout>

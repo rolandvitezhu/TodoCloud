@@ -1,43 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-              android:gravity="center_horizontal">
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
-        android:text="@string/logoutuser_actiontext"
+    <data>
+        <variable
+            name="logoutUserDialogFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.LogoutUserDialogFragment" />
+    </data>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"/>
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:paddingBottom="8dp">
-
-        <Button
-            android:id="@+id/button_logoutuser_cancel"
-            android:text="@string/all_cancel"
-            android:layout_width="wrap_content"
+        <TextView
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:text="@string/logoutuser_actiontext"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="?attr/borderlessButtonStyle"/>
-        <Button
-            android:id="@+id/button_logoutuser_ok"
-            android:text="@string/all_ok"
-            android:layout_width="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/button_logoutuser_cancel"
-            android:layout_toRightOf="@+id/button_logoutuser_cancel"
-            style="?attr/borderlessButtonStyle"/>
+            android:gravity="end"
+            android:paddingBottom="8dp">
 
-    </RelativeLayout>
+            <Button
+                android:id="@+id/button_logoutuser_cancel"
+                android:text="@string/all_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> logoutUserDialogFragment.onBtnCancelClick(view)}" />
+            <Button
+                android:id="@+id/button_logoutuser_ok"
+                android:text="@string/all_ok"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/button_logoutuser_cancel"
+                android:layout_toRightOf="@+id/button_logoutuser_cancel"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="@{(view) -> logoutUserDialogFragment.onBtnOkClick(view)}" />
 
-</LinearLayout>
+        </RelativeLayout>
+
+    </LinearLayout>
+</layout>

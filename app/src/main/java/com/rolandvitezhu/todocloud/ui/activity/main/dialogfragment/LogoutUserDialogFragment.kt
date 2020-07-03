@@ -5,16 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import com.rolandvitezhu.todocloud.R
+import com.rolandvitezhu.todocloud.databinding.DialogLogoutuserBinding
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 
 class LogoutUserDialogFragment : AppCompatDialogFragment() {
-
-    var unbinder: Unbinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,27 +20,22 @@ class LogoutUserDialogFragment : AppCompatDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.dialog_logoutuser, container)
-        unbinder = ButterKnife.bind(this, view)
+        val dialogLogoutuserBinding: DialogLogoutuserBinding =
+                DataBindingUtil.inflate(inflater, R.layout.dialog_logoutuser, container, false)
+        val view: View = dialogLogoutuserBinding.root
+        dialogLogoutuserBinding.logoutUserDialogFragment = this
 
         dialog!!.setTitle(R.string.logoutuser_title)
 
         return view
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder!!.unbind()
-    }
-
-    @OnClick(R.id.button_logoutuser_ok)
-    fun onBtnOkClick(view: View?) {
+    fun onBtnOkClick(view: View) {
         (activity as MainActivity?)!!.onLogout()
         dismiss()
     }
 
-    @OnClick(R.id.button_logoutuser_cancel)
-    fun onBtnCancelClick(view: View?) {
+    fun onBtnCancelClick(view: View) {
         dismiss()
     }
 }
