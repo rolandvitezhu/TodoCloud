@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/mainlist_drawerlayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <include
-        layout="@layout/layout_appbar"
+    <data>
+        <variable
+            name="mainActivity"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.MainActivity" />
+    </data>
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/mainlist_drawerlayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/mainlist_navigationview"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:itemTextColor="@color/textColorSecondary"
-        app:itemIconTint="@color/navigationViewItemIconTint"
-        app:headerLayout="@layout/navigationdrawer_header"
-        app:menu="@menu/navigationview"/>
+        <include
+            layout="@layout/layout_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
-</androidx.drawerlayout.widget.DrawerLayout>
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/mainlist_navigationview"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            app:itemTextColor="@color/textColorSecondary"
+            app:itemIconTint="@color/navigationViewItemIconTint"
+            app:headerLayout="@layout/navigationdrawer_header"
+            app:menu="@menu/navigationview"/>
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+</layout>
