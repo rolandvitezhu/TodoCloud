@@ -224,7 +224,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
     private fun openModifyTodoFragment(childViewAdapterPosition: Int) {
         val todo = todoAdapter!!.getTodo(childViewAdapterPosition)
         todosViewModel!!.todo = todo
-        (activity as MainActivity?)!!.openModifyTodoFragment(this)
+        (activity as MainActivity?)!!.openModifyTodoFragment(this, null)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

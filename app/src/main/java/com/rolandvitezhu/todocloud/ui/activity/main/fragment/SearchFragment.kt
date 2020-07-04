@@ -221,7 +221,7 @@ class SearchFragment : Fragment() {
     private fun openModifyTodoFragment(childViewAdapterPosition: Int) {
         val todo = todoAdapter!!.getTodo(childViewAdapterPosition)
         todosViewModel!!.todo = todo
-        (activity as MainActivity?)!!.openModifyTodoFragment(this)
+        (activity as MainActivity?)!!.openModifyTodoFragment(this, null)
     }
 
     private fun prepareSearchViewAfterModifyTodo() {

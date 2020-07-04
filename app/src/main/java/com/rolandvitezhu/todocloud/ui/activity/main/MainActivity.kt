@@ -5,20 +5,16 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.FrameLayout
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.Toolbar
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.GravityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProviders
-import butterknife.BindView
-import butterknife.ButterKnife
-import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
@@ -26,6 +22,9 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnac
 import com.rolandvitezhu.todocloud.data.List
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.data.User
+import com.rolandvitezhu.todocloud.databinding.ActivityMainBinding
+import com.rolandvitezhu.todocloud.databinding.NavigationdrawerHeaderBinding
 import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
@@ -35,11 +34,15 @@ import com.rolandvitezhu.todocloud.receiver.ReminderSetter
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.LogoutUserDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.*
 import com.rolandvitezhu.todocloud.ui.activity.main.preferencefragment.SettingsPreferenceFragment
-import com.rolandvitezhu.todocloud.ui.activity.main.viewholder.NavigationHeaderViewHolder
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.android.synthetic.main.layout_appbar.*
+import kotlinx.android.synthetic.main.layout_appbar.view.*
+import kotlinx.android.synthetic.main.navigationdrawer_header.view.*
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener {
@@ -50,22 +53,6 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     @Inject
     lateinit var sessionManager: SessionManager
 
-    @BindView(R.id.toolbar_main)
-    lateinit var toolbar: Toolbar
-
-    @BindView(R.id.mainlist_drawerlayout)
-    lateinit var drawerLayout: DrawerLayout
-
-    @BindView(R.id.mainlist_navigationview)
-    lateinit var navigationView: NavigationView
-
-    @BindView(R.id.framelayout_main)
-    lateinit var container: FrameLayout
-
-    @BindView(R.id.main_coordinator_layout)
-    lateinit var coordinatorLayout: CoordinatorLayout
-
-    private var navigationHeaderViewHolder: NavigationHeaderViewHolder? = null
     private var actionBarDrawerToggle: ActionBarDrawerToggle? = null
     private var userViewModel: UserViewModel? = null
     private var todosViewModel: TodosViewModel? = null
@@ -75,16 +62,31 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     public override fun onCreate(savedInstanceState: Bundle?) {
         (application as AppController).appComponent.inject(this)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        ButterKnife.bind(this)
+
+        val activityMainBinding: ActivityMainBinding =
+                DataBindingUtil.setContentView(this, R.layout.activity_main)
+        val navigationdrawerHeaderViewBinding: NavigationdrawerHeaderBinding =
+                DataBindingUtil.inflate(
+                        layoutInflater,
+                        R.layout.navigationdrawer_header,
+                        activityMainBinding.mainlistNavigationview,
+                        false)
+        activityMainBinding.mainlistNavigationview.addHeaderView(navigationdrawerHeaderViewBinding.root)
+        val view: View = activityMainBinding.root
+        activityMainBinding.mainActivity = this
 
         userViewModel = ViewModelProviders.of(this).get(UserViewModel::class.java)
         todosViewModel = ViewModelProviders.of(this).get(TodosViewModel::class.java)
         predefinedListsViewModel = ViewModelProviders.of(this).get(PredefinedListsViewModel::class.java)
         listsViewModel = ViewModelProviders.of(this).get(ListsViewModel::class.java)
-        setSupportActionBar(toolbar)
-        prepareNavigationView(navigationView, toolbar)
-        if (container != null) {
+
+        navigationdrawerHeaderViewBinding.userViewModel = userViewModel
+        navigationdrawerHeaderViewBinding.lifecycleOwner = this  // Set it, so the as we update
+        // the data in the userViewModel, the UI will update automatically.
+
+        setSupportActionBar(view.toolbar_main)
+        prepareNavigationView(view)
+        if (view.framelayout_main != null) {
             if (savedInstanceState != null) {
                 // Prevent Fragment overlapping
                 return
@@ -93,38 +95,33 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
                 val id = intent.getLongExtra("id", -1)
                 val wasMainActivityStartedFromLauncherIcon = id == -1L
                 if (wasMainActivityStartedFromLauncherIcon) {
-                    openMainListFragment()
+                    openMainListFragment(view)
                 } else if (wasMainActivityStartedFromNotification(id)) {
                     todosViewModel!!.todo = getNotificationRelatedTodo(id)
-                    openMainListFragment()
+                    openMainListFragment(view)
                     val todoListFragment = TodoListFragment()
-                    openAllPredefinedList(todoListFragment)
-                    openModifyTodoFragment(todoListFragment)
+                    openAllPredefinedList(todoListFragment, view)
+                    openModifyTodoFragment(todoListFragment, view)
                 }
             } else {
-                openLoginUserFragment()
+                openLoginUserFragment(view)
             }
             prepareActionBarNavigationHandler()
-            shouldDisplayHomeAsUp()
+            shouldDisplayHomeAsUp(view)
         }
         ReminderSetter.createReminderServices(applicationContext)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        navigationHeaderViewHolder!!.unbind()
     }
 
     private fun wasMainActivityStartedFromNotification(id: Long): Boolean {
         return id != -1L
     }
 
-    private fun openAllPredefinedList(todoListFragment: TodoListFragment) {
+    private fun openAllPredefinedList(todoListFragment: TodoListFragment, view: View) {
         val allPredefinedListWhere = dbLoader!!.prepareAllPredefinedListWhere()
         val predefinedList = PredefinedList(getString(R.string.all_all), allPredefinedListWhere)
         todosViewModel!!.setIsPredefinedList(true)
         predefinedListsViewModel!!.predefinedList = predefinedList
-        openTodoListFragment(todoListFragment)
+        openTodoListFragment(todoListFragment, view)
     }
 
     private fun getNotificationRelatedTodo(id: Long): Todo {
@@ -136,23 +133,23 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         fragmentManager.addOnBackStackChangedListener(this)
     }
 
-    private fun shouldDisplayHomeAsUp() {
+    private fun shouldDisplayHomeAsUp(view: View?) {
         val fragmentManager = supportFragmentManager
         val shouldDisplay = fragmentManager.backStackEntryCount > 0
         val actionBar = supportActionBar
         if (actionBar != null) {
             if (shouldDisplay) {
-                setDrawerEnabled(false)
+                setDrawerEnabled(false, view)
                 actionBar.setDisplayHomeAsUpEnabled(true)
             } else {
                 actionBar.setDisplayHomeAsUpEnabled(false)
-                setDrawerEnabled(true)
+                setDrawerEnabled(true, view)
             }
             val actionBarTitle = actionBar.title
             if (isMainListFragment(shouldDisplay, actionBarTitle)) {
                 actionBar.setTitle(R.string.app_name)
                 actionBar.setDisplayHomeAsUpEnabled(false)
-                setDrawerEnabled(true)
+                setDrawerEnabled(true, view)
             }
         }
     }
@@ -161,12 +158,12 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         return !shouldDisplay && actionBarTitle != null && actionBarTitle != getString(R.string.all_login)
     }
 
-    private fun setDrawerEnabled(enabled: Boolean) {
+    private fun setDrawerEnabled(enabled: Boolean, view: View?) {
         if (!enabled) {
-            disableDrawer()
+            disableDrawer(view)
             enableActionBarBackNavigation()
         } else {
-            enableDrawer()
+            enableDrawer(view)
         }
     }
 
@@ -177,36 +174,42 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         }
     }
 
-    private fun enableDrawer() {
-        drawerLayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+    private fun enableDrawer(view: View?) {
+        if (view != null)
+            view.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+        else
+            this.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
         actionBarDrawerToggle!!.isDrawerIndicatorEnabled = true
         actionBarDrawerToggle!!.syncState()
     }
 
-    private fun disableDrawer() {
-        drawerLayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+    private fun disableDrawer(view: View?) {
+        if (view != null)
+            view.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        else
+            this.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         actionBarDrawerToggle!!.isDrawerIndicatorEnabled = false
         actionBarDrawerToggle!!.syncState()
     }
 
-    private fun prepareNavigationView(navigationView: NavigationView?, toolbar: Toolbar?) {
-        navigationView!!.setNavigationItemSelectedListener { menuItem ->
+    private fun prepareNavigationView(view: View) {
+        view.mainlist_navigationview!!.setNavigationItemSelectedListener { menuItem ->
             val menuItemId = menuItem.itemId
             when (menuItemId) {
-                R.id.menuitem_navigationdrawer_settings -> openSettingsPreferenceFragment()
+                R.id.menuitem_navigationdrawer_settings -> openSettingsPreferenceFragment(view)
                 R.id.menuitem_navigationdrawer_logout -> openLogoutUserDialogFragment()
             }
-            drawerLayout!!.closeDrawers()
+            view.mainlist_drawerlayout!!.closeDrawers()
             true
         }
         actionBarDrawerToggle = ActionBarDrawerToggle(
                 this,
-                drawerLayout,
-                toolbar,
+                view.mainlist_drawerlayout,
+                view.toolbar_main,
                 R.string.actionbardrawertoggle_opendrawer,
                 R.string.actionbardrawertoggle_closedrawer
         )
-        drawerLayout!!.addDrawerListener(actionBarDrawerToggle!!)
+        view.mainlist_drawerlayout!!.addDrawerListener(actionBarDrawerToggle!!)
         actionBarDrawerToggle!!.syncState()
     }
 
@@ -216,19 +219,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     fun onPrepareNavigationHeader() {
-        val navigationHeader = navigationView!!.getHeaderView(0)
-        navigationHeaderViewHolder = NavigationHeaderViewHolder(navigationHeader)
         val user = dbLoader!!.user
-        userViewModel!!.setUser(user)
-        updateNavigationHeader()
-    }
-
-    fun updateNavigationHeader() {
-        val user = userViewModel!!.user.value
-        if (user != null && navigationHeaderViewHolder != null) {
-            navigationHeaderViewHolder!!.name.text = user.name
-            navigationHeaderViewHolder!!.email.text = user.email
-        }
+        (userViewModel!!.user as MutableLiveData<User>).value = user
     }
 
     fun onSearchActionItemClick() {
@@ -240,7 +232,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val searchFragment = SearchFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, searchFragment)
+        fragmentTransaction.replace(this.framelayout_main!!.id, searchFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
@@ -281,8 +273,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
             navigateBackToLoginUserFragment()
         } else if (fragmentManager.findFragmentByTag("ResetPasswordFragment") != null) {
             navigateBackToLoginUserFragment()
-        } else if (drawerLayout!!.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout!!.closeDrawers()
+        } else if (this.mainlist_drawerlayout!!.isDrawerOpen(GravityCompat.START)) {
+            this.mainlist_drawerlayout!!.closeDrawers()
         } else {
             super.onBackPressed()
         }
@@ -310,15 +302,15 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val todoListFragment = TodoListFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, todoListFragment)
+        fragmentTransaction.replace(this.framelayout_main!!.id, todoListFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
 
-    private fun openTodoListFragment(todoListFragment: TodoListFragment) {
+    private fun openTodoListFragment(todoListFragment: TodoListFragment, view: View) {
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, todoListFragment)
+        fragmentTransaction.replace(view.framelayout_main!!.id, todoListFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
@@ -328,7 +320,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         sessionManager!!.setLogin(false)
         val fragmentManager = supportFragmentManager
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        openLoginUserFragment()
+        openLoginUserFragment(null)
         dbLoader!!.reCreateDb()
     }
 
@@ -352,7 +344,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(
-                container!!.id,
+                this.framelayout_main!!.id,
                 resetPasswordFragment,
                 "ResetPasswordFragment"
         )
@@ -365,7 +357,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(
-                container!!.id,
+                this.framelayout_main!!.id,
                 registerUserFragment,
                 "RegisterUserFragment"
         )
@@ -376,30 +368,36 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     fun onFinishRegisterUser() {
         val fragmentManager = supportFragmentManager
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        openLoginUserFragment()
+        openLoginUserFragment(null)
         onSetActionBarTitle(getString(R.string.all_login))
     }
 
-    private fun openLoginUserFragment() {
+    private fun openLoginUserFragment(view: View?) {
         val loginUserFragment = LoginUserFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, loginUserFragment)
+        if (view != null)
+            fragmentTransaction.replace(view.framelayout_main!!.id, loginUserFragment)
+        else
+            fragmentTransaction.replace(this.framelayout_main!!.id, loginUserFragment)
         fragmentTransaction.commit()
     }
 
     fun onFinishLoginUser() {
         val fragmentManager = supportFragmentManager
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        openMainListFragment()
+        openMainListFragment(null)
         onSetActionBarTitle(getString(R.string.app_name))
     }
 
-    private fun openMainListFragment() {
+    private fun openMainListFragment(view: View?) {
         val mainListFragment = MainListFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, mainListFragment)
+        if (view != null)
+            fragmentTransaction.replace(view.framelayout_main!!.id, mainListFragment)
+        else
+            fragmentTransaction.replace(this.framelayout_main!!.id, mainListFragment)
         fragmentTransaction.commit()
     }
 
@@ -412,7 +410,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(
-                container!!.id,
+                this.framelayout_main!!.id,
                 modifyPasswordFragment,
                 "ModifyPasswordFragment"
         )
@@ -421,7 +419,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     override fun onBackStackChanged() {
-        shouldDisplayHomeAsUp()
+        shouldDisplayHomeAsUp(null)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -432,7 +430,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     fun onFinishModifyPassword() {
         try {
             val snackbar = Snackbar.make(
-                    coordinatorLayout!!,
+                    this.main_coordinator_layout!!,
                     R.string.modifypassword_passwordchangedsuccessfully,
                     Snackbar.LENGTH_LONG
             )
@@ -445,7 +443,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     fun onFinishResetPassword() {
         try {
             val snackbar = Snackbar.make(
-                    coordinatorLayout!!,
+                    this.main_coordinator_layout!!,
                     R.string.resetpassword_passwordresetsuccessful,
                     Snackbar.LENGTH_LONG
             )
@@ -458,23 +456,30 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     fun onSetActionBarTitle(title: String?) {
         if (supportActionBar != null)
             supportActionBar!!.title = title
-        setDrawerEnabled(title == "Todo Cloud")
+        setDrawerEnabled(title == "Todo Cloud", null)
     }
 
     fun onStartActionMode(callback: ActionMode.Callback?) {
         startSupportActionMode(callback!!)
     }
 
-    fun openModifyTodoFragment(targetFragment: Fragment?) {
+    fun openModifyTodoFragment(targetFragment: Fragment?, view: View?) {
         val modifyTodoFragment = ModifyTodoFragment()
         modifyTodoFragment.setTargetFragment(targetFragment, 0)
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(
-                container!!.id,
-                modifyTodoFragment,
-                "ModifyTodoFragment"
-        )
+        if (view != null)
+            fragmentTransaction.replace(
+                    view.framelayout_main!!.id,
+                    modifyTodoFragment,
+                    "ModifyTodoFragment"
+            )
+        else
+            fragmentTransaction.replace(
+                    this.framelayout_main!!.id,
+                    modifyTodoFragment,
+                    "ModifyTodoFragment"
+            )
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
@@ -484,16 +489,16 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         createTodoFragment.setTargetFragment(targetFragment, 0)
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, createTodoFragment)
+        fragmentTransaction.replace(this.framelayout_main!!.id, createTodoFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
 
-    fun openSettingsPreferenceFragment() {
+    fun openSettingsPreferenceFragment(view: View) {
         val settingsPreferenceFragment = SettingsPreferenceFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(container!!.id, settingsPreferenceFragment)
+        fragmentTransaction.replace(view.framelayout_main!!.id, settingsPreferenceFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }

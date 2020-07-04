@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <data>
         <variable
-            name="navigationDrawerHeader"
-            type="com.rolandvitezhu.todocloud.ui.activity.main.viewholder.NavigationHeaderViewHolder" />
+            name="userViewModel"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel" />
     </data>
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,13 +27,15 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="@dimen/spacing_nav_header_vertical"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textColor="@color/textColorPrimary"/>
+                android:textColor="@color/textColorPrimary"
+                android:text="@{userViewModel.user.name}" />
 
             <TextView
                 android:id="@+id/textview_navigationdrawerheader_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/textColorPrimary"/>
+                android:textColor="@color/textColorPrimary"
+                android:text="@{userViewModel.user.email}"/>
 
         </LinearLayout>
 

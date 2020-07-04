@@ -119,7 +119,8 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         userViewModel!!.user.observe(
                 this, object : Observer<User?> {
             override fun onChanged(user: User?) {
-                (this@MainListFragment.getActivity() as MainActivity).updateNavigationHeader()
+                // We do not need to do anything here. We use the userViewModel to bind the data,
+                // so it will automatically update on the UI.
             }
         }
         )
