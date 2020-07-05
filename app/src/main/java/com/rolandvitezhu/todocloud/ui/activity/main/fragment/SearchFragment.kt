@@ -2,6 +2,7 @@ package com.rolandvitezhu.todocloud.ui.activity.main.fragment
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
@@ -34,7 +35,7 @@ import kotlinx.android.synthetic.main.layout_recyclerview_search.view.*
 import java.util.*
 import javax.inject.Inject
 
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
 
     @Inject
     lateinit var dbLoader: DbLoader
@@ -320,16 +321,6 @@ class SearchFragment : Fragment() {
         confirmDeleteDialogFragment.setTargetFragment(this, 0)
         confirmDeleteDialogFragment.arguments = arguments
         confirmDeleteDialogFragment.show(fragmentManager!!, "ConfirmDeleteDialogFragment")
-        applyDismissEvents(swipedTodoAdapterPosition, confirmDeleteDialogFragment)
-    }
-
-    private fun applyDismissEvents(
-            swipedTodoAdapterPosition: Int, confirmDeleteDialogFragment: ConfirmDeleteDialogFragment
-    ) {
-        fragmentManager!!.executePendingTransactions()
-        val confirmDeleteDialogFragmentDialog = confirmDeleteDialogFragment.dialog
-        confirmDeleteDialogFragmentDialog!!.setOnDismissListener {
-            todoAdapter!!.notifyItemChanged(swipedTodoAdapterPosition) }
     }
 
     private fun updateTodosViewModel() {
@@ -478,5 +469,12 @@ class SearchFragment : Fragment() {
         if (actionMode != null) {
             actionMode!!.finish()
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface?) {
+        if (swipedTodoAdapterPosition != null)
+            todoAdapter.notifyItemChanged(swipedTodoAdapterPosition!!)
+        else
+            todoAdapter.notifyDataSetChanged()
     }
 }
