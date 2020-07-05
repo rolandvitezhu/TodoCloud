@@ -1,42 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <ImageView
-        android:id="@+id/imageview_listincategory"
-        android:layout_width="wrap_content"
+    <data>
+        <variable
+            name="categoryAdapter"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/baseline_list_24"
-        android:tint="@color/navigationViewItemIconTint"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal_double"
-        android:layout_marginStart="@dimen/margin_activity_horizontal_double"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:background="?android:attr/activatedBackgroundIndicator">
 
-    <TextView
-        android:id="@+id/textview_itemlistincategory_actiontext"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/height_item"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
-        android:layout_marginRight="@dimen/margin_activity_horizontal"
-        android:layout_marginEnd="@dimen/margin_activity_horizontal"
-        android:gravity="center_vertical"
-        android:lines="1"
-        android:ellipsize="end"
-        tools:text="@tools:sample/lorem/random"
-        app:layout_constraintStart_toEndOf="@id/imageview_listincategory"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        <ImageView
+            android:id="@+id/imageview_listincategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/baseline_list_24"
+            android:tint="@color/navigationViewItemIconTint"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal_double"
+            android:layout_marginStart="@dimen/margin_activity_horizontal_double"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/textview_itemlistincategory_actiontext"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/height_item"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal"
+            android:layout_marginStart="@dimen/margin_activity_horizontal"
+            android:layout_marginRight="@dimen/margin_activity_horizontal"
+            android:layout_marginEnd="@dimen/margin_activity_horizontal"
+            android:gravity="center_vertical"
+            android:lines="1"
+            android:ellipsize="end"
+            tools:text="@tools:sample/lorem/random"
+            app:layout_constraintStart_toEndOf="@id/imageview_listincategory"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

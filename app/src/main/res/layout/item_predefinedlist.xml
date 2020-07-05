@@ -1,40 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/imageview_predefinedlist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:tint="@color/navigationViewItemIconTint"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
-        tools:src="@drawable/ic_check_white_24dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/textview_predefinedlist_actiontext"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+    <data>
+        <variable
+            name="predefinedListAdapter"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.PredefinedListAdapter" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/textview_predefinedlist_actiontext"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/height_item"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal"
-        android:layout_marginStart="@dimen/margin_activity_horizontal"
-        android:layout_marginRight="@dimen/margin_activity_horizontal"
-        android:layout_marginEnd="@dimen/margin_activity_horizontal"
-        android:gravity="center_vertical"
-        tools:text="@tools:sample/lorem/random"
-        app:layout_constraintStart_toEndOf="@id/imageview_predefinedlist"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        <ImageView
+            android:id="@+id/imageview_predefinedlist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:tint="@color/navigationViewItemIconTint"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal"
+            android:layout_marginStart="@dimen/margin_activity_horizontal"
+            tools:src="@drawable/ic_check_white_24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/textview_predefinedlist_actiontext"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/textview_predefinedlist_actiontext"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/height_item"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal"
+            android:layout_marginStart="@dimen/margin_activity_horizontal"
+            android:layout_marginRight="@dimen/margin_activity_horizontal"
+            android:layout_marginEnd="@dimen/margin_activity_horizontal"
+            android:gravity="center_vertical"
+            tools:text="@tools:sample/lorem/random"
+            app:layout_constraintStart_toEndOf="@id/imageview_predefinedlist"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

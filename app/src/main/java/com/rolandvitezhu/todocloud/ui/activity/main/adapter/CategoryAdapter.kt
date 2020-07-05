@@ -5,23 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
-import android.widget.ImageView
-import android.widget.TextView
-import butterknife.BindView
-import butterknife.ButterKnife
+import androidx.databinding.DataBindingUtil
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.Category
+import com.rolandvitezhu.todocloud.databinding.ItemCategoryBinding
+import com.rolandvitezhu.todocloud.databinding.ItemListincategoryBinding
 import com.rolandvitezhu.todocloud.di.FragmentScope
+import kotlinx.android.synthetic.main.item_category.view.*
 import java.util.*
 import javax.inject.Inject
 
 @FragmentScope
 class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
+
     private val categories: MutableList<Category>
     private val lhmCategories: LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>
 
-    @BindView(R.id.textview_itemcategory_actiontext)
-    lateinit var tvTitle: TextView
     override fun getGroupCount(): Int {
         return categories.size
     }
@@ -65,19 +64,35 @@ class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
             parent: ViewGroup
     ): View {
         var convertView = convertView
-        val (_, _, _, title) = getGroup(groupPosition) as Category
+
         val layoutInflater = parent.context.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE
         ) as LayoutInflater
-        convertView = layoutInflater.inflate(R.layout.item_category, null)
-        ButterKnife.bind(this, convertView)
-        tvTitle.text = title
+        val itemCategoryBinding: ItemCategoryBinding
+
+        if (convertView == null) {
+            itemCategoryBinding = DataBindingUtil.inflate(
+                    layoutInflater,
+                    R.layout.item_category,
+                    parent,
+                    false
+            )
+            convertView = itemCategoryBinding.root
+            itemCategoryBinding.categoryAdapter = this
+        } else {
+            itemCategoryBinding = convertView.tag as ItemCategoryBinding
+        }
+
+        itemCategoryBinding.textviewItemcategoryActiontext.text = (getGroup(groupPosition) as Category).title
+        convertView.tag = itemCategoryBinding
         handleCategoryIndicator(groupPosition, isExpanded, convertView)
+
         return convertView
     }
 
     private fun handleCategoryIndicator(groupPosition: Int, isExpanded: Boolean, convertView: View) {
         if (shouldNotShowGroupIndicator(groupPosition)) {
+            hideExpandedGroupIndicator(convertView)
         } else if (isExpanded) {
             showExpandedGroupIndicator(convertView)
         } else {
@@ -85,14 +100,18 @@ class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
         }
     }
 
+    private fun hideExpandedGroupIndicator(convertView: View) {
+        convertView.imageview_itemcategory_groupindicator.visibility = View.INVISIBLE
+    }
+
     private fun showCollapsedGroupIndicator(convertView: View) {
-        val ivGroupIndicator = convertView.findViewById<ImageView>(R.id.imageview_itemcategory_groupindicator)
-        ivGroupIndicator.setImageResource(R.drawable.baseline_expand_less_24)
+        convertView.imageview_itemcategory_groupindicator.visibility = View.VISIBLE
+        convertView.imageview_itemcategory_groupindicator.setImageResource(R.drawable.baseline_expand_less_24)
     }
 
     private fun showExpandedGroupIndicator(convertView: View) {
-        val ivGroupIndicator = convertView.findViewById<ImageView>(R.id.imageview_itemcategory_groupindicator)
-        ivGroupIndicator.setImageResource(R.drawable.baseline_expand_more_24)
+        convertView.imageview_itemcategory_groupindicator.visibility = View.VISIBLE
+        convertView.imageview_itemcategory_groupindicator.setImageResource(R.drawable.baseline_expand_more_24)
     }
 
     private fun shouldNotShowGroupIndicator(groupPosition: Int): Boolean {
@@ -107,16 +126,29 @@ class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
             parent: ViewGroup
     ): View {
         var convertView = convertView
-        val (_, _, _, _, title) = getChild(
-                groupPosition,
-                childPosition
-        ) as com.rolandvitezhu.todocloud.data.List
+
+        val itemListincategoryBinding: ItemListincategoryBinding
         val layoutInflater = parent.context.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE
         ) as LayoutInflater
-        convertView = layoutInflater.inflate(R.layout.item_listincategory, null)
-        val tvTitle = convertView.findViewById<TextView>(R.id.textview_itemlistincategory_actiontext)
-        tvTitle.text = title
+
+        if (convertView == null) {
+            itemListincategoryBinding = DataBindingUtil.inflate(
+                    layoutInflater,
+                    R.layout.item_listincategory,
+                    parent,
+                    false
+            )
+            convertView = itemListincategoryBinding.root
+            itemListincategoryBinding.categoryAdapter = this
+        } else {
+            itemListincategoryBinding = convertView.tag as ItemListincategoryBinding
+        }
+
+        itemListincategoryBinding.textviewItemlistincategoryActiontext.text =
+                (getChild(groupPosition, childPosition) as com.rolandvitezhu.todocloud.data.List).title
+        convertView.tag = itemListincategoryBinding
+
         return convertView
     }
 

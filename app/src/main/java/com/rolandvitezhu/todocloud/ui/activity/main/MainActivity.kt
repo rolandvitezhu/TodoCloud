@@ -42,7 +42,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.layout_appbar.*
 import kotlinx.android.synthetic.main.layout_appbar.view.*
-import kotlinx.android.synthetic.main.navigationdrawer_header.view.*
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener {
