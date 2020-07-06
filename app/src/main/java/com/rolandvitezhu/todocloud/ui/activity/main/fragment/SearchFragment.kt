@@ -97,6 +97,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
                 context!!.applicationContext
         )
         view.recyclerview_search!!.layoutManager = layoutManager
+        todoAdapter.isDraggingEnabled = false
         view.recyclerview_search!!.adapter = todoAdapter
     }
 

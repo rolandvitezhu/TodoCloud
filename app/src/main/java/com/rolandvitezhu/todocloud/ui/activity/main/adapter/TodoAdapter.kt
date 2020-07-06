@@ -25,8 +25,10 @@ class TodoAdapter @Inject constructor() : RecyclerView.Adapter<ItemViewHolder>()
 
     @Inject
     lateinit var dbLoader: DbLoader
+
     private val todos: MutableList<Todo>
     private var itemTouchHelper: ItemTouchHelper? = null
+    var isDraggingEnabled: Boolean = true
 
     fun update(todos: ArrayList<Todo>) {
         this.todos.clear()
@@ -156,11 +158,7 @@ class TodoAdapter @Inject constructor() : RecyclerView.Adapter<ItemViewHolder>()
     }
 
     fun toggleSelection(position: Int) {
-        if (isNotSelected(position)) {
-            todos[position].isSelected = true
-        } else {
-            todos[position].isSelected = false
-        }
+        todos[position].isSelected = isNotSelected(position)
         notifyItemChanged(position)
     }
 
@@ -222,7 +220,8 @@ class TodoAdapter @Inject constructor() : RecyclerView.Adapter<ItemViewHolder>()
             else
                 itemView.imageview_todo_priority.visibility = View.GONE
             itemView.imageview_todo_draghandle.visibility =
-                    if (isActionMode()) View.VISIBLE else View.GONE
+                    if (isActionMode() && isDraggingEnabled) View.VISIBLE
+                    else View.GONE
             itemView.imageview_todo_draghandle.setOnTouchListener { v, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     itemTouchHelper!!.startDrag(this)
