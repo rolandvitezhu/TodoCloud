@@ -10,6 +10,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,9 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
 import kotlinx.android.synthetic.main.layout_recyclerview_todolist.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 import java.util.*
 import javax.inject.Inject
@@ -201,11 +205,23 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
         todoFrom.dirty = true
         todoTo.dirty = true
 
-        dbLoader!!.updateTodo(todoFrom)
-        dbLoader!!.updateTodo(todoTo)
-        dbLoader!!.fixTodoPositions(null)
-
         Collections.swap(todos, fromPosition, toPosition)
+
+        lifecycleScope.launch {
+            persistSwappedItems(todoFrom, todoTo)
+        }
+    }
+
+    /**
+     * Update the position value of the todo items in the database as well and fix the duplications
+     * of the positions if there are.
+     */
+    private suspend fun persistSwappedItems(todoFrom: Todo?, todoTo: Todo?) {
+        withContext(Dispatchers.IO) {
+            dbLoader!!.updateTodo(todoFrom)
+            dbLoader!!.updateTodo(todoTo)
+            dbLoader!!.fixTodoPositions(null)
+        }
     }
 
     private fun getSwipedTodo(viewHolder: RecyclerView.ViewHolder): Todo {

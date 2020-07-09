@@ -141,25 +141,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
                     viewHolder: RecyclerView.ViewHolder,
                     target: RecyclerView.ViewHolder
             ): Boolean {
-                val todos: List<Todo?> = todoAdapter!!.getTodos()
-                val fromPosition = viewHolder.adapterPosition
-                val toPosition = target.adapterPosition
-
-                // We swap the position of the todos on the list by moving them. We swap the
-                // position values of the moved todos.
-                if (fromPosition < toPosition) {
-                    for (i in fromPosition until toPosition) {
-                        swapItems(todos, i, i + 1)
-                    }
-                } else {
-                    for (i in fromPosition downTo toPosition + 1) {
-                        swapItems(todos, i, i - 1)
-                    }
-                }
-
-                todoAdapter!!.notifyItemMoved(viewHolder.adapterPosition, target.adapterPosition)
-
-                return true
+                return false
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -188,23 +170,6 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
         itemTouchHelper.attachToRecyclerView(view.recyclerview_search)
         todoAdapter!!.setItemTouchHelper(itemTouchHelper)
-    }
-
-    /**
-     * Change the todo position values.
-     */
-    private fun swapItems(todos: List<Todo?>, fromPosition: Int, toPosition: Int) {
-        val todoFrom = todos[fromPosition]
-        val todoTo = todos[toPosition]
-        val tempTodoToPosition = todoFrom!!.position!!
-        todoFrom.position = todoTo!!.position
-        todoTo.position = tempTodoToPosition
-        todoFrom.dirty = true
-        todoTo.dirty = true
-        dbLoader!!.updateTodo(todoFrom)
-        dbLoader!!.updateTodo(todoTo)
-        dbLoader!!.fixTodoPositions(null)
-        Collections.swap(todos, fromPosition, toPosition)
     }
 
     private fun getSwipedTodo(viewHolder: RecyclerView.ViewHolder): Todo {

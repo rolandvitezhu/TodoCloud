@@ -110,6 +110,7 @@ public class DbLoader {
 
   public Integer getLowestPositionForGivenTable(String givenTable) {
     open();
+
     Cursor cursor = sqLiteDatabase.query(
         givenTable,
         new String[]{ "MIN(" + DbConstants.Todo.KEY_POSITION + ")" },
@@ -130,6 +131,7 @@ public class DbLoader {
    */
   public long createUser(User user) {
     open();
+
     ContentValues contentValues = new ContentValues();
     contentValues.put(DbConstants.User.KEY_USER_ONLINE_ID, user.getUserOnlineId());
     contentValues.put(DbConstants.User.KEY_NAME, user.getName());
@@ -140,6 +142,7 @@ public class DbLoader {
 
   public boolean updateUser(User user) {
     open();
+
     ContentValues contentValues = new ContentValues();
     contentValues.put(DbConstants.User.KEY_USER_ONLINE_ID, user.getUserOnlineId());
     contentValues.put(DbConstants.User.KEY_NAME, user.getName());
@@ -159,6 +162,7 @@ public class DbLoader {
    */
   public User getUser() {
     open();
+
     String[] columns = new String[] {
         DbConstants.User.KEY_ROW_ID,
         DbConstants.User.KEY_USER_ONLINE_ID,
@@ -186,6 +190,7 @@ public class DbLoader {
    */
   public String getUserOnlineId() {
     open();
+
     String[] columns = {DbConstants.User.KEY_USER_ONLINE_ID};
     Cursor cursor = sqLiteDatabase.query(
         DbConstants.User.DATABASE_TABLE,
@@ -233,6 +238,7 @@ public class DbLoader {
    */
 	public long createTodo(Todo todo) {
 		open();
+
     ContentValues contentValues = prepareTodoContentValues(todo);
     long _Id = sqLiteDatabase.insert(DbConstants.Todo.DATABASE_TABLE, null, contentValues);
     fixTodoPositions(null);
@@ -242,6 +248,7 @@ public class DbLoader {
 
   public boolean updateTodo(Todo todo) {
     open();
+
     ContentValues contentValues = prepareTodoContentValues(todo);
     boolean successful = false;
 
