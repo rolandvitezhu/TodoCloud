@@ -77,6 +77,15 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
     private var listsViewModel: ListsViewModel? = null
     private var predefinedListsViewModel: PredefinedListsViewModel? = null
     private var userViewModel: UserViewModel? = null
+    private val isNoSelectedItems: Boolean
+        private get() {
+            val checkedItemCount: Int = checkedItemCount
+            return checkedItemCount == 0
+        }
+    private val checkedItemCount: Int
+        private get() {
+            return selectedCategories.size + selectedListsInCategory.size + selectedLists.size
+        }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -260,8 +269,6 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun prepareActionModeTitle(): String {
-            val checkedItemCount: Int = (view?.expandableheightlistview_mainlist_list!!.checkedItemCount
-                    + view!!.expandableheightexpandablelistview_mainlist_category!!.checkedItemCount)
             return checkedItemCount.toString() + " " + getString(R.string.all_selected)
         }
 
@@ -386,6 +393,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         private fun deselectExpandableListViewVisibleItems() {
             for (i in 0..view?.expandableheightexpandablelistview_mainlist_category!!.lastVisiblePosition) {
                 view!!.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(i, false)
+                categoriesViewModel?.deselectItems()
             }
         }
     }
@@ -587,13 +595,6 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
                 actionMode!!.invalidate()
             }
         }
-
-        private val isNoSelectedItems: Boolean
-            private get() = checkedItemCount == 0
-
-        private val checkedItemCount: Int
-            private get() = view?.expandableheightlistview_mainlist_list!!.checkedItemCount +
-                    view!!.expandableheightexpandablelistview_mainlist_category!!.checkedItemCount
     }
     private val listItemLongClicked: OnItemLongClickListener = object : OnItemLongClickListener {
         override fun onItemLongClick(parent: AdapterView<*>?, view: View, position: Int, id: Long): Boolean {
@@ -615,26 +616,25 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
     }
     private val expLVChildClicked: OnChildClickListener = object : OnChildClickListener {
+
         override fun onChildClick(parent: ExpandableListView, v: View, groupPosition: Int,
                                   childPosition: Int, id: Long): Boolean {
-            val clickedList: com.rolandvitezhu.todocloud.data.List = categoryAdapter!!.getChild(groupPosition, childPosition) as com.rolandvitezhu.todocloud.data.List
-            val packedPosition: Long = getPackedPositionForChild(
+            val clickedList: com.rolandvitezhu.todocloud.data.List = categoryAdapter!!.getChild(
                     groupPosition,
                     childPosition
-            )
-            val position: Int = parent.getFlatListPosition(packedPosition)
+            ) as com.rolandvitezhu.todocloud.data.List
             if (!isActionModeEnabled) {
                 (this@MainListFragment.getActivity() as MainActivity).onClickList(clickedList)
             } else {
-                handleItemSelection(parent, clickedList, position)
+                handleItemSelection(clickedList)
             }
 
             return true
         }
 
-        private fun handleItemSelection(parent: ExpandableListView, clickedList: com.rolandvitezhu.todocloud.data.List, position: Int) {
-            toggleItemCheckedState(parent, position)
-            if (parent.isItemChecked(position)) {
+        private fun handleItemSelection(clickedList: com.rolandvitezhu.todocloud.data.List) {
+            categoriesViewModel?.toggleListSelected(clickedList)
+            if (clickedList.isSelected) {
                 selectedListsInCategory.add(clickedList)
             } else {
                 selectedListsInCategory.remove(clickedList)
@@ -645,24 +645,9 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
                 actionMode!!.invalidate()
             }
         }
-
-        private fun toggleItemCheckedState(parent: ExpandableListView, position: Int) {
-            view?.expandableheightlistview_mainlist_list!!.setItemChecked(position, !parent.isItemChecked(position))
-        }
-
-        private val isNoSelectedItems: Boolean
-            private get() {
-                val checkedItemCount: Int = checkedItemCount
-                return checkedItemCount == 0
-            }
-
-        private val checkedItemCount: Int
-            private get() {
-                return view?.expandableheightlistview_mainlist_list!!.checkedItemCount +
-                        view!!.expandableheightexpandablelistview_mainlist_category!!.checkedItemCount
-            }
     }
     private val expLVGroupClicked: OnGroupClickListener = object : OnGroupClickListener {
+
         override fun onGroupClick(parent: ExpandableListView, v: View, groupPosition: Int, id: Long): Boolean {
             val packedPosition: Long = getPackedPositionForGroup(groupPosition)
             val position: Int = parent.getFlatListPosition(packedPosition)
@@ -675,10 +660,13 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
             return true
         }
 
-        private fun handleItemSelection(parent: ExpandableListView, position: Int) {
-            toggleItemCheckedState(parent, position)
+        private fun handleItemSelection(
+                parent: ExpandableListView,
+                position: Int
+        ) {
             val clickedCategory: Category = parent.getItemAtPosition(position) as Category
-            if (parent.isItemChecked(position)) {
+            categoriesViewModel?.toggleCategorySelected(clickedCategory)
+            if (clickedCategory.isSelected) {
                 selectedCategories.add(clickedCategory)
             } else {
                 selectedCategories.remove(clickedCategory)
@@ -690,10 +678,6 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
             }
         }
 
-        private fun toggleItemCheckedState(parent: ExpandableListView, position: Int) {
-            view?.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(position, !parent.isItemChecked(position))
-        }
-
         private fun handleGroupExpanding(parent: ExpandableListView, groupPosition: Int) {
             if (!parent.isGroupExpanded(groupPosition)) {
                 parent.expandGroup(groupPosition)
@@ -701,18 +685,8 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
                 parent.collapseGroup(groupPosition)
             }
         }
-
-        private val isNoSelectedItems: Boolean
-            private get() {
-                return checkedItemCount == 0
-            }
-
-        private val checkedItemCount: Int
-            private get() {
-                return view?.expandableheightlistview_mainlist_list!!.checkedItemCount +
-                        view!!.expandableheightexpandablelistview_mainlist_category!!.checkedItemCount
-            }
     }
+
     private val expLVCategoryContextMenuListener: OnCreateContextMenuListener = object : OnCreateContextMenuListener {
         override fun onCreateContextMenu(menu: ContextMenu, v: View,
                                          menuInfo: ContextMenuInfo) {
@@ -732,9 +706,8 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         private fun startActionModeWithList(position: Int) {
             actionModeStartedWithELV = true
             (this@MainListFragment.getActivity() as MainActivity).onStartActionMode(callback)
-            view?.expandableheightexpandablelistview_mainlist_category!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            view?.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(position, true)
             val clickedList: com.rolandvitezhu.todocloud.data.List = view?.expandableheightexpandablelistview_mainlist_category!!.getItemAtPosition(position) as com.rolandvitezhu.todocloud.data.List
+            categoriesViewModel?.toggleListSelected(clickedList)
             selectedListsInCategory.add(clickedList)
             view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
             actionMode!!.invalidate()
@@ -743,9 +716,8 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         private fun startActionModeWithCategory(position: Int) {
             actionModeStartedWithELV = true
             (this@MainListFragment.getActivity() as MainActivity).onStartActionMode(callback)
-            view?.expandableheightexpandablelistview_mainlist_category!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            view?.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(position, true)
             val clickedCategory: Category = view?.expandableheightexpandablelistview_mainlist_category!!.getItemAtPosition(position) as Category
+            categoriesViewModel?.toggleCategorySelected(clickedCategory)
             selectedCategories.add(clickedCategory)
             view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
             actionMode!!.invalidate()
@@ -960,12 +932,12 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
     }
 
-    override fun onSyncError(errorMessage: String) {
+    override fun onSyncError(errorMessage: String?) {
         showErrorMessage(errorMessage)
     }
 
-    private fun showErrorMessage(errorMessage: String) {
-        if (errorMessage.contains("failed to connect")) {
+    private fun showErrorMessage(errorMessage: String?) {
+        if (errorMessage != null && errorMessage.contains("failed to connect")) {
             showFailedToConnectError()
         } else {
             showAnErrorOccurredError()

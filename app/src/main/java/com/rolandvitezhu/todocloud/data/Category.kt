@@ -20,7 +20,8 @@ data class Category (
         var deleted: Boolean?,
         var dirty: Boolean?,
         @SerializedName("position")
-        var position: Double?
+        var position: Double?,
+        var isSelected: Boolean = false
 ) : Parcelable {
     constructor() : this(
             null,

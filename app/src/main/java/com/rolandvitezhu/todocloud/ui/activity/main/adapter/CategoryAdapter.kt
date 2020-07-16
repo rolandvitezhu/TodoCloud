@@ -5,8 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.rolandvitezhu.todocloud.R
+import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.data.Category
 import com.rolandvitezhu.todocloud.databinding.ItemCategoryBinding
 import com.rolandvitezhu.todocloud.databinding.ItemListincategoryBinding
@@ -83,7 +85,19 @@ class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
             itemCategoryBinding = convertView.tag as ItemCategoryBinding
         }
 
-        itemCategoryBinding.textviewItemcategoryActiontext.text = (getGroup(groupPosition) as Category).title
+        val category = getGroup(groupPosition) as Category
+
+        itemCategoryBinding.textviewItemcategoryActiontext.text = category.title
+        if (category.isSelected)
+            AppController.appContext?.let {
+                ContextCompat.getColor(it, R.color.colorAccent) }?.let {
+                itemCategoryBinding.root.setBackgroundColor(it)
+            }
+        else
+            AppController.appContext?.let {
+                ContextCompat.getColor(it, android.R.color.transparent) }?.let {
+                itemCategoryBinding.root.setBackgroundColor(it)
+            }
         convertView.tag = itemCategoryBinding
         handleCategoryIndicator(groupPosition, isExpanded, convertView)
 
@@ -145,8 +159,19 @@ class CategoryAdapter @Inject constructor() : BaseExpandableListAdapter() {
             itemListincategoryBinding = convertView.tag as ItemListincategoryBinding
         }
 
-        itemListincategoryBinding.textviewItemlistincategoryActiontext.text =
-                (getChild(groupPosition, childPosition) as com.rolandvitezhu.todocloud.data.List).title
+        val list = getChild(groupPosition, childPosition) as com.rolandvitezhu.todocloud.data.List
+
+        itemListincategoryBinding.textviewItemlistincategoryActiontext.text = list.title
+        if (list.isSelected)
+            AppController.appContext?.let {
+                ContextCompat.getColor(it, R.color.colorAccent) }?.let {
+                itemListincategoryBinding.root.setBackgroundColor(it)
+            }
+        else
+            AppController.appContext?.let {
+                ContextCompat.getColor(it, android.R.color.transparent) }?.let {
+                itemListincategoryBinding.root.setBackgroundColor(it)
+            }
         convertView.tag = itemListincategoryBinding
 
         return convertView
