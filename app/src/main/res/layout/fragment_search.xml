@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.activity.main.MainActivity">
+    xmlns:bind="http://schemas.android.com/apk/res-auto">
 
-    <include layout="@layout/layout_recyclerview_search"/>
+    <data>
+        <variable
+            name="searchFragment"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.SearchFragment" />
+    </data>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.activity.main.MainActivity">
+
+        <include
+            layout="@layout/layout_recyclerview_search"
+            bind:searchFragment="@{searchFragment}" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -7,6 +7,7 @@
             name="confirmDeleteDialogFragment"
             type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ConfirmDeleteDialogFragment" />
     </data>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> confirmDeleteDialogFragment.onBtnCancelClick(view)}" />
+                android:onClick="@{(view) -> confirmDeleteDialogFragment.onButtonCancelClick(view)}" />
             <Button
                 android:id="@+id/button_confirmdelete_ok"
                 android:text="@string/all_ok"
@@ -46,7 +47,7 @@
                 android:layout_toEndOf="@+id/button_confirmdelete_cancel"
                 android:layout_toRightOf="@+id/button_confirmdelete_cancel"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> confirmDeleteDialogFragment.onBtnOkClick(view)}" />
+                android:onClick="@{(view) -> confirmDeleteDialogFragment.onButtonOkClick(view)}" />
 
         </RelativeLayout>
 

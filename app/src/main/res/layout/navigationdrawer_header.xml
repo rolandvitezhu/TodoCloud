@@ -7,6 +7,7 @@
             name="userViewModel"
             type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel" />
     </data>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/height_nav_header"
@@ -35,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/textColorPrimary"
-                android:text="@{userViewModel.user.email}"/>
+                android:text="@{userViewModel.user.email}" />
 
         </LinearLayout>
 

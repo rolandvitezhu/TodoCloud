@@ -15,14 +15,14 @@ data class List (
         @SerializedName("category_online_id")
         var categoryOnlineId: String?,
         @SerializedName("title")
-        var title: String?,
+        var title: String,
         @SerializedName("row_version")
-        var rowVersion: Int?,
+        var rowVersion: Int,
         @SerializedName("deleted")
         var deleted: Boolean?,
-        var dirty: Boolean?,
+        var dirty: Boolean,
         @SerializedName("position")
-        var position: Double?,
+        var position: Double,
         var isSelected: Boolean = false
 ) : Parcelable {
     constructor() : this(
@@ -30,11 +30,11 @@ data class List (
             null,
             null,
             null,
-            null,
-            null,
-            null,
-            null,
-            null
+            "",
+            0,
+            false,
+            false,
+            5.0
     )
     constructor(cursor: Cursor) : this (
         cursor.getLong(0),
@@ -45,6 +45,6 @@ data class List (
         cursor.getInt(5),
         cursor.getInt(6) != 0,
         cursor.getInt(7) != 0,
-        cursor.getDouble(8)
+            if (cursor.getDouble(8) == 0.0) 5.0 else cursor.getDouble(8)
     )
 }

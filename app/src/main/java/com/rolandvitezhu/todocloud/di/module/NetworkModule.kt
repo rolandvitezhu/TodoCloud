@@ -3,17 +3,21 @@ package com.rolandvitezhu.todocloud.di.module
 import com.google.gson.GsonBuilder
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.BooleanTypeAdapter
+import com.rolandvitezhu.todocloud.network.ApiService
 import dagger.Module
 import dagger.Provides
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import javax.inject.Singleton
 
+/**
+ * It defines that for the Dagger 2, how to create instances of these objects
+ * as we inject them into other classes.
+ */
 @Module
 class NetworkModule {
 
@@ -61,7 +65,48 @@ class NetworkModule {
                 .client(clientBuilder.build())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiService(): ApiService {
+        val clientBuilder = OkHttpClient.Builder()
+
+        val loggingInterceptor = HttpLoggingInterceptor()
+
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+
+        clientBuilder.addInterceptor(loggingInterceptor)
+        clientBuilder.addInterceptor { chain ->
+            val original = chain.request()
+            val requestBuilder = original.newBuilder()
+            val apiKey = DbLoader.getInstance().apiKey
+            val headersBuilder = Headers.Builder()
+
+            // Add the authorization header
+            if (apiKey != null) {
+                headersBuilder.add("authorization", apiKey)
+                // Remove every headers to prevent issues and add new headers only after that
+                requestBuilder.headers(headersBuilder.build())
+            }
+            val request = requestBuilder.build()
+            chain.proceed(request)
+        }
+
+        val gsonBuilder = GsonBuilder()
+                .setLenient()
+                .serializeNulls()
+                .disableHtmlEscaping()
+                .registerTypeAdapter(Boolean::class.javaObjectType, BooleanTypeAdapter())
+
+        val retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(clientBuilder.build())
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
+                .build()
+
+        return retrofit.create(ApiService::class.java)
     }
 }

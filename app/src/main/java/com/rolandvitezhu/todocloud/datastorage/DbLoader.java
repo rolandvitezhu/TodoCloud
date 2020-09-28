@@ -18,6 +18,7 @@ import org.threeten.bp.ZonedDateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -295,16 +296,8 @@ public class DbLoader {
     contentValues.put(DbConstants.Todo.KEY_TITLE, todo.getTitle());
     if (todo.getPriority() != null)
       contentValues.put(DbConstants.Todo.KEY_PRIORITY, todo.getPriority() ? 1 : 0);
-    if (todo.getDueDate() == null || todo.getDueDate().equals("")) {
-      contentValues.putNull(DbConstants.Todo.KEY_DUE_DATE);
-    } else {
-      contentValues.put(DbConstants.Todo.KEY_DUE_DATE, todo.getDueDate());
-    }
-    if (todo.getReminderDateTime() == null || todo.getReminderDateTime().equals("")) {
-      contentValues.putNull(DbConstants.Todo.KEY_REMINDER_DATE_TIME);
-    } else {
-      contentValues.put(DbConstants.Todo.KEY_REMINDER_DATE_TIME, todo.getReminderDateTime());
-    }
+    contentValues.put(DbConstants.Todo.KEY_DUE_DATE, todo.getDueDate());
+    contentValues.put(DbConstants.Todo.KEY_REMINDER_DATE_TIME, todo.getReminderDateTime());
     if (todo.getDescription() == null || todo.getDescription().equals("")) {
       contentValues.putNull(DbConstants.Todo.KEY_DESCRIPTION);
     } else {
@@ -315,8 +308,7 @@ public class DbLoader {
     contentValues.put(DbConstants.Todo.KEY_ROW_VERSION, todo.getRowVersion());
     if (todo.getDeleted() != null)
       contentValues.put(DbConstants.Todo.KEY_DELETED, todo.getDeleted() ? 1 : 0);
-    if (todo.getDirty() != null)
-      contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
+    contentValues.put(DbConstants.Todo.KEY_DIRTY, todo.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Todo.KEY_POSITION, todo.getPosition());
 
     return contentValues;
@@ -346,7 +338,7 @@ public class DbLoader {
     return todos;
   }
 
-  public ArrayList<Todo> getPredefinedListTodos(String where) {
+  public ArrayList<Todo> getTodosByWhereCondition(String where) {
     open();
 
     Cursor cursor = sqLiteDatabase.query(
@@ -727,7 +719,7 @@ public class DbLoader {
         + 0;
   }
 
-  public String prepareSearchWhere(String queryText) {
+  public String prepareSearchWhereCondition(String queryText) {
     return prepareSearchWherePrefix(queryText) + prepareStandardWherePostfix();
   }
 
@@ -984,8 +976,7 @@ public class DbLoader {
     contentValues.put(DbConstants.List.KEY_ROW_VERSION, list.getRowVersion());
     if (list.getDeleted() != null)
       contentValues.put(DbConstants.List.KEY_DELETED, list.getDeleted() ? 1 : 0);
-    if (list.getDirty() != null)
-      contentValues.put(DbConstants.List.KEY_DIRTY, list.getDirty() ? 1 : 0);
+    contentValues.put(DbConstants.List.KEY_DIRTY, list.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.List.KEY_POSITION, list.getPosition());
 
     return contentValues;
@@ -1288,8 +1279,7 @@ public class DbLoader {
     contentValues.put(DbConstants.Category.KEY_ROW_VERSION, category.getRowVersion());
     if (category.getDeleted() != null)
       contentValues.put(DbConstants.Category.KEY_DELETED, category.getDeleted() ? 1 : 0);
-    if (category.getDirty() != null)
-      contentValues.put(DbConstants.Category.KEY_DIRTY, category.getDirty() ? 1 : 0);
+    contentValues.put(DbConstants.Category.KEY_DIRTY, category.getDirty() ? 1 : 0);
     contentValues.put(DbConstants.Category.KEY_POSITION, category.getPosition());
 
     return contentValues;
@@ -1347,6 +1337,23 @@ public class DbLoader {
     cursor.close();
 
     return categories;
+  }
+
+  /**
+   * Get all of the categories which are associated to the current user with all of the lists
+   * which are related to these categories in a HashMap from the local database.
+   * @return lhmCategories A HashMap containing all the categories and the related lists.
+   */
+  public LinkedHashMap<Category, java.util.List<List>> getCategoriesAndLists() {
+    java.util.List<Category> categories = getCategories();
+    LinkedHashMap<Category, java.util.List<List>> lhmCategories = new LinkedHashMap<>();
+
+    for (Category category : categories) {
+      java.util.List<List> listData = getListsByCategoryOnlineId(category.getCategoryOnlineId());
+      lhmCategories.put(category, listData);
+    }
+
+    return lhmCategories;
   }
 
   public ArrayList<Category> getCategoriesToUpdate() {

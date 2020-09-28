@@ -6,25 +6,24 @@ import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
-import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.SearchView
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
+import com.rolandvitezhu.todocloud.app.AppController.Companion.isDraggingEnabled
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.databinding.FragmentSearchBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
-import com.rolandvitezhu.todocloud.listener.RecyclerViewOnItemTouchListener
-import com.rolandvitezhu.todocloud.receiver.ReminderSetter
+import com.rolandvitezhu.todocloud.helper.hideSoftInput
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ConfirmDeleteDialogFragment
@@ -32,6 +31,7 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsVie
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.SearchListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
 import kotlinx.android.synthetic.main.layout_recyclerview_search.view.*
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
@@ -39,17 +39,23 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
 
     @Inject
     lateinit var dbLoader: DbLoader
-
     @Inject
     lateinit var todoAdapter: TodoAdapter
 
     private var searchView: SearchView? = null
 
-    private var actionMode: ActionMode? = null
+    var actionMode: ActionMode? = null
 
-    private var todosViewModel: TodosViewModel? = null
-    private var searchListsViewModel: SearchListsViewModel? = null
-    private var predefinedListsViewModel: PredefinedListsViewModel? = null
+    private val todosViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(TodosViewModel::class.java) }
+    }
+    private val searchListsViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(SearchListsViewModel::class.java) }
+    }
+    private val predefinedListsViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(PredefinedListsViewModel::class.java) }
+    }
+
     private var swipedTodoAdapterPosition: Int? = null
 
     override fun onAttach(context: Context) {
@@ -60,14 +66,12 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        todosViewModel = ViewModelProviders.of(activity!!).get(TodosViewModel::class.java)
-        searchListsViewModel = ViewModelProviders.of(this@SearchFragment.activity!!).get(SearchListsViewModel::class.java)
-        predefinedListsViewModel = ViewModelProviders.of(this@SearchFragment.activity!!).get(PredefinedListsViewModel::class.java)
-        todosViewModel!!.todos.observe(
+
+        todosViewModel?.todos?.observe(
                 this,
                 Observer { todos ->
-                    todoAdapter!!.update(todos)
-                    todoAdapter!!.notifyDataSetChanged()
+                    todoAdapter.update(todos)
+                    todoAdapter.notifyDataSetChanged()
                 }
         )
     }
@@ -75,65 +79,33 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        val view: View = inflater.inflate(R.layout.fragment_search, container, false)
-        prepareRecyclerView(view)
-        applyClickEvents(view)
+        val fragmentSearchBinding =
+                FragmentSearchBinding.inflate(layoutInflater, null, false)
+        val view: View = fragmentSearchBinding.root
+
+        prepareRecyclerView()
         applySwipeToDismissAndDragToReorder(view)
+
+        fragmentSearchBinding.lifecycleOwner = this
+        fragmentSearchBinding.searchFragment = this
+        fragmentSearchBinding.executePendingBindings()
+
         return view
     }
 
     override fun onResume() {
         super.onResume()
-        (activity as MainActivity?)!!.onSetActionBarTitle("")
+        (activity as MainActivity?)?.onSetActionBarTitle("")
         prepareSearchViewAfterModifyTodo()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
-
-    private fun prepareRecyclerView(view: View) {
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(
-                context!!.applicationContext
-        )
-        view.recyclerview_search!!.layoutManager = layoutManager
-        todoAdapter.isDraggingEnabled = false
-        view.recyclerview_search!!.adapter = todoAdapter
-    }
-
-    private fun applyClickEvents(view: View) {
-        view.recyclerview_search!!.addOnItemTouchListener(RecyclerViewOnItemTouchListener(
-                context!!.applicationContext,
-                view.recyclerview_search,
-                object : RecyclerViewOnItemTouchListener.OnClickListener {
-                    override fun onClick(childView: View, childViewAdapterPosition: Int) {
-                        if (!isActionMode()) {
-                            hideSoftInput()
-                            openModifyTodoFragment(childViewAdapterPosition)
-                        } else {
-                            todoAdapter!!.toggleSelection(childViewAdapterPosition)
-                            if (areSelectedItems()) {
-                                actionMode!!.invalidate()
-                            } else {
-                                actionMode!!.finish()
-                            }
-                        }
-                    }
-
-                    override fun onLongClick(childView: View, childViewAdapterPosition: Int) {
-                        if (!isActionMode()) {
-                            (this@SearchFragment.activity as MainActivity?)!!.onStartActionMode(callback)
-                            todoAdapter!!.toggleSelection(childViewAdapterPosition)
-                            actionMode!!.invalidate()
-                        }
-                    }
-                }
-        )
-        )
+    private fun prepareRecyclerView() {
+        isDraggingEnabled = false
     }
 
     private fun applySwipeToDismissAndDragToReorder(view: View) {
-        val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback = object : ItemTouchHelper.SimpleCallback(
+        val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback =
+                object : ItemTouchHelper.SimpleCallback(
                 0, ItemTouchHelper.START
         ) {
             override fun onMove(
@@ -147,10 +119,13 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val swipedTodo = getSwipedTodo(viewHolder)
                 swipedTodoAdapterPosition = viewHolder.adapterPosition
-                openConfirmDeleteTodosDialog(swipedTodo, swipedTodoAdapterPosition!!)
+                swipedTodoAdapterPosition?.let {
+                    openConfirmDeleteTodosDialog(swipedTodo, it)
+                }
             }
 
-            override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            override fun getMovementFlags(recyclerView: RecyclerView,
+                                          viewHolder: RecyclerView.ViewHolder): Int {
                 val dragFlags: Int
                 val swipeFlags: Int
                 if (AppController.isActionMode()) {
@@ -169,34 +144,33 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         }
         val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
         itemTouchHelper.attachToRecyclerView(view.recyclerview_search)
-        todoAdapter!!.setItemTouchHelper(itemTouchHelper)
+        todoAdapter.itemTouchHelper = itemTouchHelper
     }
 
     private fun getSwipedTodo(viewHolder: RecyclerView.ViewHolder): Todo {
         val swipedTodoAdapterPosition = viewHolder.adapterPosition
-        return todoAdapter!!.getTodo(swipedTodoAdapterPosition)
+        return todoAdapter.getTodo(swipedTodoAdapterPosition)
     }
 
-    private fun areSelectedItems(): Boolean {
-        return todoAdapter!!.selectedItemCount > 0
+    fun areSelectedItems(): Boolean {
+        return todoAdapter.selectedItemCount > 0
     }
 
-    private fun isActionMode(): Boolean {
+    fun isActionMode(): Boolean {
         return actionMode != null
     }
 
-    private fun openModifyTodoFragment(childViewAdapterPosition: Int) {
-        val todo = todoAdapter!!.getTodo(childViewAdapterPosition)
-        todosViewModel!!.todo = todo
-        (activity as MainActivity?)!!.openModifyTodoFragment(this, null)
+    fun openModifyTodoFragment(childViewAdapterPosition: Int) {
+        todosViewModel?.todo = todoAdapter.getTodo(childViewAdapterPosition)
+        (activity as MainActivity?)?.openModifyTodoFragment(this, null)
     }
 
     private fun prepareSearchViewAfterModifyTodo() {
         if (searchView != null && view?.recyclerview_search != null) {
-            searchView!!.post {
+            searchView?.post {
                 restoreQueryTextState()
-                view?.recyclerview_search!!.requestFocusFromTouch()
-                searchView!!.clearFocus()
+                view?.recyclerview_search?.requestFocusFromTouch()
+                searchView?.clearFocus()
                 hideSoftInput()
             }
         }
@@ -208,12 +182,13 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     }
 
     private fun restoreQueryTextState() {
-        if (searchView != null) searchView!!.setQuery(searchListsViewModel!!.queryText, false)
+        if (searchView != null)
+            searchView?.setQuery(searchListsViewModel?.queryText, false)
     }
 
-    private val callback: ActionMode.Callback = object : ActionMode.Callback {
+    val callback: ActionMode.Callback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            setActionMode(mode)
+            setSearchActionMode(mode)
             mode.menuInflater.inflate(R.menu.layout_appbar_search, menu)
             preventTypeIntoSearchView()
             return true
@@ -221,14 +196,14 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
 
         private fun preventTypeIntoSearchView() {
             if (searchView != null && view?.recyclerview_search != null) {
-                view?.recyclerview_search!!.requestFocusFromTouch()
+                view?.recyclerview_search?.requestFocusFromTouch()
             }
             hideSoftInput()
         }
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             val title = prepareTitle()
-            actionMode!!.title = title
+            actionMode?.title = title
             return true
         }
 
@@ -241,23 +216,23 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         }
 
         override fun onDestroyActionMode(mode: ActionMode) {
-            todoAdapter!!.clearSelection()
-            setActionMode(null)
+            todoAdapter.clearSelection()
+            setSearchActionMode(null)
         }
 
         private fun prepareTitle(): String {
-            val selectedItemCount = todoAdapter!!.selectedItemCount
+            val selectedItemCount = todoAdapter.selectedItemCount
             return selectedItemCount.toString() + " " + getString(R.string.all_selected)
         }
     }
 
-    private fun setActionMode(actionMode: ActionMode?) {
+    private fun setSearchActionMode(actionMode: ActionMode?) {
         this.actionMode = actionMode
         AppController.setActionMode(actionMode)
     }
 
     private fun openConfirmDeleteTodosDialog() {
-        val selectedTodos = todoAdapter!!.selectedTodos
+        val selectedTodos = todoAdapter.selectedTodos
         val arguments = Bundle()
         arguments.putString("itemType", "todo")
         arguments.putParcelableArrayList("itemsToDelete", selectedTodos)
@@ -277,7 +252,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         val confirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
         confirmDeleteDialogFragment.setTargetFragment(this, 0)
         confirmDeleteDialogFragment.arguments = arguments
-        confirmDeleteDialogFragment.show(fragmentManager!!, "ConfirmDeleteDialogFragment")
+        confirmDeleteDialogFragment.show(parentFragmentManager, "ConfirmDeleteDialogFragment")
     }
 
     private fun openConfirmDeleteDialogFragment(
@@ -286,12 +261,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         val confirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
         confirmDeleteDialogFragment.setTargetFragment(this, 0)
         confirmDeleteDialogFragment.arguments = arguments
-        confirmDeleteDialogFragment.show(fragmentManager!!, "ConfirmDeleteDialogFragment")
-    }
-
-    private fun updateTodosViewModel() {
-        val updateViewModelTask = UpdateViewModelTask(todosViewModel, activity)
-        updateViewModelTask.execute()
+        confirmDeleteDialogFragment.show(parentFragmentManager, "ConfirmDeleteDialogFragment")
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -305,13 +275,13 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         val searchManager = activity
                 ?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
         val searchableInfo = searchManager.getSearchableInfo(
-                activity!!.componentName
+                requireActivity().componentName
         )
-        searchView!!.setSearchableInfo(searchableInfo)
-        searchView!!.maxWidth = Int.MAX_VALUE
-        searchView!!.isIconified = false
-        searchView!!.isFocusable = true
-        searchView!!.requestFocusFromTouch()
+        searchView?.setSearchableInfo(searchableInfo)
+        searchView?.maxWidth = Int.MAX_VALUE
+        searchView?.isIconified = false
+        searchView?.isFocusable = true
+        searchView?.requestFocusFromTouch()
         disableSearchViewCloseButton()
         removeSearchViewUnderline()
         removeSearchViewHintIcon()
@@ -319,32 +289,36 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     }
 
     private fun removeSearchViewUnderline() {
-        val searchPlateId = searchView!!.context.resources.getIdentifier(
+        val searchPlateId = searchView?.context?.resources?.getIdentifier(
                 "android:id/search_plate", null, null
         )
-        val searchPlate = searchView!!.findViewById<View>(searchPlateId)
-        searchPlate?.setBackgroundResource(0)
+        if (searchPlateId != null) {
+            val searchPlate = searchView?.findViewById<View>(searchPlateId)
+            searchPlate?.setBackgroundResource(0)
+        }
     }
 
     private fun removeSearchViewHintIcon() {
         if (searchView != null) {
-            val searchMagIconId = searchView!!.context.resources.getIdentifier(
+            val searchMagIconId = searchView?.context?.resources?.getIdentifier(
                     "android:id/search_mag_icon", null, null
             )
-            val searchMagIcon = searchView!!.findViewById<View>(searchMagIconId)
-            if (searchMagIcon != null) {
-                searchView!!.isIconifiedByDefault = false
-                searchMagIcon.layoutParams = LinearLayout.LayoutParams(0, 0)
+            if (searchMagIconId != null) {
+                val searchMagIcon = searchView!!.findViewById<View>(searchMagIconId)
+                if (searchMagIcon != null) {
+                    searchView?.isIconifiedByDefault = false
+                    searchMagIcon.layoutParams = LinearLayout.LayoutParams(0, 0)
+                }
             }
         }
     }
 
     private fun disableSearchViewCloseButton() {
-        searchView!!.setOnCloseListener { true }
+        searchView?.setOnCloseListener { true }
     }
 
     private fun applyOnQueryTextEvents() {
-        searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 preventToExecuteQueryTextSubmitTwice()
                 return true
@@ -352,14 +326,14 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
 
             private fun preventToExecuteQueryTextSubmitTwice() {
                 if (searchView != null) {
-                    searchView!!.clearFocus()
+                    searchView?.clearFocus()
                     hideSoftInput()
                 }
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
                 saveQueryTextState(newText)
-                if (!newText.isEmpty()) {
+                if (newText.isNotEmpty()) {
                     showSearchResults(newText)
                 } else {
                     clearSearchResults()
@@ -368,35 +342,24 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
             }
 
             private fun saveQueryTextState(queryText: String) {
-                searchListsViewModel!!.queryText = queryText
+                searchListsViewModel?.queryText = queryText
             }
 
             private fun showSearchResults(newText: String) {
-                setUpdateTodosViewModelObjects(newText)
-                updateTodosViewModel()
+                val whereCondition = dbLoader.prepareSearchWhereCondition(newText)
+                predefinedListsViewModel?.predefinedList = PredefinedList("0", whereCondition)
+                lifecycleScope.launch {
+                    todosViewModel?.updateTodosViewModelByWhereCondition(
+                            "",
+                            whereCondition
+                    )
+                }
             }
 
             private fun clearSearchResults() {
-                todoAdapter!!.clear()
-            }
-
-            private fun setUpdateTodosViewModelObjects(queryText: String) {
-                val where = dbLoader!!.prepareSearchWhere(queryText)
-                todosViewModel!!.setIsPredefinedList(true)
-                predefinedListsViewModel!!.predefinedList = PredefinedList("0", where)
+                todoAdapter.clear()
             }
         })
-    }
-
-    private fun hideSoftInput() {
-        val inputMethodManager = activity!!.getSystemService(
-                Context.INPUT_METHOD_SERVICE
-        ) as InputMethodManager
-        val currentlyFocusedView = activity!!.currentFocus
-        if (currentlyFocusedView != null) {
-            val windowToken = currentlyFocusedView.windowToken
-            inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
-        }
     }
 
     private fun isSetReminder(todo: Todo): Boolean {
@@ -404,7 +367,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     }
 
     private fun isNotCompleted(todo: Todo): Boolean {
-        return !todo.completed!!
+        return todo.completed?.not() ?: true
     }
 
     private fun shouldCreateReminderService(todoToModify: Todo): Boolean {
@@ -412,29 +375,14 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
     }
 
     private fun isNotDeleted(todo: Todo): Boolean {
-        return !todo.deleted!!
+        return todo.deleted?.not() ?: true
     }
 
-    fun onSoftDelete(onlineId: String?, itemType: String?) {
-        val todoToSoftDelete = dbLoader!!.getTodo(onlineId)
-        dbLoader!!.softDeleteTodo(todoToSoftDelete)
-        updateTodosViewModel()
-        ReminderSetter.cancelReminderService(todoToSoftDelete)
-        if (actionMode != null) {
-            actionMode!!.finish()
-        }
-    }
-
-    fun onSoftDelete(itemsToDelete: ArrayList<*>, itemType: String?) {
-        val todosToSoftDelete: ArrayList<Todo> = itemsToDelete as ArrayList<Todo>
-        for (todoToSoftDelete in todosToSoftDelete) {
-            dbLoader!!.softDeleteTodo(todoToSoftDelete)
-            ReminderSetter.cancelReminderService(todoToSoftDelete)
-        }
-        updateTodosViewModel()
-        if (actionMode != null) {
-            actionMode!!.finish()
-        }
+    /**
+     * Finish action mode, if the Fragment is in action mode.
+     */
+    fun finishActionMode() {
+        actionMode?.finish()
     }
 
     override fun onDismiss(dialog: DialogInterface?) {

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/apk/res-auto">
 
     <data>
         <variable
@@ -37,7 +38,9 @@
                     <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
                         android:id="@+id/expandableheightlistview_mainlist_predefinedlist"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        bind:adapter="@{mainListFragment.predefinedListAdapter}"
+                        bind:onItemClickListener="@{mainListFragment.predefinedListItemClicked}" />
 
                     <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightExpandableListView
                         android:id="@+id/expandableheightexpandablelistview_mainlist_category"
@@ -50,7 +53,10 @@
                     <com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView
                         android:id="@+id/expandableheightlistview_mainlist_list"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        bind:adapter="@{mainListFragment.listAdapter}"
+                        bind:onItemClickListener="@{mainListFragment.listItemClicked}"
+                        bind:onItemLongClickListener="@{mainListFragment.listItemLongClicked}">
                     </com.rolandvitezhu.todocloud.customcomponent.ExpandableHeightListView>
 
                 </LinearLayout>
@@ -82,7 +88,7 @@
                 app:fab_colorNormal="@color/colorAccent"
                 app:fab_colorPressed="@color/colorAccent"
                 app:fab_colorRipple="@color/colorAccent"
-                android:onClick="@{(view) -> mainListFragment.onFABCreateCategoryClick(view)}" />
+                android:onClick="@{(view) -> mainListFragment.onFABCreateCategoryClick()}" />
 
             <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/main_fab_create_list"
@@ -94,7 +100,7 @@
                 app:fab_colorNormal="@color/colorAccent"
                 app:fab_colorPressed="@color/colorAccent"
                 app:fab_colorRipple="@color/colorAccent"
-                android:onClick="@{(view) -> mainListFragment.onFABCreateListClick(view)}" />
+                android:onClick="@{(view) -> mainListFragment.onFABCreateListClick()}" />
         </com.github.clans.fab.FloatingActionMenu>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,14 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDialogFragment
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.Todo
 import com.rolandvitezhu.todocloud.databinding.DialogConfirmdeleteBinding
-import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
-import com.rolandvitezhu.todocloud.ui.activity.main.fragment.SearchFragment
-import com.rolandvitezhu.todocloud.ui.activity.main.fragment.TodoListFragment
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewModel
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.viewmodelfactory.ListsViewModelFactory
 import kotlinx.android.synthetic.main.dialog_confirmdelete.view.*
 import java.util.*
 
@@ -22,7 +23,18 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
 
     private var itemType: String? = null
     private var itemsToDelete: ArrayList<*>? = null
-    private var isManyItems = false
+    private var isMultipleItems = false
+
+    private val todosViewModel by lazy {
+        ViewModelProvider(requireActivity()).get(TodosViewModel::class.java)
+    }
+    private val categoriesViewModel by lazy {
+        ViewModelProvider(requireActivity()).get(CategoriesViewModel::class.java)
+    }
+    private val listsViewModel by lazy {
+        ViewModelProvider(requireActivity(), ListsViewModelFactory(categoriesViewModel)).
+                get(ListsViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,9 +48,11 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
             savedInstanceState: Bundle?
     ): View? {
         val dialogConfirmdeleteBinding: DialogConfirmdeleteBinding =
-                DataBindingUtil.inflate(inflater, R.layout.dialog_confirmdelete, container, false)
+                DialogConfirmdeleteBinding.inflate(inflater, container, false)
         val view: View = dialogConfirmdeleteBinding.root
+
         dialogConfirmdeleteBinding.confirmDeleteDialogFragment = this
+        dialogConfirmdeleteBinding.executePendingBindings()
 
         prepareDialogTexts(view)
 
@@ -46,37 +60,37 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
     }
 
     private fun prepareItemVariables() {
-        val arguments = arguments
-        itemType = arguments!!.getString("itemType")
-        itemsToDelete = arguments.getParcelableArrayList<Parcelable>("itemsToDelete")
-        prepareIsManyItems()
+        itemType = requireArguments().getString("itemType")
+        itemsToDelete = requireArguments().getParcelableArrayList<Parcelable>("itemsToDelete")
+        prepareIsMultipleItems()
     }
 
-    private fun prepareIsManyItems() {
-        if (itemsToDelete != null && itemsToDelete!!.size > 1) {
-            isManyItems = true
-        }
+    private fun prepareIsMultipleItems() {
+        isMultipleItems = !itemsToDelete.isNullOrEmpty()
     }
 
+    /**
+     * Prepare and set the dialog title and the action text by the item type.
+     */
     private fun prepareDialogTexts(view: View) {
-        val itemTitle = arguments!!.getString("itemTitle")
+        val itemTitle = requireArguments().getString("itemTitle")
         when (itemType) {
-            "todo" -> if (isManyItems) {
+            "todo" -> if (isMultipleItems) {
                 prepareConfirmDeleteTodosDialogTexts(view)
             } else {
                 prepareConfirmDeleteTodoDialogTexts(view)
             }
-            "list" -> if (isManyItems) {
+            "list" -> if (isMultipleItems) {
                 prepareConfirmDeleteListsDialogTexts(view)
             } else {
                 prepareConfirmDeleteListDialogTexts(itemTitle, view)
             }
-            "listInCategory" -> if (isManyItems) {
+            "listInCategory" -> if (isMultipleItems) {
                 prepareConfirmDeleteListsDialogTexts(view)
             } else {
                 prepareConfirmDeleteListDialogTexts(itemTitle, view)
             }
-            "category" -> if (isManyItems) {
+            "category" -> if (isMultipleItems) {
                 prepareConfirmDeleteCategoriesDialogTexts(view)
             } else {
                 prepareConfirmDeleteCategoryDialogTexts(itemTitle, view)
@@ -140,58 +154,70 @@ class ConfirmDeleteDialogFragment : AppCompatDialogFragment() {
     }
 
     private fun setDialogTitle(dialogTitle: String) {
-        val dialog = dialog
-        dialog!!.setTitle(dialogTitle)
+        requireDialog().setTitle(dialogTitle)
     }
 
     private fun setActionText(actionText: String, view: View) {
-        view.textview_confirmdelete_actiontext!!.text = actionText
+        view.textview_confirmdelete_actiontext.text = actionText
     }
 
-    fun onBtnOkClick(view: View) {
-        if (targetFragment is MainListFragment) {
-            val mainListFragment = targetFragment as MainListFragment?
-            if (itemType == "todo") {
-                mainListFragment!!.onSoftDelete(itemsToDelete!!, itemType)
-            } else if (!isManyItems) {
-                val onlineId = arguments!!.getString("onlineId")
-                mainListFragment!!.onSoftDelete(onlineId, itemType)
-            } else {
-                mainListFragment!!.onSoftDelete(itemsToDelete!!, itemType)
+    /**
+     * Mark categories as deleted, update them in the local database and update the categories.
+     */
+    private fun softDeleteCategories(onlineId: String?) {
+        if (isMultipleItems)
+            categoriesViewModel.onSoftDelete(itemsToDelete, targetFragment)
+        else
+            categoriesViewModel.onSoftDelete(onlineId, targetFragment)
+    }
+
+    /**
+     * Mark lists as deleted, update them in the local database and update the lists.
+     */
+    private fun softDeleteLists(onlineId: String?) {
+        if (isMultipleItems)
+            listsViewModel.onSoftDelete(itemsToDelete, targetFragment)
+        else
+            listsViewModel.onSoftDelete(onlineId, targetFragment)
+    }
+
+    /**
+     * Mark todos as deleted, update them in the local database and update the todos.
+     */
+    private fun softDeleteTodos(onlineId: String?) {
+        if (isMultipleItems)
+            todosViewModel.onSoftDelete(itemsToDelete, targetFragment)
+        else
+            todosViewModel.onSoftDelete(onlineId, targetFragment)
+    }
+
+    fun onButtonOkClick(view: View) {
+        val onlineId = requireArguments().getString("onlineId")
+        when (itemType) {
+            "todo" -> {
+                softDeleteTodos(onlineId)
             }
-        } else if (targetFragment is TodoListFragment) {
-            val todoListFragment = targetFragment as TodoListFragment?
-            if (itemType == "todo") {
-                todoListFragment!!.onSoftDelete(itemsToDelete!!, itemType)
-            } else if (!isManyItems) {
-                val onlineId = arguments!!.getString("onlineId")
-                todoListFragment!!.onSoftDelete(onlineId, itemType)
-            } else {
-                todoListFragment!!.onSoftDelete(itemsToDelete!!, itemType)
+            "list" -> {
+                softDeleteLists(onlineId)
             }
-        } else if (targetFragment is SearchFragment) {
-            val searchFragment = targetFragment as SearchFragment?
-            if (itemType == "todo") {
-                searchFragment!!.onSoftDelete(itemsToDelete!!, itemType)
-            } else if (!isManyItems) {
-                val onlineId = arguments!!.getString("onlineId")
-                searchFragment!!.onSoftDelete(onlineId, itemType)
-            } else {
-                searchFragment!!.onSoftDelete(itemsToDelete!!, itemType)
+            "listInCategory" -> {
+                softDeleteLists(onlineId)
+            }
+            "category" -> {
+                softDeleteCategories(onlineId)
             }
         }
         dismiss()
     }
 
-    fun onBtnCancelClick(view: View) {
+    fun onButtonCancelClick(view: View) {
         dismiss()
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        val targetFragment = targetFragment
-        if (targetFragment is DialogInterface.OnDismissListener) {
-            (targetFragment as DialogInterface.OnDismissListener).onDismiss(dialog)
+        if (targetFragment is DialogInterface.OnDismissListener?) {
+            (targetFragment as DialogInterface.OnDismissListener?)?.onDismiss(dialog)
         }
     }
 }

@@ -7,27 +7,42 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.DatePicker
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.lifecycle.ViewModelProvider
 import com.rolandvitezhu.todocloud.R
-import com.rolandvitezhu.todocloud.app.Constant
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.CreateTodoFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.ModifyTodoFragment
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
 import org.threeten.bp.LocalDateTime
 
 class ReminderDatePickerDialogFragment : AppCompatDialogFragment(), OnDateSetListener {
 
-    private var year = 0
+    /*private var year = 0
     private var month = 0
     private var day = 0
-    private var date: LocalDateTime? = null
+    private var date: LocalDateTime? = null*/
+    private val todosViewModel by lazy {
+        ViewModelProvider(requireActivity()).get(TodosViewModel::class.java)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val thereIsNoDateTime = arguments == null || arguments!![Constant.REMINDER_DATE_TIME] == null
-        date = if (thereIsNoDateTime) LocalDateTime.now() else arguments!![Constant.REMINDER_DATE_TIME] as LocalDateTime?
-        year = date!!.year
-        month = date!!.monthValue
-        day = date!!.dayOfMonth
+        /*val thereIsNoDateTime = requireArguments()[Constant.REMINDER_DATE_TIME] == null
+        date =
+                if (thereIsNoDateTime)
+                    LocalDateTime.now()
+                else
+                    requireArguments()[Constant.REMINDER_DATE_TIME] as LocalDateTime?*/
+        if (todosViewModel.ldtReminderDateTime == null)
+            todosViewModel.ldtReminderDateTime = LocalDateTime.now()
+
+        val year = todosViewModel.ldtReminderDateTime?.year ?: 0
+        val month = todosViewModel.ldtReminderDateTime?.monthValue ?: 0
+        val day = todosViewModel.ldtReminderDateTime?.dayOfMonth ?: 0
+
         val datePickerDialog = DatePickerDialog(
-                activity!!, R.style.MyPickerDialogTheme, this, year, month - 1, day
+                requireActivity(),
+                R.style.MyPickerDialogTheme,
+                this,
+                year, month - 1, day
         )
         prepareDatePickerDialogButtons(datePickerDialog)
 
@@ -38,17 +53,25 @@ class ReminderDatePickerDialogFragment : AppCompatDialogFragment(), OnDateSetLis
         datePickerDialog.setButton(
                 DialogInterface.BUTTON_POSITIVE,
                 getString(R.string.reminderdatepicker_positivebuttontext),
-                datePickerDialog
+                datePickerDialog/*Message.obtain()*/
         )
     }
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
-        date = LocalDateTime.of(year, month + 1, day, date!!.hour, date!!.minute)
+        /*date = LocalDateTime.of(year, month + 1, day, date?.hour as Int, date?.minute as Int)*/
+        todosViewModel.ldtReminderDateTime =
+                LocalDateTime.of(
+                        year,
+                        month + 1,
+                        day,
+                        todosViewModel.ldtReminderDateTime?.hour ?: 0,
+                        todosViewModel.ldtReminderDateTime?.minute ?: 0)
 
-        if (targetFragment is CreateTodoFragment)
-            (targetFragment as CreateTodoFragment?)!!.onSelectReminderDate(date!!)
-        else if (targetFragment is ModifyTodoFragment)
-            (targetFragment as ModifyTodoFragment?)!!.onSelectReminderDate(date!!)
+        if (targetFragment is CreateTodoFragment?)
+            /*date?.let { */(targetFragment as CreateTodoFragment?)?.onSelectReminderDate(/*it*/)/* }*/
+        else if (targetFragment is ModifyTodoFragment?)
+            /*todosViewModel.ldtReminderDateTime?.let {*/
+                (targetFragment as ModifyTodoFragment?)?.onSelectReminderDate(/*it*/)/* }*/    // NEXT
 
         dismiss()
     }

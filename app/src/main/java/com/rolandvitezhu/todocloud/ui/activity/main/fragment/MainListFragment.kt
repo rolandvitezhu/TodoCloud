@@ -14,10 +14,9 @@ import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.ExpandableListView
 import android.widget.ExpandableListView.*
 import androidx.appcompat.view.ActionMode
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.ListFragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
 import com.google.android.material.snackbar.Snackbar
 import com.rolandvitezhu.todocloud.R
@@ -26,14 +25,11 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.isActionModeEnabl
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
 import com.rolandvitezhu.todocloud.data.Category
 import com.rolandvitezhu.todocloud.data.PredefinedList
-import com.rolandvitezhu.todocloud.data.User
 import com.rolandvitezhu.todocloud.databinding.FragmentMainlistBinding
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
-import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer
-import com.rolandvitezhu.todocloud.datasynchronizer.DataSynchronizer.OnSyncDataListener
-import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
+import com.rolandvitezhu.todocloud.repository.CategoryRepository
+import com.rolandvitezhu.todocloud.repository.ListRepository
+import com.rolandvitezhu.todocloud.repository.TodoRepository
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.ListAdapter
@@ -43,40 +39,55 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewMode
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel
-import io.reactivex.disposables.CompositeDisposable
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.viewmodelfactory.ListsViewModelFactory
 import kotlinx.android.synthetic.main.fragment_mainlist.*
 import kotlinx.android.synthetic.main.fragment_mainlist.view.*
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
-class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener {
+class MainListFragment() : ListFragment(), OnRefreshListener {
+
     private val TAG: String = javaClass.simpleName
-    private val disposable: CompositeDisposable = CompositeDisposable()
 
     @Inject
     lateinit var dbLoader: DbLoader
-
     @Inject
-    lateinit var dataSynchronizer: DataSynchronizer
-
+    lateinit var todoRepository: TodoRepository
+    @Inject
+    lateinit var listDataSynchronizer: ListRepository
+    @Inject
+    lateinit var categoryRepository: CategoryRepository
     @Inject
     lateinit var predefinedListAdapter: PredefinedListAdapter
-
     @Inject
     lateinit var categoryAdapter: CategoryAdapter
-
     @Inject
     lateinit var listAdapter: ListAdapter
 
     private var actionMode: ActionMode? = null
     private var actionModeStartedWithELV: Boolean = false
+
     private val selectedCategories: ArrayList<Category> = ArrayList()
     private val selectedListsInCategory: ArrayList<com.rolandvitezhu.todocloud.data.List> = ArrayList()
     private val selectedLists: ArrayList<com.rolandvitezhu.todocloud.data.List> = ArrayList()
-    private var categoriesViewModel: CategoriesViewModel? = null
-    private var listsViewModel: ListsViewModel? = null
-    private var predefinedListsViewModel: PredefinedListsViewModel? = null
-    private var userViewModel: UserViewModel? = null
+
+    private val categoriesViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(CategoriesViewModel::class.java) }
+    }
+    private val listsViewModel by lazy {
+        activity?.let {
+            ViewModelProvider(it, ListsViewModelFactory(categoriesViewModel)).
+            get(ListsViewModel::class.java)
+        }
+    }
+    private val predefinedListsViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(PredefinedListsViewModel::class.java) }
+    }
+    private val userViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(UserViewModel::class.java) }
+    }
+
     private val isNoSelectedItems: Boolean
         private get() {
             val checkedItemCount: Int = checkedItemCount
@@ -89,124 +100,108 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        (Objects.requireNonNull(activity)?.application as AppController).appComponent.
+        (requireActivity().application as AppController).appComponent.
         fragmentComponent().create().inject(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        categoriesViewModel = ViewModelProviders.of((activity)!!).get(CategoriesViewModel::class.java)
-        listsViewModel = ViewModelProviders.of((activity)!!).get(ListsViewModel::class.java)
-        predefinedListsViewModel = ViewModelProviders.of((activity)!!).get(PredefinedListsViewModel::class.java)
-        userViewModel = ViewModelProviders.of((activity)!!).get(UserViewModel::class.java)
-        categoriesViewModel!!.categories.observe(
+
+        categoriesViewModel?.lhmCategories?.observe(
                 this,
-                object : Observer<LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>> {
-                    override fun onChanged(
-                            lhmCategories: LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>) {
-                        categoryAdapter!!.update(lhmCategories)
-                        categoryAdapter!!.notifyDataSetChanged()
-                    }
+                {
+                    lhmCategories ->
+                    categoryAdapter.update(lhmCategories)
+                    categoryAdapter.notifyDataSetChanged()
                 }
         )
-        listsViewModel!!.lists.observe(
-                this, object : Observer<List<com.rolandvitezhu.todocloud.data.List>> {
-            override fun onChanged(lists: List<com.rolandvitezhu.todocloud.data.List>) {
-                listAdapter!!.update(lists)
-                listAdapter!!.notifyDataSetChanged()
-            }
-        })
-        predefinedListsViewModel!!.predefinedLists.observe(
-                this, object : Observer<List<PredefinedList>> {
-            override fun onChanged(predefinedLists: List<PredefinedList>) {
-                predefinedListAdapter!!.update(predefinedLists)
-                predefinedListAdapter!!.notifyDataSetChanged()
-            }
-        }
+        listsViewModel?.lists?.observe(
+                this,
+                {
+                    lists ->
+                    listAdapter.update(lists)
+                    listAdapter.notifyDataSetChanged()
+                }
         )
-        userViewModel!!.user.observe(
-                this, object : Observer<User?> {
-            override fun onChanged(user: User?) {
-                // We do not need to do anything here. We use the userViewModel to bind the data,
-                // so it will automatically update on the UI.
-            }
-        }
+        predefinedListsViewModel?.predefinedLists?.observe(
+                this,
+                { predefinedLists ->
+                    predefinedListAdapter.update(predefinedLists)
+                    predefinedListAdapter.notifyDataSetChanged()
+                }
         )
-        (this@MainListFragment.getActivity() as MainActivity).onPrepareNavigationHeader()
-        updatePredefinedListsViewModel()
-        updateCategoriesViewModel()
-        updateListsViewModel()
-        dataSynchronizer!!.setOnSyncDataListener(this)
-        dataSynchronizer!!.syncData(disposable)
+        userViewModel?.user?.observe(
+                this,
+                {
+                    user ->
+                    // We do not need to do anything here. We use the userViewModel to bind the data,
+                    // so it will automatically update on the UI. Use it as an example when implementing
+                    // the same for the other viewmodels.
+                }
+        )
+
+        (this@MainListFragment.activity as MainActivity).onPrepareNavigationHeader()
+        updateLists()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val fragmentMainListBinding: FragmentMainlistBinding =
-                DataBindingUtil.inflate(inflater, R.layout.fragment_mainlist, container, false)
+                FragmentMainlistBinding.inflate(inflater, container, false)
         val view: View = fragmentMainListBinding.root
-        fragmentMainListBinding.mainListFragment = this;
 
-        preparePredefinedList(view)
         prepareExpandableListView(view)
-        prepareList(view)
         prepareSwipeRefreshLayout(view)
+
+        syncData(view)
+
+        fragmentMainListBinding.mainListFragment = this
+        fragmentMainListBinding.executePendingBindings()
 
         return view
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        disposable.clear()
-    }
-
     private fun prepareSwipeRefreshLayout(view: View) {
         setScrollViewSwipeRefreshBehavior(view)
-        view.swiperefreshlayout_mainlist!!.setOnRefreshListener(this)
+        view.swiperefreshlayout_mainlist?.setOnRefreshListener(this)
     }
 
     private fun setScrollViewSwipeRefreshBehavior(view: View) {
-        view.scrollview_mainlist!!.viewTreeObserver.addOnScrollChangedListener(
+        view.scrollview_mainlist?.viewTreeObserver?.addOnScrollChangedListener(
                 object : OnScrollChangedListener {
+
                     override fun onScrollChanged() {
                         try {
-                            val scrollY: Int = view.scrollview_mainlist!!.scrollY
-                            if (shouldSwipeRefresh(scrollY)) view.swiperefreshlayout_mainlist!!.isEnabled = true else view.swiperefreshlayout_mainlist!!.isEnabled = false
+                            val scrollY: Int? = view.scrollview_mainlist?.scrollY
+                            if (shouldSwipeRefresh(scrollY))
+                                // We can only start the swipe refresh, when we are on the top of
+                                // the list - which means scroll position y == 0 - and the action
+                                // mode is disabled.
+                                view.swiperefreshlayout_mainlist?.isEnabled = true
                         } catch (e: NullPointerException) {
                             // ScrollView nor SwipeRefreshLayout doesn't exists already.
                         }
                     }
 
-                    private fun shouldSwipeRefresh(scrollY: Int): Boolean {
-                        return scrollY == 0 && !isActionModeEnabled
+                    private fun shouldSwipeRefresh(scrollY: Int?): Boolean {
+                        return scrollY != null && scrollY == 0 && !isActionModeEnabled
                     }
                 })
     }
 
-    private fun prepareList(view: View) {
-        view.expandableheightlistview_mainlist_list!!.isExpanded = true
-        view.expandableheightlistview_mainlist_list!!.adapter = listAdapter
-        view.expandableheightlistview_mainlist_list!!.onItemClickListener = listItemClicked
-        view.expandableheightlistview_mainlist_list!!.onItemLongClickListener = listItemLongClicked
-    }
-
     private fun prepareExpandableListView(view: View) {
-        view.expandableheightexpandablelistview_mainlist_category!!.isExpanded = true
-        view.expandableheightexpandablelistview_mainlist_category!!.setAdapter(categoryAdapter)
-        view.expandableheightexpandablelistview_mainlist_category!!.setOnChildClickListener(expLVChildClicked)
-        view.expandableheightexpandablelistview_mainlist_category!!.setOnGroupClickListener(expLVGroupClicked)
+        view.expandableheightexpandablelistview_mainlist_category?.setAdapter(categoryAdapter)
+        view.expandableheightexpandablelistview_mainlist_category?.
+        setOnChildClickListener(expLVChildClicked)
+        view.expandableheightexpandablelistview_mainlist_category?.
+        setOnGroupClickListener(expLVGroupClicked)
         applyExpLVLongClickEvents(view)
     }
 
     private fun applyExpLVLongClickEvents(view: View) {
-        view.expandableheightexpandablelistview_mainlist_category!!.setOnCreateContextMenuListener(expLVCategoryContextMenuListener)
-    }
-
-    private fun preparePredefinedList(view: View) {
-        view.expandableheightlistview_mainlist_predefinedlist!!.isExpanded = true
-        view.expandableheightlistview_mainlist_predefinedlist!!.adapter = predefinedListAdapter
-        view.expandableheightlistview_mainlist_predefinedlist!!.onItemClickListener = predefinedListItemClicked
+        view.expandableheightexpandablelistview_mainlist_category?.
+        setOnCreateContextMenuListener(expLVCategoryContextMenuListener)
     }
 
     private val callback: ActionMode.Callback = object : ActionMode.Callback {
@@ -219,7 +214,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             val actionModeTitle: String = prepareActionModeTitle()
-            actionMode!!.title = actionModeTitle
+            actionMode?.title = actionModeTitle
             prepareMenu(mode, menu)
             return true
         }
@@ -235,8 +230,10 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
             selectedListsInCategory.clear()
             selectedLists.clear()
             isActionModeEnabled = false
-            view?.expandableheightexpandablelistview_mainlist_category!!.choiceMode = AbsListView.CHOICE_MODE_NONE
-            view?.expandableheightlistview_mainlist_predefinedlist!!.choiceMode = AbsListView.CHOICE_MODE_NONE
+            view?.expandableheightexpandablelistview_mainlist_category?.choiceMode =
+                    AbsListView.CHOICE_MODE_NONE
+            view?.expandableheightlistview_mainlist_predefinedlist?.choiceMode =
+                    AbsListView.CHOICE_MODE_NONE
         }
 
         /**
@@ -251,12 +248,13 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun preventUnwantedClickEvent() {
-            view?.expandableheightexpandablelistview_mainlist_category!!.setOnTouchListener(object : OnTouchListener {
-                override fun onTouch(v: View, event: MotionEvent): Boolean {
-                    if (unwantedClickEventPassOut(event)) restoreDefaultBehavior()
-                    return true
-                }
-            })
+            view?.expandableheightexpandablelistview_mainlist_category?.setOnTouchListener(
+                    object : OnTouchListener {
+                        override fun onTouch(v: View, event: MotionEvent): Boolean {
+                            if (unwantedClickEventPassOut(event)) restoreDefaultBehavior()
+                            return true
+                        }
+                    })
         }
 
         private fun unwantedClickEventPassOut(event: MotionEvent): Boolean {
@@ -265,7 +263,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun restoreDefaultBehavior() {
-            view?.expandableheightexpandablelistview_mainlist_category!!.setOnTouchListener(null)
+            view?.expandableheightexpandablelistview_mainlist_category?.setOnTouchListener(null)
         }
 
         private fun prepareActionModeTitle(): String {
@@ -303,31 +301,39 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun applyActionItemBehavior(item: MenuItem) {
-            val menuItemId: Int = item.itemId
             if (oneCategorySelected()) {
-                when (menuItemId) {
-                    R.id.menuitem_layoutappbarmainlistgroup_createlist -> openCreateListInCategoryDialogFragment()
-                    R.id.menuitem_layoutappbarmainlistgroup_modify -> openModifyCategoryDialogFragment()
-                    R.id.menuitem_layoutappbarmainlistgroup_delete -> openConfirmDeleteCategoryDialog()
+                when (item.itemId) {
+                    R.id.menuitem_layoutappbarmainlistgroup_createlist ->
+                        openCreateListInCategoryDialogFragment()
+                    R.id.menuitem_layoutappbarmainlistgroup_modify ->
+                        openModifyCategoryDialogFragment()
+                    R.id.menuitem_layoutappbarmainlistgroup_delete ->
+                        openConfirmDeleteCategoryDialog()
                 }
             } else if (oneListInCategorySelected()) {
-                when (menuItemId) {
-                    R.id.menuitem_layoutappbarmainlistchild_modify -> openModifyListInCategoryDialog()
-                    R.id.menuitem_layoutappbarmainlistchild_delete -> openConfirmDeleteListInCategoryDialog()
+                when (item.itemId) {
+                    R.id.menuitem_layoutappbarmainlistchild_modify ->
+                        openModifyListInCategoryDialog()
+                    R.id.menuitem_layoutappbarmainlistchild_delete ->
+                        openConfirmDeleteListInCategoryDialog()
                     R.id.menuitem_layoutappbarmainlistchild_move -> openMoveListInCategoryDialog()
                 }
             } else if (oneListSelected()) {
-                when (menuItemId) {
+                when (item.itemId) {
                     R.id.menuitem_layoutappbarmainlistitem_modify -> openModifyListDialog()
                     R.id.menuitem_layoutappbarmainlistitem_delete -> openConfirmDeleteListDialog()
-                    R.id.menuitem_layoutappbarmainlistitem_move -> openMoveListIntoAnotherCategoryDialog()
+                    R.id.menuitem_layoutappbarmainlistitem_move ->
+                        openMoveListIntoAnotherCategoryDialog()
                 }
             } else if (manyCategoriesSelected()) {
-                if (menuItemId == R.id.menuitem_layoutappbarmainlistmanygroup_delete) openConfirmDeleteCategoriesDialog()
+                if (item.itemId == R.id.menuitem_layoutappbarmainlistmanygroup_delete)
+                    openConfirmDeleteCategoriesDialog()
             } else if (manyListsInCategorySelected()) {
-                if (menuItemId == R.id.menuitem_layoutappbarmainlistmanychild_delete) openConfirmDeleteListsInCategoryDialog()
+                if (item.itemId == R.id.menuitem_layoutappbarmainlistmanychild_delete)
+                    openConfirmDeleteListsInCategoryDialog()
             } else if (manyListsSelected()) {
-                if (menuItemId == R.id.menuitem_layoutappbarmainlistmanyitem_delete) openConfirmDeleteListsDialog()
+                if (item.itemId == R.id.menuitem_layoutappbarmainlistmanyitem_delete)
+                    openConfirmDeleteListsDialog()
             } else if (manyCategoriesAndListsInCategorySelected()) {
             } else if (manyCategoriesAndListsSelected()) {
             } else if (manyListsInCategoryAndListsSelected()) {
@@ -381,8 +387,8 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun deselectListItems() {
-            for (i in 0 until listAdapter!!.count) {
-                view?.expandableheightlistview_mainlist_list!!.setItemChecked(i, false)
+            for (i in 0 until listAdapter.count) {
+                view?.expandableheightlistview_mainlist_list?.setItemChecked(i, false)
             }
         }
 
@@ -391,9 +397,11 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
          * items of expanded group items.
          */
         private fun deselectExpandableListViewVisibleItems() {
-            for (i in 0..view?.expandableheightexpandablelistview_mainlist_category!!.lastVisiblePosition) {
-                view!!.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(i, false)
-                categoriesViewModel?.deselectItems()
+            if (view?.expandableheightexpandablelistview_mainlist_category != null) {
+                for (i in 0..view?.expandableheightexpandablelistview_mainlist_category!!.lastVisiblePosition) {
+                    view!!.expandableheightexpandablelistview_mainlist_category!!.setItemChecked(i, false)
+                    categoriesViewModel?.deselectItems()
+                }
             }
         }
     }
@@ -403,50 +411,35 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val menuItemId: Int = item.itemId
-        when (menuItemId) {
-            R.id.menuitem_mainlist_search -> (this@MainListFragment.getActivity() as MainActivity).onSearchActionItemClick()
+        when (item.itemId) {
+            R.id.menuitem_mainlist_search ->
+                (this@MainListFragment.activity as MainActivity).onSearchActionItemClick()
         }
         return super.onOptionsItemSelected(item)
     }
 
     private fun openCreateListDialogFragment() {
-        val createListDialogFragment: CreateListDialogFragment = CreateListDialogFragment()
+        val createListDialogFragment = CreateListDialogFragment()
         createListDialogFragment.setTargetFragment(this, 0)
-        createListDialogFragment.show((fragmentManager)!!, "CreateListDialogFragment")
+        createListDialogFragment.show(parentFragmentManager, "CreateListDialogFragment")
     }
 
     private fun openCreateCategoryDialogFragment() {
-        val createCategoryDialogFragment: CreateCategoryDialogFragment = CreateCategoryDialogFragment()
+        val createCategoryDialogFragment = CreateCategoryDialogFragment()
         createCategoryDialogFragment.setTargetFragment(this, 0)
-        createCategoryDialogFragment.show((fragmentManager)!!, "CreateCategoryDialogFragment")
-    }
-
-    private fun updatePredefinedListsViewModel() {
-        val updateViewModelTask: UpdateViewModelTask = UpdateViewModelTask(predefinedListsViewModel, activity)
-        updateViewModelTask.execute()
-    }
-
-    private fun updateCategoriesViewModel() {
-        val updateViewModelTask: UpdateViewModelTask = UpdateViewModelTask(categoriesViewModel, activity)
-        updateViewModelTask.execute()
-    }
-
-    private fun updateListsViewModel() {
-        val updateViewModelTask: UpdateViewModelTask = UpdateViewModelTask(listsViewModel, activity)
-        updateViewModelTask.execute()
+        createCategoryDialogFragment.show(parentFragmentManager, "CreateCategoryDialogFragment")
     }
 
     private fun openCreateListInCategoryDialogFragment() {
-        categoriesViewModel!!.category = selectedCategories.get(0)
-        val createListInCategoryDialogFragment: CreateListInCategoryDialogFragment = CreateListInCategoryDialogFragment()
+        categoriesViewModel?.category = selectedCategories.get(0)
+        val createListInCategoryDialogFragment = CreateListInCategoryDialogFragment()
         createListInCategoryDialogFragment.setTargetFragment(this, 0)
-        createListInCategoryDialogFragment.show((fragmentManager)!!, "CreateListInCategoryDialogFragment")
+        createListInCategoryDialogFragment.show(parentFragmentManager, "CreateListInCategoryDialogFragment")
     }
 
     private fun openModifyListInCategoryDialog() {
-        listsViewModel!!.list = selectedListsInCategory.get(0)
-        listsViewModel!!.setIsInCategory(true)
+        listsViewModel?.list = selectedListsInCategory.get(0)
+        listsViewModel?.isInCategory = true
         openModifyListDialogFragment()
     }
 
@@ -454,49 +447,52 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         val list: com.rolandvitezhu.todocloud.data.List = selectedListsInCategory.get(0)
         val onlineId: String? = list.listOnlineId
         val title: String? = list.title
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
 
         arguments.putString("itemType", "listInCategory")
         arguments.putString("itemTitle", title)
         arguments.putString("onlineId", onlineId)
 
+        listsViewModel?.isInCategory = true
+
         openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openConfirmDeleteListsInCategoryDialog() {
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
+
         arguments.putString("itemType", "listInCategory")
         arguments.putParcelableArrayList("itemsToDelete", selectedListsInCategory)
+
+        listsViewModel?.isInCategory = true
+
         openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openMoveListInCategoryDialog() {
         val list: com.rolandvitezhu.todocloud.data.List = selectedListsInCategory.get(0)
-        val category: Category = dbLoader!!.getCategoryByCategoryOnlineId(list.categoryOnlineId)
-        categoriesViewModel!!.category = category
-        listsViewModel!!.list = list
+        categoriesViewModel?.category = dbLoader.getCategoryByCategoryOnlineId(list.categoryOnlineId)
+        listsViewModel?.list = list
         openMoveListDialogFragment()
     }
 
     private fun openMoveListIntoAnotherCategoryDialog() {
-        val category: Category = Category(getString(R.string.movelist_spinneritemlistnotincategory))
-        val list: com.rolandvitezhu.todocloud.data.List = selectedLists.get(0)
-        categoriesViewModel!!.category = category
-        listsViewModel!!.list = list
+        categoriesViewModel?.category = Category(getString(R.string.movelist_spinneritemlistnotincategory))
+        listsViewModel?.list = selectedLists.get(0)
         openMoveListDialogFragment()
     }
 
     private fun openMoveListDialogFragment() {
-        val moveListDialogFragment: MoveListDialogFragment = MoveListDialogFragment()
+        val moveListDialogFragment = MoveListDialogFragment()
         moveListDialogFragment.setTargetFragment(this, 0)
-        moveListDialogFragment.show((fragmentManager)!!, "MoveListDialogFragment")
+        moveListDialogFragment.show(parentFragmentManager, "MoveListDialogFragment")
     }
 
     private fun openConfirmDeleteCategoryDialog() {
         val category: Category = selectedCategories.get(0)
         val onlineId: String? = category.categoryOnlineId
         val title: String? = category.title
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
 
         arguments.putString("itemType", "category")
         arguments.putString("itemTitle", title)
@@ -506,76 +502,118 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
     }
 
     private fun openConfirmDeleteCategoriesDialog() {
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
         arguments.putString("itemType", "category")
         arguments.putParcelableArrayList("itemsToDelete", selectedCategories)
         openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openConfirmDeleteDialogFragment(arguments: Bundle) {
-        val confirmDeleteDialogFragment: ConfirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
+        val confirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
         confirmDeleteDialogFragment.setTargetFragment(this, 0)
         confirmDeleteDialogFragment.arguments = arguments
-        confirmDeleteDialogFragment.show((fragmentManager)!!, "ConfirmDeleteDialogFragment")
+        confirmDeleteDialogFragment.show(parentFragmentManager, "ConfirmDeleteDialogFragment")
     }
 
     private fun openConfirmDeleteListDialog() {
         val list: com.rolandvitezhu.todocloud.data.List = selectedLists.get(0)
         val onlineId: String? = list.listOnlineId
         val title: String? = list.title
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
 
         arguments.putString("itemType", "list")
         arguments.putString("itemTitle", title)
         arguments.putString("onlineId", onlineId)
 
+        listsViewModel?.isInCategory = false
+
         openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openConfirmDeleteListsDialog() {
-        val arguments: Bundle = Bundle()
+        val arguments = Bundle()
+
         arguments.putString("itemType", "list")
         arguments.putParcelableArrayList("itemsToDelete", selectedLists)
+
+        listsViewModel?.isInCategory = false
+
         openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openModifyCategoryDialogFragment() {
-        val category: Category = selectedCategories.get(0)
-        categoriesViewModel!!.category = category
-        val modifyCategoryDialogFragment: ModifyCategoryDialogFragment = ModifyCategoryDialogFragment()
+        categoriesViewModel?.category = selectedCategories.get(0)
+        val modifyCategoryDialogFragment = ModifyCategoryDialogFragment()
         modifyCategoryDialogFragment.setTargetFragment(this, 0)
-        modifyCategoryDialogFragment.show((fragmentManager)!!, "ModifyCategoryDialogFragment")
+        modifyCategoryDialogFragment.show(parentFragmentManager, "ModifyCategoryDialogFragment")
     }
 
     private fun openModifyListDialog() {
-        listsViewModel!!.list = selectedLists.get(0)
+        listsViewModel?.list = selectedLists.get(0)
         openModifyListDialogFragment()
     }
 
     private fun openModifyListDialogFragment() {
-        val modifyListDialogFragment: ModifyListDialogFragment = ModifyListDialogFragment()
+        val modifyListDialogFragment = ModifyListDialogFragment()
         modifyListDialogFragment.setTargetFragment(this, 0)
-        modifyListDialogFragment.show((fragmentManager)!!, "ModifyListDialogFragment")
+        modifyListDialogFragment.show(parentFragmentManager, "ModifyListDialogFragment")
     }
 
-    private fun syncData() {
-        dataSynchronizer!!.syncData(disposable)
+    /**
+     * Show the circle icon as the synchronization starts and hide it as the synchronization
+     * finishes. Synchronizes all the entities - categories, lists, todos - between the local and
+     * remote database. Refreshes the UI to show the up-to-date data. Shows the error messages.
+     */
+    private fun syncData(view: View?) {
+        lifecycleScope.launch {
+            try {
+                if (view != null)
+                    view.swiperefreshlayout_mainlist?.isRefreshing = true
+                else
+                    this@MainListFragment.swiperefreshlayout_mainlist?.isRefreshing = true
+                categoriesViewModel?.onSynchronization()
+                listsViewModel?.onSynchronization()
+                categoriesViewModel?.updateCategoriesViewModel()
+                todoRepository.syncTodoData()
+            } catch (cause: Throwable) {
+                showErrorMessage(cause.message)
+                categoriesViewModel?.updateCategoriesViewModel()
+                listsViewModel?.updateListsViewModel()
+            } finally {
+                if (view != null)
+                    view.swiperefreshlayout_mainlist?.isRefreshing = false
+                else
+                    this@MainListFragment.swiperefreshlayout_mainlist?.isRefreshing = false
+            }
+        }
     }
 
-    private val predefinedListItemClicked: OnItemClickListener = object : OnItemClickListener {
+    /**
+     * Update all of the lists: predefined lists, lists, categories.
+     */
+    private fun updateLists() {
+        lifecycleScope.launch {
+            predefinedListsViewModel?.updatePredefinedListsViewModel()
+            categoriesViewModel?.updateCategoriesViewModel()
+            listsViewModel?.updateListsViewModel()
+        }
+    }
+
+    val predefinedListItemClicked: OnItemClickListener = object : OnItemClickListener {
         override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
             if (!isActionModeEnabled) {
                 val predefinedList: PredefinedList = parent.adapter.getItem(
                         position) as PredefinedList
-                (this@MainListFragment.getActivity() as MainActivity).onClickPredefinedList(predefinedList)
+                (this@MainListFragment.activity as MainActivity).onClickPredefinedList(predefinedList)
             }
         }
     }
-    private val listItemClicked: OnItemClickListener = object : OnItemClickListener {
+    val listItemClicked: OnItemClickListener = object : OnItemClickListener {
         override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
-            val clickedList: com.rolandvitezhu.todocloud.data.List = listAdapter!!.getItem(position) as com.rolandvitezhu.todocloud.data.List
+            val clickedList: com.rolandvitezhu.todocloud.data.List =
+                    listAdapter.getItem(position) as com.rolandvitezhu.todocloud.data.List
             if (!isActionModeEnabled) {
-                (this@MainListFragment.getActivity() as MainActivity).onClickList(clickedList)
+                (this@MainListFragment.activity as MainActivity).onClickList(clickedList)
             } else {
                 handleItemSelection(position, clickedList)
             }
@@ -584,20 +622,21 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         private fun handleItemSelection(position: Int, clickedList: com.rolandvitezhu.todocloud.data.List) {
             // Item checked state being set automatically on item click event. We should track
             // the changes only.
-            if (view?.expandableheightlistview_mainlist_list!!.isItemChecked(position)) {
+            if (view?.expandableheightlistview_mainlist_list?.isItemChecked(position) == true) {
                 selectedLists.add(clickedList)
             } else {
                 selectedLists.remove(clickedList)
             }
             if (isNoSelectedItems) {
-                actionMode!!.finish()
+                actionMode?.finish()
             } else {
-                actionMode!!.invalidate()
+                actionMode?.invalidate()
             }
         }
     }
-    private val listItemLongClicked: OnItemLongClickListener = object : OnItemLongClickListener {
-        override fun onItemLongClick(parent: AdapterView<*>?, view: View, position: Int, id: Long): Boolean {
+    val listItemLongClicked: OnItemLongClickListener = object : OnItemLongClickListener {
+        override fun onItemLongClick(parent: AdapterView<*>?, view: View, position: Int, id: Long):
+                Boolean {
             if (!isActionModeEnabled) {
                 startActionMode(position)
             }
@@ -606,25 +645,29 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun startActionMode(position: Int) {
-            (this@MainListFragment.getActivity() as MainActivity).onStartActionMode(callback)
-            view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            view?.expandableheightlistview_mainlist_list!!.setItemChecked(position, true)
-            val selectedList: com.rolandvitezhu.todocloud.data.List = view?.expandableheightlistview_mainlist_list!!.getItemAtPosition(position) as com.rolandvitezhu.todocloud.data.List
+            (this@MainListFragment.activity as MainActivity).onStartActionMode(callback)
+            view?.expandableheightlistview_mainlist_list?.choiceMode =
+                    AbsListView.CHOICE_MODE_MULTIPLE
+            view?.expandableheightlistview_mainlist_list?.setItemChecked(position, true)
+            val selectedList: com.rolandvitezhu.todocloud.data.List =
+                    view?.expandableheightlistview_mainlist_list?.getItemAtPosition(position) as
+                            com.rolandvitezhu.todocloud.data.List
             selectedLists.add(selectedList)
-            view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            actionMode!!.invalidate()
+            view?.expandableheightlistview_mainlist_list?.choiceMode =
+                    AbsListView.CHOICE_MODE_MULTIPLE
+            actionMode?.invalidate()
         }
     }
     private val expLVChildClicked: OnChildClickListener = object : OnChildClickListener {
 
         override fun onChildClick(parent: ExpandableListView, v: View, groupPosition: Int,
                                   childPosition: Int, id: Long): Boolean {
-            val clickedList: com.rolandvitezhu.todocloud.data.List = categoryAdapter!!.getChild(
+            val clickedList: com.rolandvitezhu.todocloud.data.List = categoryAdapter.getChild(
                     groupPosition,
                     childPosition
             ) as com.rolandvitezhu.todocloud.data.List
             if (!isActionModeEnabled) {
-                (this@MainListFragment.getActivity() as MainActivity).onClickList(clickedList)
+                (this@MainListFragment.activity as MainActivity).onClickList(clickedList)
             } else {
                 handleItemSelection(clickedList)
             }
@@ -640,9 +683,9 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
                 selectedListsInCategory.remove(clickedList)
             }
             if (isNoSelectedItems) {
-                actionMode!!.finish()
+                actionMode?.finish()
             } else {
-                actionMode!!.invalidate()
+                actionMode?.invalidate()
             }
         }
     }
@@ -672,9 +715,9 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
                 selectedCategories.remove(clickedCategory)
             }
             if (isNoSelectedItems) {
-                actionMode!!.finish()
+                actionMode?.finish()
             } else {
-                actionMode!!.invalidate()
+                actionMode?.invalidate()
             }
         }
 
@@ -687,13 +730,16 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
     }
 
-    private val expLVCategoryContextMenuListener: OnCreateContextMenuListener = object : OnCreateContextMenuListener {
+    private val expLVCategoryContextMenuListener: OnCreateContextMenuListener =
+            object : OnCreateContextMenuListener {
         override fun onCreateContextMenu(menu: ContextMenu, v: View,
                                          menuInfo: ContextMenuInfo) {
-            if (!isActionModeEnabled) {
+            if (!isActionModeEnabled &&
+                    view?.expandableheightexpandablelistview_mainlist_category != null) {
                 val info: ExpandableListContextMenuInfo = menuInfo as ExpandableListContextMenuInfo
                 val packedPosition: Long = info.packedPosition
-                val position: Int = view?.expandableheightexpandablelistview_mainlist_category!!.getFlatListPosition(packedPosition)
+                val position: Int = view?.expandableheightexpandablelistview_mainlist_category!!.
+                getFlatListPosition(packedPosition)
                 val packedPositionType: Int = getPackedPositionType(packedPosition)
                 if (categoryClicked(packedPositionType)) {
                     startActionModeWithCategory(position)
@@ -704,23 +750,33 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
 
         private fun startActionModeWithList(position: Int) {
-            actionModeStartedWithELV = true
-            (this@MainListFragment.getActivity() as MainActivity).onStartActionMode(callback)
-            val clickedList: com.rolandvitezhu.todocloud.data.List = view?.expandableheightexpandablelistview_mainlist_category!!.getItemAtPosition(position) as com.rolandvitezhu.todocloud.data.List
-            categoriesViewModel?.toggleListSelected(clickedList)
-            selectedListsInCategory.add(clickedList)
-            view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            actionMode!!.invalidate()
+            if (view?.expandableheightexpandablelistview_mainlist_category != null) {
+                actionModeStartedWithELV = true
+                (this@MainListFragment.activity as MainActivity).onStartActionMode(callback)
+                val clickedList: com.rolandvitezhu.todocloud.data.List =
+                        view?.expandableheightexpandablelistview_mainlist_category?.
+                        getItemAtPosition(position) as com.rolandvitezhu.todocloud.data.List
+                categoriesViewModel?.toggleListSelected(clickedList)
+                selectedListsInCategory.add(clickedList)
+                view?.expandableheightlistview_mainlist_list?.choiceMode =
+                        AbsListView.CHOICE_MODE_MULTIPLE
+                actionMode?.invalidate()
+            }
         }
 
         private fun startActionModeWithCategory(position: Int) {
-            actionModeStartedWithELV = true
-            (this@MainListFragment.getActivity() as MainActivity).onStartActionMode(callback)
-            val clickedCategory: Category = view?.expandableheightexpandablelistview_mainlist_category!!.getItemAtPosition(position) as Category
-            categoriesViewModel?.toggleCategorySelected(clickedCategory)
-            selectedCategories.add(clickedCategory)
-            view?.expandableheightlistview_mainlist_list!!.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-            actionMode!!.invalidate()
+            if (view?.expandableheightexpandablelistview_mainlist_category != null) {
+                actionModeStartedWithELV = true
+                (this@MainListFragment.activity as MainActivity).onStartActionMode(callback)
+                val clickedCategory: Category =
+                        view?.expandableheightexpandablelistview_mainlist_category!!.
+                        getItemAtPosition(position) as Category
+                categoriesViewModel?.toggleCategorySelected(clickedCategory)
+                selectedCategories.add(clickedCategory)
+                view?.expandableheightlistview_mainlist_list?.choiceMode =
+                        AbsListView.CHOICE_MODE_MULTIPLE
+                actionMode?.invalidate()
+            }
         }
 
         private fun listClicked(packedPositionType: Int): Boolean {
@@ -732,215 +788,27 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
     }
 
-    fun onCreateCategory() {
-        createCategoryInLocalDatabase(categoriesViewModel!!.category)
-        updateCategoriesViewModel()
-    }
-
-    private fun createCategoryInLocalDatabase(category: Category) {
-        category.userOnlineId = dbLoader!!.userOnlineId
-        category._id = dbLoader!!.createCategory(category)
-        val categoryOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.Category.DATABASE_TABLE,
-                category._id!!,
-                dbLoader!!.apiKey
-        )
-        category.categoryOnlineId = categoryOnlineId
-        dbLoader!!.updateCategory(category)
-    }
-
-    fun onModifyCategory() {
-        val category: Category = categoriesViewModel!!.category
-        category.dirty = true
-        dbLoader!!.updateCategory(category)
-        updateCategoriesViewModel()
-        actionMode!!.finish()
-    }
-
-    fun onCreateList() {
-        createListInLocalDatabase(listsViewModel!!.list)
-        updateListsViewModel()
-    }
-
-    private fun createListInLocalDatabase(list: com.rolandvitezhu.todocloud.data.List) {
-        list.userOnlineId = dbLoader!!.userOnlineId
-        list._id = dbLoader!!.createList(list)
-        val listOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.List.DATABASE_TABLE,
-                list._id!!,
-                dbLoader!!.apiKey
-        )
-        list.listOnlineId = listOnlineId
-        dbLoader!!.updateList(list)
-    }
-
-    fun onModifyList() {
-        val list: com.rolandvitezhu.todocloud.data.List = listsViewModel!!.list
-        list.dirty = true
-        dbLoader!!.updateList(list)
-        if (listsViewModel!!.isInCategory) updateCategoriesViewModel() else updateListsViewModel()
-        actionMode!!.finish()
-    }
-
-    fun onCreateListInCategory() {
-        createListInCategoryInLocalDatabase(
-                listsViewModel!!.list,
-                categoriesViewModel!!.category.categoryOnlineId
-        )
-        updateCategoriesViewModel()
-        actionMode!!.finish()
-    }
-
-    private fun createListInCategoryInLocalDatabase(
-            list: com.rolandvitezhu.todocloud.data.List,
-            categoryOnlineId: String?
-    ) {
-        list.userOnlineId = dbLoader!!.userOnlineId
-        list.categoryOnlineId = categoryOnlineId
-        list._id = dbLoader!!.createList(list)
-        val listOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.List.DATABASE_TABLE,
-                list._id!!,
-                dbLoader!!.apiKey
-        )
-        list.listOnlineId = listOnlineId
-        dbLoader!!.updateList(list)
-    }
-
-    fun onMoveList(isListNotInCategoryBeforeMove: Boolean) {
-        val categoryOnlineId: String? = categoriesViewModel!!.category.categoryOnlineId
-        val list: com.rolandvitezhu.todocloud.data.List = listsViewModel!!.list
-        when (if (isListNotInCategoryBeforeMove) "isListNotInCategoryBeforeMove" else "isListInCategoryBeforeMove") {
-            "isListNotInCategoryBeforeMove" -> if (moveListOutsideCategory(categoryOnlineId)) {
-                actionMode!!.finish()
-            } else {
-                moveListIntoCategory(list, categoryOnlineId)
-                actionMode!!.finish()
-            }
-            "isListInCategoryBeforeMove" -> if (moveListOutsideCategory(categoryOnlineId)) {
-                moveListOutsideCategory(list)
-                actionMode!!.finish()
-            } else {
-                moveListIntoAnotherCategory(list, categoryOnlineId)
-                actionMode!!.finish()
-            }
-        }
-    }
-
-    private fun moveListIntoCategory(
-            list: com.rolandvitezhu.todocloud.data.List,
-            categoryOnlineId: String?
-    ) {
-        list.categoryOnlineId = categoryOnlineId
-        list.dirty = true
-        dbLoader!!.updateList(list)
-        updateListsViewModel()
-        updateCategoriesViewModel()
-    }
-
-    private fun moveListIntoAnotherCategory(
-            list: com.rolandvitezhu.todocloud.data.List,
-            categoryOnlineId: String?
-    ) {
-        list.categoryOnlineId = categoryOnlineId
-        list.dirty = true
-        dbLoader!!.updateList(list)
-        updateCategoriesViewModel()
-    }
-
-    private fun moveListOutsideCategory(list: com.rolandvitezhu.todocloud.data.List) {
-        list.categoryOnlineId = null
-        list.dirty = true
-        dbLoader!!.updateList(list)
-        updateCategoriesViewModel()
-        updateListsViewModel()
-    }
-
-    private fun moveListOutsideCategory(categoryOnlineId: String?): Boolean {
-        return categoryOnlineId == null
+    /**
+     * Finish the action mode if the screen is in it.
+     */
+    fun finishActionMode() {
+        actionMode?.finish()
     }
 
     override fun onRefresh() {
-        syncData()
-    }
-
-    fun onSoftDelete(onlineId: String?, itemType: String?) {
-        when (itemType) {
-            "list" -> {
-                dbLoader!!.softDeleteListAndRelatedTodos(onlineId)
-                updateListsViewModel()
-                actionMode!!.finish()
-            }
-            "listInCategory" -> {
-                dbLoader!!.softDeleteListAndRelatedTodos(onlineId)
-                updateCategoriesViewModel()
-                actionMode!!.finish()
-            }
-            "category" -> {
-                dbLoader!!.softDeleteCategoryAndListsAndTodos(onlineId)
-                updateCategoriesViewModel()
-                actionMode!!.finish()
-            }
-        }
-    }
-
-    fun onSoftDelete(itemsToDelete: ArrayList<*>, itemType: String?) {
-        when (itemType) {
-            "list" -> {
-                val lists: ArrayList<com.rolandvitezhu.todocloud.data.List> =
-                        itemsToDelete as ArrayList<com.rolandvitezhu.todocloud.data.List>
-                for (list: com.rolandvitezhu.todocloud.data.List in lists) {
-                    dbLoader!!.softDeleteListAndRelatedTodos(list.listOnlineId)
-                }
-                updateListsViewModel()
-                actionMode!!.finish()
-            }
-            "listInCategory" -> {
-                val listsInCategory: ArrayList<com.rolandvitezhu.todocloud.data.List> =
-                        itemsToDelete as ArrayList<com.rolandvitezhu.todocloud.data.List>
-                for (list: com.rolandvitezhu.todocloud.data.List in listsInCategory) {
-                    dbLoader!!.softDeleteListAndRelatedTodos(list.listOnlineId)
-                }
-                updateCategoriesViewModel()
-                actionMode!!.finish()
-            }
-            "category" -> {
-                val categories: ArrayList<Category> = itemsToDelete as ArrayList<Category>
-                for (category: Category in categories) {
-                    dbLoader!!.softDeleteCategoryAndListsAndTodos(category.categoryOnlineId)
-                }
-                updateCategoriesViewModel()
-                actionMode!!.finish()
-            }
-        }
-    }
-
-    override fun onFinishSyncListData() {
-        updateListsViewModel()
-        updateCategoriesViewModel()
-    }
-
-    override fun onFinishSyncCategoryData() {
-        updateCategoriesViewModel()
-    }
-
-    override fun onFinishSyncData() {
-        try {
-            view?.swiperefreshlayout_mainlist!!.isRefreshing = false
-        } catch (e: NullPointerException) {
-            // SwipeRefreshLayout doesn't already exists.
-        }
-    }
-
-    override fun onSyncError(errorMessage: String?) {
-        showErrorMessage(errorMessage)
+        syncData(null)
     }
 
     private fun showErrorMessage(errorMessage: String?) {
-        if (errorMessage != null && errorMessage.contains("failed to connect")) {
-            showFailedToConnectError()
-        } else {
-            showAnErrorOccurredError()
+        if (errorMessage != null) {
+            val upperCaseErrorMessage = errorMessage.toUpperCase()
+            if (upperCaseErrorMessage.contains("FAILED TO CONNECT") ||
+                    upperCaseErrorMessage.contains("UNABLE TO RESOLVE HOST") ||
+                    upperCaseErrorMessage.contains("TIMEOUT")) {
+                showFailedToConnectError()
+            } else {
+                showAnErrorOccurredError()
+            }
         }
     }
 
@@ -971,12 +839,12 @@ class MainListFragment() : ListFragment(), OnRefreshListener, OnSyncDataListener
         }
     }
 
-    fun onFABCreateCategoryClick(view: View) {
+    fun onFABCreateCategoryClick() {
         openCreateCategoryDialogFragment()
         this.main_fam.close(true)
     }
 
-    fun onFABCreateListClick(view: View) {
+    fun onFABCreateListClick() {
         openCreateListDialogFragment()
         this.main_fam.close(true)
     }

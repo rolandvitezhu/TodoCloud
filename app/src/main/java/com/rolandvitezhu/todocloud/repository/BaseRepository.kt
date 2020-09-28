@@ -1,20 +1,19 @@
-package com.rolandvitezhu.todocloud.datasynchronizer
+package com.rolandvitezhu.todocloud.repository
 
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
-import retrofit2.Retrofit
+import com.rolandvitezhu.todocloud.network.ApiService
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-open class BaseDataSynchronizer @Inject constructor() {
+open class BaseRepository @Inject constructor() {
 
     @Inject
     lateinit var dbLoader: DbLoader
-
     @Inject
-    lateinit var retrofit: Retrofit
+    lateinit var apiService: ApiService
 
     var nextRowVersion = 0
 

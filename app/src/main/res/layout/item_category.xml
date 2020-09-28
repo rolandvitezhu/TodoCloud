@@ -8,25 +8,39 @@
         <variable
             name="categoryAdapter"
             type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter" />
+        <variable
+            name="category"
+            type="com.rolandvitezhu.todocloud.data.Category" />
+        <variable
+            name="groupPosition"
+            type="Integer" />
+        <variable
+            name="isExpanded"
+            type="Boolean" />
+        <variable
+            name="convertView"
+            type="android.view.View" />
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/activatedBackgroundIndicator">
+        android:background="?android:attr/activatedBackgroundIndicator"
+        app:categorySelected="@{category}">
 
         <ImageView
             android:id="@+id/icon_itemcategory"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/height_item"
             app:srcCompat="@drawable/baseline_folder_24"
-            android:tint="@color/navigationViewItemIconTint"
+            app:tint="@color/navigationViewItemIconTint"
             android:layout_marginLeft="@dimen/margin_activity_horizontal"
             android:layout_marginStart="@dimen/margin_activity_horizontal"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
             android:id="@+id/textview_itemcategory_actiontext"
@@ -47,7 +61,8 @@
             app:layout_constraintEnd_toStartOf="@id/g_parent_end"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:text="@tools:sample/lorem/random"/>
+            tools:text="@tools:sample/lorem/random"
+            android:text="@{category.title}" />
 
         <ImageView
             android:id="@+id/imageview_itemcategory_groupindicator"
@@ -59,7 +74,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:src="@drawable/baseline_expand_more_black_24"/>
+            tools:src="@drawable/baseline_expand_more_black_24"
+            app:categoryIndicatorCategoryAdapter="@{categoryAdapter}"
+            app:categoryIndicatorGroupPosition="@{groupPosition}"
+            app:categoryIndicatorIsExpanded="@{isExpanded}"
+            app:categoryIndicatorConvertView="@{convertView}" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/g_parent_end"
@@ -69,7 +88,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

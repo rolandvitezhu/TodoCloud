@@ -31,6 +31,7 @@ open class AppController : Application() {
             private set
         var isActionModeEnabled = false
         private var actionMode: ActionMode? = null
+        var isDraggingEnabled: Boolean = true
 
         private var lastShownSnackbar: Snackbar? = null
 
@@ -66,19 +67,37 @@ open class AppController : Application() {
 
         /**
          * Fix unnecessary TextInputEditText animation on set text.
+         * Tip: Call the "executePendingBindings()" method whenever you can instead of this method.
+         * It will solve the problem in a better way.
          * @param text The text to set.
          * @param textInputEditText TextInputEditText to set text.
-         * @param relatedTextInputLayout The TextInputLayout related to the textInputEditText.
+         * @param textInputLayout The TextInputLayout related to the textInputEditText.
          */
         fun setText(
-                text: String?, textInputEditText: TextInputEditText, relatedTextInputLayout: TextInputLayout
+                text: String?, textInputEditText: TextInputEditText, textInputLayout: TextInputLayout
         ) {
-            // Disable animation before set text. The unnecessary animation won't play in this case.
-            relatedTextInputLayout.isHintAnimationEnabled = false
+            // Disable the animation before setting the text. The unnecessary animation will not
+            // play in this case.
+            textInputLayout.isHintAnimationEnabled = false
             textInputEditText.setText(text)
 
-            // Enable animation, because it should work on user interaction.
-            relatedTextInputLayout.isHintAnimationEnabled = true
+            // Enable the animation, because it should work on user interaction.
+            textInputLayout.isHintAnimationEnabled = true
+        }
+
+        /**
+         * Fix unnecessary TextInputEditText animation on set text.
+         * Tip: Call the "executePendingBindings()" method whenever you can instead of this method.
+         * It will solve the problem in a better way.
+         * @param textInputLayout The TextInputLayout related to the textInputEditText.
+         */
+        fun fixTextInputEditTextAnimation(textInputLayout: TextInputLayout) {
+            // Disable the animation before setting the text. The unnecessary animation will not
+            // play in this case.
+            textInputLayout.isHintAnimationEnabled = false
+
+            // Enable the animation, because it should work on user interaction.
+            textInputLayout.isHintAnimationEnabled = true
         }
     }
 }

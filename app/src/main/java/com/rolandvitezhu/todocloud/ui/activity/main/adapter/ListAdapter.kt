@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import androidx.databinding.DataBindingUtil
-import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.databinding.ItemListBinding
 import com.rolandvitezhu.todocloud.di.FragmentScope
 import java.util.*
@@ -39,19 +37,18 @@ class ListAdapter @Inject constructor() : BaseAdapter() {
         ) as LayoutInflater
 
         if (convertView == null) {
-            itemListBinding = DataBindingUtil.inflate(
+            itemListBinding = ItemListBinding.inflate(
                     layoutInflater,
-                    R.layout.item_list,
                     parent,
                     false
             )
             convertView = itemListBinding.root
-            itemListBinding.listAdapter = this
         } else {
             itemListBinding = convertView.tag as ItemListBinding
         }
 
-        itemListBinding.textviewItemlistActiontext.text = lists[position].title
+        itemListBinding.list = lists[position]
+        itemListBinding.executePendingBindings()
         convertView.tag = itemListBinding
 
         return convertView

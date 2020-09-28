@@ -1,61 +1,58 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.fragment
 
 import android.content.Context
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
-import android.widget.TextView.OnEditorActionListener
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
 import com.rolandvitezhu.todocloud.databinding.FragmentModifypasswordBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.helper.GeneralHelper.validateField
+import com.rolandvitezhu.todocloud.helper.applyOrientationFullSensor
+import com.rolandvitezhu.todocloud.helper.applyOrientationPortrait
+import com.rolandvitezhu.todocloud.helper.hideSoftInput
 import com.rolandvitezhu.todocloud.network.ApiService
-import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest
-import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordResponse
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.schedulers.Schedulers
+import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel
 import kotlinx.android.synthetic.main.fragment_modifypassword.*
 import kotlinx.android.synthetic.main.fragment_modifypassword.view.*
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
-import java.util.*
 import javax.inject.Inject
 
 class ModifyPasswordFragment : Fragment() {
 
     private val TAG = javaClass.simpleName
     private lateinit var apiService: ApiService
-    private val disposable = CompositeDisposable()
 
     @Inject
     lateinit var dbLoader: DbLoader
-
     @Inject
     lateinit var retrofit: Retrofit
 
+    private val userViewModel by lazy {
+        ViewModelProvider(this).get(UserViewModel::class.java)
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        (Objects.requireNonNull(activity)?.application as AppController).appComponent.
+        (requireActivity().application as AppController).appComponent.
         fragmentComponent().create().inject(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        apiService = retrofit!!.create(ApiService::class.java)
+        apiService = retrofit.create(ApiService::class.java)
     }
 
     override fun onCreateView(
@@ -64,19 +61,22 @@ class ModifyPasswordFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? {
         val fragmentModifypasswordBinding: FragmentModifypasswordBinding =
-                DataBindingUtil.inflate(inflater, R.layout.fragment_modifypassword, container, false)
+                FragmentModifypasswordBinding.inflate(inflater, container, false)
         val view: View = fragmentModifypasswordBinding.root
-        fragmentModifypasswordBinding.modifyPasswordFragment = this
 
         applyTextChangedEvents(view)
-        applyEditorActionEvents(view)
+
+        fragmentModifypasswordBinding.lifecycleOwner = this
+        fragmentModifypasswordBinding.modifyPasswordFragment = this
+        fragmentModifypasswordBinding.userViewModel = userViewModel
+        fragmentModifypasswordBinding.executePendingBindings()
 
         return view
     }
 
     override fun onResume() {
         super.onResume()
-        (activity as MainActivity?)!!.onSetActionBarTitle(getString(R.string.all_change_password))
+        (activity as MainActivity?)?.onSetActionBarTitle(getString(R.string.all_change_password))
         applyOrientationPortrait()
     }
 
@@ -85,168 +85,90 @@ class ModifyPasswordFragment : Fragment() {
         applyOrientationFullSensor()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        disposable.clear()
-    }
-
     private fun applyTextChangedEvents(view: View) {
-        view.textinputedittext_modifypassword_currentpassword!!.addTextChangedListener(
+        view.textinputedittext_modifypassword_currentpassword?.addTextChangedListener(
                 MyTextWatcher(view.textinputedittext_modifypassword_currentpassword!!))
-        view.textinputedittext_modifypassword_newpassword!!.addTextChangedListener(
+        view.textinputedittext_modifypassword_newpassword?.addTextChangedListener(
                 MyTextWatcher(view.textinputedittext_modifypassword_newpassword!!))
-        view.textinputedittext_modifypassword_confirmpassword!!.addTextChangedListener(
+        view.textinputedittext_modifypassword_confirmpassword?.addTextChangedListener(
                 MyTextWatcher(view.textinputedittext_modifypassword_confirmpassword!!))
     }
 
-    private fun applyEditorActionEvents(view: View) {
-        view.textinputedittext_modifypassword_confirmpassword!!.setOnEditorActionListener(
-                OnEditorActionListener { v, actionId, event ->
-            val pressDone = actionId == EditorInfo.IME_ACTION_DONE
-            var pressEnter = false
-            if (event != null) {
-                val keyCode = event.keyCode
-                pressEnter = keyCode == KeyEvent.KEYCODE_ENTER
-            }
-            if (pressEnter || pressDone) {
-                view.button_changepassword!!.performClick()
-                return@OnEditorActionListener true
-            }
-            false
-        })
-    }
-
-    private fun hideSoftInput() {
-        val activity = activity
-        val inputMethodManager = activity!!.getSystemService(
-                Context.INPUT_METHOD_SERVICE
-        ) as InputMethodManager
-        val currentlyFocusedView = activity.currentFocus
-        if (currentlyFocusedView != null) {
-            val windowToken = currentlyFocusedView.windowToken
-            inputMethodManager.hideSoftInputFromWindow(
-                    windowToken,
-                    0
-            )
-        }
-    }
-
     private fun handleChangePassword() {
-        val areFieldsValid = (validateCurrentPassword()
+        if (validateCurrentPassword()
                 and validateNewPassword()
-                and validateConfirmPassword())
-        if (areFieldsValid) {
-            val currentPassword =
-                    this.textinputedittext_modifypassword_currentpassword!!.text.toString().trim { it <= ' ' }
-            val newPassword = this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
-            val modifyPasswordRequest = ModifyPasswordRequest()
-            modifyPasswordRequest.currentPassword = currentPassword
-            modifyPasswordRequest.newPassword = newPassword
-            apiService
-                    .modifyPassword(modifyPasswordRequest)
-                    ?.subscribeOn(Schedulers.io())
-                    ?.observeOn(AndroidSchedulers.mainThread())
-                    ?.subscribeWith(createModifyPasswordDisposableSingleObserver())?.let {
-                        disposable.add(
-                                it
-                        )
-                    }
-        }
-    }
-
-    private fun createModifyPasswordDisposableSingleObserver(): DisposableSingleObserver<ModifyPasswordResponse?> {
-        return object : DisposableSingleObserver<ModifyPasswordResponse?>() {
-            override fun onSuccess(modifyPasswordResponse: ModifyPasswordResponse) {
-                Log.d(TAG, "Modify Password Response: $modifyPasswordResponse")
-                if (modifyPasswordResponse != null && modifyPasswordResponse.error == "false") {
+                and validateConfirmPassword()) {
+            lifecycleScope.launch {
+                try {
+                    userViewModel.onModifyPassword()
                     onFinishModifyPassword()
-                } else if (modifyPasswordResponse != null) {
-                    var message = modifyPasswordResponse.getMessage()
-                    if (message == null) message = "Unknown error"
-                    onSyncError(message)
+                } catch (cause: Throwable) {
+                    showErrorMessage(cause.message)
                 }
             }
-
-            override fun onError(throwable: Throwable) {
-                Log.d(TAG, "Modify Password Response - onFailure: $throwable")
-            }
-        }
-    }
-
-    private fun applyOrientationPortrait() {
-        if (activity != null) activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-    }
-
-    private fun applyOrientationFullSensor() {
-        if (activity != null) activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
-    }
-
-    private fun validateCurrentPassword(): Boolean {
-        val givenName = this.textinputedittext_modifypassword_currentpassword!!.text.toString().trim { it <= ' ' }
-        return if (givenName.isEmpty()) {
-            this.textinputlayout_modifypassword_currentpassword!!.error = getString(R.string.modifypassword_currentpassworderrorlabel)
-            false
-        } else {
-            this.textinputlayout_modifypassword_currentpassword!!.isErrorEnabled = false
-            true
-        }
-    }
-
-    private fun validateNewPassword(): Boolean {
-        val givenPassword = this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
-        val isGivenPasswordValid = !givenPassword.isEmpty() && isValidPassword(givenPassword)
-        return if (!isGivenPasswordValid) {
-            this.textinputlayout_modifypassword_newpassword!!.error = getString(R.string.registeruser_enterproperpasswordhint)
-            false
-        } else {
-            this.textinputlayout_modifypassword_newpassword!!.isErrorEnabled = false
-            true
-        }
-    }
-
-    private fun validateConfirmPassword(): Boolean {
-        val givenPassword =
-                this.textinputedittext_modifypassword_newpassword!!.text.toString().trim { it <= ' ' }
-        val givenConfirmPassword =
-                this.textinputedittext_modifypassword_confirmpassword!!.text.toString().trim { it <= ' ' }
-        val isGivenConfirmPasswordValid = (!givenConfirmPassword.isEmpty()
-                && givenPassword == givenConfirmPassword)
-        return if (!isGivenConfirmPasswordValid) {
-            this.textinputlayout_modifypassword_confirmpassword!!.error = getString(R.string.registeruser_confirmpassworderrorlabel)
-            false
-        } else {
-            this.textinputlayout_modifypassword_confirmpassword!!.isErrorEnabled = false
-            true
         }
     }
 
     /**
-     * Valid password should contain at least a lowercase letter, an uppercase letter, a number,
-     * it should not contain whitespace character and it should be at least 8 characters long.
+     * Check whether the current password is provided and show an error message, if necessary.
      */
-    private fun isValidPassword(password: String): Boolean {
-        val passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$"
-        return password.matches(passwordRegex.toRegex())
+    private fun validateCurrentPassword(): Boolean {
+        if (view != null && view?.textinputlayout_modifypassword_currentpassword != null) {
+            return validateField(userViewModel.isCurrentPasswordProvided(),
+                    view?.textinputlayout_modifypassword_currentpassword as TextInputLayout,
+                    getString(R.string.modifypassword_currentpassworderrorlabel))
+        }
+
+        return false
+    }
+
+    /**
+     * Check whether the new password is valid and show an error message, if necessary. The new
+     * password is valid, if it is provided and it has a valid password pattern.
+     */
+    private fun validateNewPassword(): Boolean {
+        if (view != null && view?.textinputlayout_modifypassword_newpassword != null) {
+            return validateField(userViewModel.isPasswordValid(),
+                    view?.textinputlayout_modifypassword_newpassword as TextInputLayout,
+                    getString(R.string.registeruser_enterproperpasswordhint))
+        }
+
+        return false
+    }
+
+    /**
+     * Check whether the confirm password field is valid and show an error message, if necessary.
+     * The confirm password is valid, if it is provided and matches the new password.
+     */
+    private fun validateConfirmPassword(): Boolean {
+        if (view != null && view?.textinputlayout_modifypassword_confirmpassword != null) {
+            return validateField(userViewModel.isConfirmPasswordValid(),
+                    view?.textinputlayout_modifypassword_confirmpassword as TextInputLayout,
+                    getString(R.string.registeruser_confirmpassworderrorlabel))
+        }
+
+        return false
     }
 
     fun onFinishModifyPassword() {
         hideFormSubmissionErrors()
-        (activity as MainActivity?)!!.onFinishModifyPassword()
+        (activity as MainActivity?)?.onFinishModifyPassword()
     }
 
-    fun onSyncError(errorMessage: String) {
-        showErrorMessage(errorMessage)
-    }
-
-    private fun showErrorMessage(errorMessage: String) {
-        if (errorMessage.contains("failed to connect")) {
-            hideFormSubmissionErrors()
-            showFailedToConnectError()
-        } else if (errorMessage.contains("Your current password is incorrect.")) {
-            showIncorrectCurrentPasswordError()
-        } else {
-            hideFormSubmissionErrors()
-            showAnErrorOccurredError()
+    private fun showErrorMessage(errorMessage: String?) {
+        if (errorMessage != null) {
+            val upperCaseErrorMessage = errorMessage.toUpperCase()
+            if (upperCaseErrorMessage.contains("FAILED TO CONNECT") ||
+                    upperCaseErrorMessage.contains("UNABLE TO RESOLVE HOST") ||
+                    upperCaseErrorMessage.contains("TIMEOUT")) {
+                hideFormSubmissionErrors()
+                showFailedToConnectError()
+            } else if (upperCaseErrorMessage.contains("YOUR CURRENT PASSWORD IS INCORRECT.")) {
+                showIncorrectCurrentPasswordError()
+            } else {
+                hideFormSubmissionErrors()
+                showAnErrorOccurredError()
+            }
         }
     }
 
@@ -274,8 +196,8 @@ class ModifyPasswordFragment : Fragment() {
 
     private fun showIncorrectCurrentPasswordError() {
         try {
-            this.textview_modifypassword_formsubmissionerrors!!.setText(R.string.modifypassword_incorrectcurrentpassword)
-            this.textview_modifypassword_formsubmissionerrors!!.visibility = View.VISIBLE
+            this.textview_modifypassword_formsubmissionerrors?.setText(R.string.modifypassword_incorrectcurrentpassword)
+            this.textview_modifypassword_formsubmissionerrors?.visibility = View.VISIBLE
         } catch (e: NullPointerException) {
             // TextView doesn't exists already.
         }
@@ -308,7 +230,7 @@ class ModifyPasswordFragment : Fragment() {
 
     }
 
-    fun onBtnChangePasswordClick(view: View) {
+    fun onButtonChangePasswordClick() {
         hideSoftInput()
         handleChangePassword()
     }

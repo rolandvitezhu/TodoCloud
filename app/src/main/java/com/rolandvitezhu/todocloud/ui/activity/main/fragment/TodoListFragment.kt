@@ -2,31 +2,26 @@ package com.rolandvitezhu.todocloud.ui.activity.main.fragment
 
 import android.content.Context
 import android.content.DialogInterface
-import android.os.AsyncTask
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.ActionMode
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
+import com.rolandvitezhu.todocloud.app.AppController.Companion.isDraggingEnabled
 import com.rolandvitezhu.todocloud.data.Todo
 import com.rolandvitezhu.todocloud.databinding.FragmentTodolistBinding
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
-import com.rolandvitezhu.todocloud.listener.RecyclerViewOnItemTouchListener
-import com.rolandvitezhu.todocloud.receiver.ReminderSetter
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter
-import com.rolandvitezhu.todocloud.ui.activity.main.dialog.SortTodoListDialog
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ConfirmDeleteDialogFragment
+import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.SortTodoListDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
@@ -34,22 +29,28 @@ import kotlinx.android.synthetic.main.layout_recyclerview_todolist.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.ref.WeakReference
 import java.util.*
 import javax.inject.Inject
 
-class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterface.OnDismissListener {
+class TodoListFragment : Fragment(), DialogInterface.OnDismissListener {
 
     @Inject
     lateinit var dbLoader: DbLoader
     @Inject
     lateinit var todoAdapter: TodoAdapter
 
-    private var actionMode: ActionMode? = null
+    var actionMode: ActionMode? = null
 
-    private var todosViewModel: TodosViewModel? = null
-    private var listsViewModel: ListsViewModel? = null
-    private var predefinedListsViewModel: PredefinedListsViewModel? = null
+    private val todosViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(TodosViewModel::class.java) }
+    }
+    private val listsViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(ListsViewModel::class.java) }
+    }
+    private val predefinedListsViewModel by lazy {
+        activity?.let { ViewModelProvider(it).get(PredefinedListsViewModel::class.java) }
+    }
+
     private var swipedTodoAdapterPosition: Int? = null
 
     override fun onAttach(context: Context) {
@@ -60,17 +61,14 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        todosViewModel = ViewModelProviders.of(activity!!).get(TodosViewModel::class.java)
-        listsViewModel = ViewModelProviders.of(activity!!).get(ListsViewModel::class.java)
-        predefinedListsViewModel = ViewModelProviders.of(activity!!).get(PredefinedListsViewModel::class.java)
-        todosViewModel!!.todos.observe(
+
+        todosViewModel?.todos?.observe(
                 this,
                 Observer { todos ->
-                    todoAdapter!!.update(todos)
-                    todoAdapter!!.notifyDataSetChanged()
+                    todoAdapter.update(todos)
+                    todoAdapter.notifyDataSetChanged()
                 }
         )
-        updateTodosViewModel()
     }
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -78,13 +76,15 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
                               savedInstanceState: Bundle?
     ): View? {
         val fragmentTodoListBinding: FragmentTodolistBinding =
-                DataBindingUtil.inflate(inflater, R.layout.fragment_todolist, container, false)
+                FragmentTodolistBinding.inflate(inflater, container, false)
         val view: View = fragmentTodoListBinding.root
-        fragmentTodoListBinding.todoListFragment = this
 
-        prepareRecyclerView(view)
-        applyClickEvents(view)
+        prepareRecyclerView()
         applySwipeToDismissAndDragToReorder(view)
+
+        fragmentTodoListBinding.lifecycleOwner = this
+        fragmentTodoListBinding.todoListFragment = this
+        fragmentTodoListBinding.executePendingBindings()
 
         return view
     }
@@ -94,46 +94,13 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
         setActionBarTitle()
     }
 
-    private fun prepareRecyclerView(view: View) {
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(
-                context!!.applicationContext
-        )
-        view.recyclerview_todolist!!.layoutManager = layoutManager
-        view.recyclerview_todolist!!.adapter = todoAdapter
-    }
-
-    private fun applyClickEvents(view: View) {
-        view.recyclerview_todolist!!.addOnItemTouchListener(RecyclerViewOnItemTouchListener(
-                context!!.applicationContext,
-                view.recyclerview_todolist,
-                object : RecyclerViewOnItemTouchListener.OnClickListener {
-                    override fun onClick(childView: View, childViewAdapterPosition: Int) {
-                        if (!isActionMode()) {
-                            openModifyTodoFragment(childViewAdapterPosition)
-                        } else {
-                            todoAdapter!!.toggleSelection(childViewAdapterPosition)
-                            if (areSelectedItems()) {
-                                actionMode!!.invalidate()
-                            } else {
-                                actionMode!!.finish()
-                            }
-                        }
-                    }
-
-                    override fun onLongClick(childView: View, childViewAdapterPosition: Int) {
-                        if (!isActionMode()) {
-                            (this@TodoListFragment.activity as MainActivity?)!!.onStartActionMode(callback)
-                            todoAdapter!!.toggleSelection(childViewAdapterPosition)
-                            actionMode!!.invalidate()
-                        }
-                    }
-                }
-        )
-        )
+    private fun prepareRecyclerView() {
+        isDraggingEnabled = true
     }
 
     private fun applySwipeToDismissAndDragToReorder(view: View) {
-        val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback = object : ItemTouchHelper.SimpleCallback(
+        val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback =
+                object : ItemTouchHelper.SimpleCallback(
                 0, ItemTouchHelper.START
         ) {
             override fun onMove(
@@ -141,7 +108,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
                     viewHolder: RecyclerView.ViewHolder,
                     target: RecyclerView.ViewHolder
             ): Boolean {
-                val todos: List<Todo?> = todoAdapter!!.getTodos()
+                val todos: List<Todo?> = todoAdapter.getTodos()
                 val fromPosition = viewHolder.adapterPosition
                 val toPosition = target.adapterPosition
 
@@ -157,7 +124,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
                     }
                 }
 
-                todoAdapter!!.notifyItemMoved(viewHolder.adapterPosition, target.adapterPosition)
+                todoAdapter.notifyItemMoved(viewHolder.adapterPosition, target.adapterPosition)
 
                 return true
             }
@@ -165,7 +132,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val swipedTodo = getSwipedTodo(viewHolder)
                 swipedTodoAdapterPosition = viewHolder.adapterPosition
-                openConfirmDeleteTodosDialog(swipedTodo, swipedTodoAdapterPosition!!)
+                swipedTodoAdapterPosition?.let { openConfirmDeleteTodosDialog(swipedTodo, it) }
             }
 
             override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
@@ -189,7 +156,7 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
 
         val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
         itemTouchHelper.attachToRecyclerView(view.recyclerview_todolist)
-        todoAdapter!!.setItemTouchHelper(itemTouchHelper)
+        todoAdapter.itemTouchHelper = itemTouchHelper
     }
 
     /**
@@ -198,17 +165,19 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
     private fun swapItems(todos: List<Todo?>, fromPosition: Int, toPosition: Int) {
         val todoFrom = todos[fromPosition]
         val todoTo = todos[toPosition]
-        val tempTodoToPosition = todoFrom!!.position!!
+        if (todoFrom != null && todoTo != null) {
+            val tempTodoToPosition = todoFrom.position
 
-        todoFrom.position = todoTo!!.position
-        todoTo.position = tempTodoToPosition
-        todoFrom.dirty = true
-        todoTo.dirty = true
+            todoFrom.position = todoTo.position
+            todoTo.position = tempTodoToPosition
+            todoFrom.dirty = true
+            todoTo.dirty = true
 
-        Collections.swap(todos, fromPosition, toPosition)
+            Collections.swap(todos, fromPosition, toPosition)
 
-        lifecycleScope.launch {
-            persistSwappedItems(todoFrom, todoTo)
+            lifecycleScope.launch {
+                persistSwappedItems(todoFrom, todoTo)
+            }
         }
     }
 
@@ -218,29 +187,26 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
      */
     private suspend fun persistSwappedItems(todoFrom: Todo?, todoTo: Todo?) {
         withContext(Dispatchers.IO) {
-            dbLoader!!.updateTodo(todoFrom)
-            dbLoader!!.updateTodo(todoTo)
-            dbLoader!!.fixTodoPositions(null)
+            dbLoader.updateTodo(todoFrom)
+            dbLoader.updateTodo(todoTo)
+            dbLoader.fixTodoPositions(null)
         }
     }
 
     private fun getSwipedTodo(viewHolder: RecyclerView.ViewHolder): Todo {
         val swipedTodoAdapterPosition = viewHolder.adapterPosition
-        return todoAdapter!!.getTodo(swipedTodoAdapterPosition)
+        return todoAdapter.getTodo(swipedTodoAdapterPosition)
     }
 
-    private fun areSelectedItems(): Boolean {
-        return todoAdapter!!.selectedItemCount > 0
+    fun areSelectedItems(): Boolean {
+        return todoAdapter.selectedItemCount > 0
     }
 
-    private fun isActionMode(): Boolean {
-        return actionMode != null
-    }
+    fun isActionMode() = actionMode != null
 
-    private fun openModifyTodoFragment(childViewAdapterPosition: Int) {
-        val todo = todoAdapter!!.getTodo(childViewAdapterPosition)
-        todosViewModel!!.todo = todo
-        (activity as MainActivity?)!!.openModifyTodoFragment(this, null)
+    fun openModifyTodoFragment(childViewAdapterPosition: Int) {
+        todosViewModel?.initToModifyTodo(todoAdapter.getTodo(childViewAdapterPosition))
+        (activity as MainActivity?)?.openModifyTodoFragment(this, null)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -248,62 +214,62 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val menuItemId = item.itemId
-        when (menuItemId) {
-            R.id.menuitem_todolist_sort -> SortTodoListDialog(activity!!, this)
+        when (item.itemId) {
+            R.id.menuitem_todolist_sort -> openSortTodoListDialogFragment()
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun setActionBarTitle() {
-        var actionBarTitle: String? = ""
-        actionBarTitle = if (!todosViewModel!!.isPredefinedList) // List
-            listsViewModel!!.list.title else  // PredefinedList
-            predefinedListsViewModel!!.predefinedList.title
-        (activity as MainActivity?)!!.onSetActionBarTitle(actionBarTitle)
+    private fun openSortTodoListDialogFragment() {
+        val sortTodoListDialogFragment = SortTodoListDialogFragment()
+        sortTodoListDialogFragment.setTargetFragment(this, 0)
+        sortTodoListDialogFragment.show(parentFragmentManager, "SortTodoListDialogFragment")
     }
 
-    private val callback: ActionMode.Callback = object : ActionMode.Callback {
+    private fun setActionBarTitle() {
+        (activity as MainActivity?)?.onSetActionBarTitle(todosViewModel?.todosTitle)
+    }
+
+    val callback: ActionMode.Callback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            setActionMode(mode)
+            setTodoListActionMode(mode)
             mode.menuInflater.inflate(R.menu.layout_appbar_todolist, menu)
             return true
         }
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             val title = prepareTitle()
-            actionMode!!.title = title
-            todoAdapter!!.notifyDataSetChanged()
+            actionMode?.title = title
+            todoAdapter.notifyDataSetChanged()
             return true
         }
 
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-            val actionItemId = item.itemId
-            when (actionItemId) {
+            when (item.itemId) {
                 R.id.menuitem_layoutappbartodolist_delete -> openConfirmDeleteTodosDialog()
             }
             return true
         }
 
         override fun onDestroyActionMode(mode: ActionMode) {
-            todoAdapter!!.clearSelection()
-            setActionMode(null)
-            todoAdapter!!.notifyDataSetChanged()
+            todoAdapter.clearSelection()
+            setTodoListActionMode(null)
+            todoAdapter.notifyDataSetChanged()
         }
 
         private fun prepareTitle(): String {
-            val selectedItemCount = todoAdapter!!.selectedItemCount
+            val selectedItemCount = todoAdapter.selectedItemCount
             return selectedItemCount.toString() + " " + getString(R.string.all_selected)
         }
     }
 
-    private fun setActionMode(actionMode: ActionMode?) {
+    private fun setTodoListActionMode(actionMode: ActionMode?) {
         this.actionMode = actionMode
         AppController.setActionMode(actionMode)
     }
 
     private fun openConfirmDeleteTodosDialog() {
-        val selectedTodos = todoAdapter!!.selectedTodos
+        val selectedTodos = todoAdapter.selectedTodos
         val arguments = Bundle()
         arguments.putString("itemType", "todo")
         arguments.putParcelableArrayList("itemsToDelete", selectedTodos)
@@ -316,63 +282,20 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
         val arguments = Bundle()
         arguments.putString("itemType", "todo")
         arguments.putParcelableArrayList("itemsToDelete", selectedTodos)
-        openConfirmDeleteDialogFragment(arguments, swipedTodoAdapterPosition)
+        openConfirmDeleteDialogFragment(arguments)
     }
 
     private fun openConfirmDeleteDialogFragment(arguments: Bundle) {
         val confirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
         confirmDeleteDialogFragment.setTargetFragment(this, 0)
         confirmDeleteDialogFragment.arguments = arguments
-        confirmDeleteDialogFragment.show(fragmentManager!!, "ConfirmDeleteDialogFragment")
+        confirmDeleteDialogFragment.show(parentFragmentManager, "ConfirmDeleteDialogFragment")
     }
 
-    private fun openConfirmDeleteDialogFragment(
-            arguments: Bundle, swipedTodoAdapterPosition: Int
-    ) {
-        val confirmDeleteDialogFragment = ConfirmDeleteDialogFragment()
-        confirmDeleteDialogFragment.setTargetFragment(this, 0)
-        confirmDeleteDialogFragment.arguments = arguments
-        confirmDeleteDialogFragment.show(fragmentManager!!, "ConfirmDeleteDialogFragment")
-    }
-
-    private fun updateTodosViewModel() {
-        val updateViewModelTask = UpdateViewModelTask(todosViewModel, activity)
-        updateViewModelTask.execute()
-    }
-
-    fun onSoftDelete(onlineId: String?, itemType: String?) {
-        val todoToSoftDelete = dbLoader!!.getTodo(onlineId)
-        dbLoader!!.softDeleteTodo(todoToSoftDelete)
-        updateTodosViewModel()
-        ReminderSetter.cancelReminderService(todoToSoftDelete)
-        if (actionMode != null) {
-            actionMode!!.finish()
-        }
-    }
-
-    fun onSoftDelete(itemsToDelete: ArrayList<*>, itemType: String?) {
-        val todosToSoftDelete: ArrayList<Todo> = itemsToDelete as (ArrayList<Todo>)
-        for (todoToSoftDelete in todosToSoftDelete) {
-            dbLoader!!.softDeleteTodo(todoToSoftDelete)
-            ReminderSetter.cancelReminderService(todoToSoftDelete)
-        }
-        updateTodosViewModel()
-        if (actionMode != null) {
-            actionMode!!.finish()
-        }
-    }
-
-    override fun onSortByDueDatePushed() {
-        SortAsyncTask(todoAdapter).execute(SortAsyncTask.SORT_BY_DUE_DATE)
-    }
-
-    override fun onSortByPriorityPushed() {
-        SortAsyncTask(todoAdapter).execute(SortAsyncTask.SORT_BY_PRIORITY)
-    }
-
-    fun onFABClick(view: View) {
-        if (isActionMode()) actionMode!!.finish()
-        (this@TodoListFragment.activity as MainActivity?)!!.onOpenCreateTodoFragment(this@TodoListFragment)
+    fun onFABClick() {
+        actionMode?.finish()
+        (this@TodoListFragment.activity as MainActivity?)?.
+        onOpenCreateTodoFragment(this@TodoListFragment)
     }
 
     override fun onDismiss(dialog: DialogInterface?) {
@@ -382,30 +305,10 @@ class TodoListFragment : Fragment(), SortTodoListDialog.Presenter, DialogInterfa
             todoAdapter.notifyDataSetChanged()
     }
 
-    private class SortAsyncTask internal constructor(context: TodoAdapter?) : AsyncTask<Int?, Long?, Void?>() {
-        private val todoAdapterWeakReference: WeakReference<TodoAdapter?>
-
-        override fun doInBackground(vararg params: Int?): Void? {
-            when (params[0]) {
-                SORT_BY_DUE_DATE -> todoAdapterWeakReference.get()!!.sortByDueDate()
-                SORT_BY_PRIORITY -> todoAdapterWeakReference.get()!!.sortByPriority()
-            }
-            return null
-        }
-
-        override fun onPostExecute(aVoid: Void?) {
-            super.onPostExecute(aVoid)
-            val todoAdapter = todoAdapterWeakReference.get() ?: return
-            todoAdapter.notifyDataSetChanged()
-        }
-
-        companion object {
-            const val SORT_BY_DUE_DATE = 1001
-            const val SORT_BY_PRIORITY = 1002
-        }
-
-        init {
-            todoAdapterWeakReference = WeakReference(context)
-        }
+    /**
+     * Finish the action mode, if the fragment is in action mode.
+     */
+    fun finishActionMode() {
+        actionMode?.finish()
     }
 }

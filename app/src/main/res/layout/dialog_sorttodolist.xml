@@ -5,8 +5,9 @@
     <data>
         <variable
             name="sortTodoListDialog"
-            type="com.rolandvitezhu.todocloud.ui.activity.main.dialog.SortTodoListDialog" />
+            type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.SortTodoListDialogFragment" />
     </data>
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"

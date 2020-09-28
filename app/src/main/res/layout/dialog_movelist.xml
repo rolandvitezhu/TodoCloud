@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
         <variable
             name="moveListDialogFragment"
             type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.MoveListDialogFragment" />
+        <variable
+            name="listsViewModel"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel" />
     </data>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +28,7 @@
             android:layout_marginRight="20dp"
             android:paddingBottom="8dp"
             android:textSize="12sp"
-            android:textColor="@color/colorControlNormal"/>
+            android:textColor="@color/colorControlNormal" />
         <Spinner
             android:id="@+id/spinner_movelist_category"
             android:layout_width="match_parent"
@@ -32,7 +37,9 @@
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp"
+            app:categorySpinnerAdapter="@{listsViewModel.categoriesViewModel.categoriesForSpinner}"
+            app:selectedCategory="@{listsViewModel.categoriesViewModel}" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -46,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> moveListDialogFragment.onBtnCancelClick(view)}" />
+                android:onClick="@{(view) -> moveListDialogFragment.onButtonCancelClick(view)}" />
             <Button
                 android:id="@+id/button_movelist_ok"
                 android:text="@string/all_ok"
@@ -55,7 +62,7 @@
                 android:layout_toEndOf="@+id/button_movelist_cancel"
                 android:layout_toRightOf="@+id/button_movelist_cancel"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> moveListDialogFragment.onBtnOkClick(view)}" />
+                android:onClick="@{(view) -> moveListDialogFragment.onButtonOkClick(view)}" />
 
         </RelativeLayout>
 

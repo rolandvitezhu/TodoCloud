@@ -8,7 +8,11 @@
         <variable
             name="loginUserFragment"
             type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.LoginUserFragment" />
+        <variable
+            name="userViewModel"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel" />
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintlayout_loginuser"
         android:layout_width="match_parent"
@@ -25,7 +29,7 @@
             android:visibility="gone"
             tools:visibility="visible"
             tools:text="@tools:sample/lorem"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ScrollView
             android:layout_width="match_parent"
@@ -60,7 +64,9 @@
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
                         android:textColor="@color/textColorSecondary"
-                        android:theme="@style/MyEditTextTheme"/>
+                        android:theme="@style/MyEditTextTheme"
+                        android:text="@={userViewModel.user.email}"
+                        app:emptyFieldValidator="@{@string/registeruser_enteremailhint}" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -80,7 +86,10 @@
                         android:inputType="textPassword"
                         android:imeOptions="actionDone"
                         android:textColor="@color/textColorSecondary"
-                        android:theme="@style/MyEditTextTheme"/>
+                        android:theme="@style/MyEditTextTheme"
+                        android:text="@={userViewModel.password}"
+                        app:emptyFieldValidator="@{@string/registeruser_enterpasswordhint}"
+                        app:doneButtonListener="@{buttonLoginuserLogin}" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <Button
@@ -91,7 +100,7 @@
                     android:text="@string/all_login"
                     android:background="@color/colorPrimary"
                     app:layout_constraintTop_toBottomOf="@id/textinputlayout_loginuser_password"
-                    android:onClick="@{(view) -> loginUserFragment.onBtnLoginClick(view)}" />
+                    android:onClick="@{(view) -> loginUserFragment.onButtonLoginClick()}" />
 
                 <Button
                     android:id="@+id/button_loginuser_linktoregister"
@@ -103,7 +112,7 @@
                     android:textColor="@color/textColorSecondary"
                     android:textSize="15sp"
                     app:layout_constraintTop_toBottomOf="@id/button_loginuser_login"
-                    android:onClick="@{(view) -> loginUserFragment.onBtnLinkToRegisterClick(view)}" />
+                    android:onClick="@{(view) -> loginUserFragment.onButtonLinkToRegisterClick()}" />
 
                 <Button
                     android:id="@+id/button_loginuser_linktoresetpassword"
@@ -115,7 +124,7 @@
                     android:textColor="@color/textColorSecondary"
                     android:textSize="15sp"
                     app:layout_constraintTop_toBottomOf="@id/button_loginuser_linktoregister"
-                    android:onClick="@{(view) -> loginUserFragment.onBtnLinkToResetPasswordClick(view)}" />
+                    android:onClick="@{(view) -> loginUserFragment.onButtonLinkToResetPasswordClick()}" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

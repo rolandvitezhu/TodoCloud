@@ -10,16 +10,16 @@ data class LoginUserResponse (
         @SerializedName("user_online_id")
         var userOnlineId: String?,
         @SerializedName("name")
-        var name: String?,
+        var name: String,
         @SerializedName("email")
-        var email: String?,
+        var email: String,
         @SerializedName("api_key")
         var apiKey: String?
 ) : Parcelable, BaseResponse() {
     constructor() : this(
             null,
-            null,
-            null,
+            "",
+            "",
             null
     )
 }

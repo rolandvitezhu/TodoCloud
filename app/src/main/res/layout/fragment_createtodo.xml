@@ -8,7 +8,14 @@
         <variable
             name="createTodoFragment"
             type="com.rolandvitezhu.todocloud.ui.activity.main.fragment.CreateTodoFragment" />
+        <variable
+            name="todosViewModel"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel" />
+
+        <import type="com.rolandvitezhu.todocloud.ui.activity.main.bindingutils.Converter" />
+        <import type="android.view.View" />
     </data>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -40,7 +47,9 @@
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:textColor="@color/textColorSecondary"
-                    android:theme="@style/MyEditTextTheme"/>
+                    android:theme="@style/MyEditTextTheme"
+                    android:text="@={todosViewModel.todoTitle}"
+                    app:textChangedListener="@{createTodoFragment.requireActivity()}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <androidx.appcompat.widget.SwitchCompat
@@ -53,7 +62,8 @@
                 android:textColor="@color/colorControlNormal"
                 android:textSize="16sp"
                 android:theme="@style/MyAppCompatSwitchTheme"
-                app:layout_constraintTop_toBottomOf="@id/textinputlayout_createtodo_title"/>
+                app:layout_constraintTop_toBottomOf="@id/textinputlayout_createtodo_title"
+                android:checked="@={todosViewModel.todo.priority}" />
 
             <TextView
                 android:id="@+id/textview_createtodo_duedatetitle"
@@ -64,7 +74,7 @@
                 android:paddingBottom="8dp"
                 android:textSize="12sp"
                 android:textColor="@color/colorControlNormal"
-                app:layout_constraintTop_toBottomOf="@id/switch_createtodo_priority"/>
+                app:layout_constraintTop_toBottomOf="@id/switch_createtodo_priority" />
             <TextView
                 android:id="@+id/textview_createtodo_duedate"
                 android:layout_width="match_parent"
@@ -74,7 +84,8 @@
                 android:textColor="@android:color/black"
                 app:layout_constraintTop_toBottomOf="@id/textview_createtodo_duedatetitle"
                 tools:text="@tools:sample/date/ddmmyy"
-                android:onClick="@{(view) -> createTodoFragment.onTvDueDateClick(view)}" />
+                android:onClick="@{(view) -> createTodoFragment.onTvDueDateClick()}"
+                android:text="@{Converter.longDateToText(todosViewModel.todoDueDate)}" />
 
             <Button
                 android:id="@+id/button_createtodo_clearduedate"
@@ -85,12 +96,13 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:visibility="gone"
+                android:visibility=
+                    "@{(todosViewModel.todoDueDate != 0L) ? View.VISIBLE : View.GONE}"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/textview_createtodo_duedatetitle"
                 app:layout_constraintBottom_toBottomOf="@id/textview_createtodo_duedate"
                 tools:visibility="visible"
-                android:onClick="@{(view) -> createTodoFragment.onBtnClearDueDateClick(view)}" />
+                android:onClick="@{(view) -> todosViewModel.clearDueDate()}" />
 
             <TextView
                 android:id="@+id/textview_createtodo_reminderdatetimetitle"
@@ -101,7 +113,7 @@
                 android:paddingBottom="8dp"
                 android:textSize="12sp"
                 android:textColor="@color/colorControlNormal"
-                app:layout_constraintTop_toBottomOf="@id/textview_createtodo_duedate"/>
+                app:layout_constraintTop_toBottomOf="@id/textview_createtodo_duedate" />
             <TextView
                 android:id="@+id/textview_createtodo_reminderdatetime"
                 android:layout_width="match_parent"
@@ -111,7 +123,8 @@
                 android:textColor="@android:color/black"
                 tools:text="@tools:sample/date/ddmmyy"
                 app:layout_constraintTop_toBottomOf="@id/textview_createtodo_reminderdatetimetitle"
-                android:onClick="@{(view) -> createTodoFragment.onTvReminderDateTimeClick(view)}" />
+                android:onClick="@{(view) -> createTodoFragment.onTvReminderDateTimeClick()}"
+                android:text="@{Converter.longDateTimeToText(todosViewModel.todoReminderDateTime)}" />
 
             <Button
                 android:id="@+id/button_createtodo_clearreminder"
@@ -122,12 +135,13 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:visibility="gone"
+                android:visibility=
+                    "@{(todosViewModel.todoReminderDateTime != 0L) ? View.VISIBLE : View.GONE}"
                 tools:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/textview_createtodo_reminderdatetimetitle"
                 app:layout_constraintBottom_toBottomOf="@id/textview_createtodo_reminderdatetime"
-                android:onClick="@{(view) -> createTodoFragment.onBtnClearReminderClick(view)}" />
+                android:onClick="@{(view) -> todosViewModel.clearReminderDateTime()}" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
@@ -144,7 +158,8 @@
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
                     android:textColor="@color/textColorSecondary"
-                    android:theme="@style/MyEditTextTheme"/>
+                    android:theme="@style/MyEditTextTheme"
+                    android:text="@={todosViewModel.todo.description}" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

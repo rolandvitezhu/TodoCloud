@@ -11,7 +11,7 @@ import android.widget.ExpandableListView;
  */
 public class ExpandableHeightExpandableListView extends ExpandableListView {
 
-  boolean expanded = false;
+  boolean expanded = true;
 
   public ExpandableHeightExpandableListView(Context context) {
     super(context);

@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import androidx.databinding.DataBindingUtil
-import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.databinding.ItemPredefinedlistBinding
 import com.rolandvitezhu.todocloud.di.FragmentScope
@@ -16,7 +14,7 @@ import javax.inject.Inject
 @FragmentScope
 class PredefinedListAdapter @Inject constructor() : BaseAdapter() {
 
-    private val predefinedLists: MutableList<PredefinedList>
+    val predefinedLists: MutableList<PredefinedList>
 
     override fun getCount(): Int {
         return predefinedLists.size
@@ -39,25 +37,18 @@ class PredefinedListAdapter @Inject constructor() : BaseAdapter() {
         ) as LayoutInflater
 
         if (convertView == null) {
-            itemPredefinedlistBinding = DataBindingUtil.inflate(
-                    layoutInflater,
-                    R.layout.item_predefinedlist,
-                    parent,
-                    false
+            itemPredefinedlistBinding = ItemPredefinedlistBinding.inflate(
+                    layoutInflater, parent, false
             )
             convertView = itemPredefinedlistBinding.root
-            itemPredefinedlistBinding.predefinedListAdapter = this
         } else {
             itemPredefinedlistBinding = convertView.tag as ItemPredefinedlistBinding
         }
 
-        itemPredefinedlistBinding.textviewPredefinedlistActiontext.text = predefinedLists[position].title
-        when (position) {
-            0 -> itemPredefinedlistBinding.imageviewPredefinedlist.setImageResource(R.drawable.baseline_today_24)
-            1 -> itemPredefinedlistBinding.imageviewPredefinedlist.setImageResource(R.drawable.baseline_view_week_24)
-            2 -> itemPredefinedlistBinding.imageviewPredefinedlist.setImageResource(R.drawable.baseline_all_inclusive_24)
-            3 -> itemPredefinedlistBinding.imageviewPredefinedlist.setImageResource(R.drawable.baseline_done_24)
-        }
+        itemPredefinedlistBinding.predefinedListAdapter = this
+        itemPredefinedlistBinding.predefinedList = predefinedLists[position]
+        itemPredefinedlistBinding.executePendingBindings()
+
         convertView.tag = itemPredefinedlistBinding
 
         return convertView

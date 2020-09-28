@@ -6,7 +6,11 @@
         <variable
             name="createCategoryDialogFragment"
             type="com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.CreateCategoryDialogFragment" />
+        <variable
+            name="categoriesViewModel"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.CategoriesViewModel" />
     </data>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -36,7 +40,8 @@
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:textColor="@color/textColorSecondary"
-                    android:theme="@style/MyEditTextTheme"/>
+                    android:theme="@style/MyEditTextTheme"
+                    android:text="@={categoriesViewModel.category.title}" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
@@ -53,7 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> createCategoryDialogFragment.onBtnCancelClick(view)}" />
+                android:onClick="@{(view) -> createCategoryDialogFragment.onButtonCancelClick(view)}" />
             <Button
                 android:id="@+id/button_createcategory_ok"
                 android:text="@string/all_ok"
@@ -62,7 +67,7 @@
                 android:layout_toEndOf="@+id/button_createcategory_cancel"
                 android:layout_toRightOf="@+id/button_createcategory_cancel"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> createCategoryDialogFragment.onBtnOkClick(view)}" />
+                android:onClick="@{(view) -> createCategoryDialogFragment.onButtonOkClick(view)}" />
 
         </RelativeLayout>
 

@@ -1,88 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/height_item"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:orientation="horizontal">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/checkbox_todo_completed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        android:focusable="false"
-        app:buttonTint="@color/navigationViewItemIconTint"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+    <data>
+        <variable
+            name="todo"
+            type="com.rolandvitezhu.todocloud.data.Todo" />
+        <variable
+            name="todoAdapter"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter" />
+        <variable
+            name="itemViewHolder"
+            type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter.ItemViewHolder" />
+    </data>
 
-    <TextView
-        android:id="@+id/textview_todo_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        app:layout_goneMarginRight="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        app:layout_goneMarginEnd="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
-        android:ellipsize="end"
-        android:lines="1"
-        android:textColor="@android:color/black"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@id/textview_todo_duedate"
-        app:layout_constraintEnd_toStartOf="@id/imageview_todo_priority"
-        app:layout_constraintStart_toEndOf="@id/checkbox_todo_completed"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="spread"
-        tools:text="@tools:sample/lorem/random"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/height_item"
+        android:background="?android:attr/activatedBackgroundIndicator"
+        android:orientation="horizontal"
+        app:todoSelectedState="@{todo}">
 
-    <TextView
-        android:id="@+id/textview_todo_duedate"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/imageview_todo_priority"
-        app:layout_constraintStart_toStartOf="@id/textview_todo_title"
-        app:layout_constraintTop_toBottomOf="@id/textview_todo_title"
-        tools:text="@tools:sample/date/mmddyy"/>
+        <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/checkbox_todo_completed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            android:focusable="false"
+            app:buttonTint="@color/navigationViewItemIconTint"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:todoCompletedCheckedState="@{todo}"
+            app:checkBoxTodoCompletedOnTouchListenerTodoAdapter="@{todoAdapter}"
+            app:checkBoxTodoCompletedOnTouchListenerItemViewHolder="@{itemViewHolder}"
+            app:checkBoxTodoCompletedOnTouchListenerTodo="@{todo}" />
 
-<ImageView
-    android:id="@+id/imageview_todo_priority"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:contentDescription="@string/all_priority"
-    android:src="@drawable/ic_priority_high_black_24dp"
-    android:visibility="visible"
-    app:layout_constraintStart_toEndOf="@id/textview_todo_title"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintEnd_toStartOf="@id/imageview_todo_draghandle"/>
+        <TextView
+            android:id="@+id/textview_todo_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            android:layout_marginStart="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            app:layout_goneMarginRight="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            app:layout_goneMarginEnd="@dimen/margin_activity_horizontal_scaled_to_app_compat_checkbox"
+            android:ellipsize="end"
+            android:lines="1"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@id/textview_todo_duedate"
+            app:layout_constraintEnd_toStartOf="@id/imageview_todo_priority"
+            app:layout_constraintStart_toEndOf="@id/checkbox_todo_completed"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="spread"
+            android:text="@{todo.title}"
+            tools:text="@tools:sample/lorem/random" />
 
-<ImageView
-    android:id="@+id/imageview_todo_draghandle"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:contentDescription="@string/all_drag_handle"
-    android:src="@drawable/baseline_drag_handle_black_24"
-    android:tint="@color/colorControlNormal"
-    android:visibility="visible"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintEnd_toEndOf="@id/g_parent_end"/>
+        <TextView
+            android:id="@+id/textview_todo_duedate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/imageview_todo_priority"
+            app:layout_constraintStart_toStartOf="@id/textview_todo_title"
+            app:layout_constraintTop_toBottomOf="@id/textview_todo_title"
+            android:text="@{todo.formattedDueDate}"
+            tools:text="@tools:sample/date/mmddyy" />
 
-<androidx.constraintlayout.widget.Guideline
-    android:id="@+id/g_parent_end"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
-    app:layout_constraintTop_toTopOf="parent"/>
+        <ImageView
+            android:id="@+id/imageview_todo_priority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/all_priority"
+            android:src="@drawable/ic_priority_high_black_24dp"
+            android:visibility="visible"
+            app:layout_constraintStart_toEndOf="@id/textview_todo_title"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/imageview_todo_draghandle"
+            app:todoPriority="@{todo}" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/imageview_todo_draghandle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/all_drag_handle"
+            android:src="@drawable/baseline_drag_handle_black_24"
+            app:tint="@color/colorControlNormal"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/g_parent_end"
+            app:todoDragHandleVisible="@{todo}"
+            app:dragHandleOnTouchListenerTodoAdapter="@{todoAdapter}"
+            app:dragHandleOnTouchListenerItemViewHolder="@{itemViewHolder}" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/g_parent_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintGuide_end="@dimen/margin_activity_horizontal"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

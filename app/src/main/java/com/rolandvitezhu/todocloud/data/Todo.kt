@@ -22,21 +22,21 @@ data class Todo (
         @SerializedName("priority")
         var priority: Boolean?,
         @SerializedName("due_date")
-        var dueDate: Long?,
+        var dueDate: Long,
         @SerializedName("reminder_date_time")
-        var reminderDateTime: Long?,
+        var reminderDateTime: Long,
         @SerializedName("description")
         var description: String?,
         @SerializedName("completed")
         var completed: Boolean?,
         @SerializedName("row_version")
-        var rowVersion: Int?,
+        var rowVersion: Int,
         @SerializedName("deleted")
         var deleted: Boolean?,
-        var dirty: Boolean?,
+        var dirty: Boolean,
         @SerializedName("position")
-        var position: Double?,
-        var isSelected: Boolean?
+        var position: Double,
+        var isSelected: Boolean = false
 ) : Parcelable {
     constructor() : this(
             null,
@@ -44,16 +44,15 @@ data class Todo (
             null,
             null,
             null,
+            false,
+            0,
+            0,
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            false,
+            0,
+            false,
+            false,
+            5.0
     )
     constructor(cursor: Cursor) : this(
             cursor.getLong(0),
@@ -69,9 +68,7 @@ data class Todo (
             cursor.getInt(10),
             cursor.getInt(11) != 0,
             cursor.getInt(12) != 0,
-            cursor.getDouble(13),
-
-            false
+            if (cursor.getDouble(13) == 0.0) 5.0 else cursor.getDouble(13)
     )
     constructor(todo: Todo) : this(
             todo._id,
@@ -92,26 +89,33 @@ data class Todo (
     )
     val formattedDueDate: String
         get() {
-            if (dueDate != null && dueDate != 0L) {
+            if (dueDate != 0L) {
                 return DateUtils.formatDateTime(
                         appContext,
-                        dueDate!!,
-                        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NUMERIC_DATE or DateUtils.FORMAT_SHOW_YEAR
+                        dueDate,
+                        (DateUtils.FORMAT_SHOW_DATE or
+                                DateUtils.FORMAT_NUMERIC_DATE or
+                                DateUtils.FORMAT_SHOW_YEAR)
                 )
             } else {
                 return appContext!!.getString(R.string.all_noduedate)
             }
         }
-    val formattedDueDateForListItem: String
+    val formattedReminderDateTime: String
         get() {
-            if (dueDate != null && dueDate != 0L) {
+            if (reminderDateTime != 0L) {
                 return DateUtils.formatDateTime(
                         appContext,
-                        dueDate!!,
-                        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NUMERIC_DATE or DateUtils.FORMAT_SHOW_YEAR
+                        reminderDateTime,
+                        (DateUtils.FORMAT_SHOW_DATE
+                                or DateUtils.FORMAT_NUMERIC_DATE
+                                or DateUtils.FORMAT_SHOW_YEAR
+                                or DateUtils.FORMAT_SHOW_TIME)
                 )
             } else {
-                return ""
+                return appContext!!.getString(R.string.all_noreminder)
             }
         }
+    val onPredefinedList: Boolean
+        get() = listOnlineId == null
 }

@@ -13,35 +13,35 @@ data class Category (
         @SerializedName("user_online_id")
         var userOnlineId: String?,
         @SerializedName("title")
-        var title: String?,
+        var title: String,
         @SerializedName("row_version")
-        var rowVersion: Int?,
+        var rowVersion: Int,
         @SerializedName("deleted")
         var deleted: Boolean?,
-        var dirty: Boolean?,
+        var dirty: Boolean,
         @SerializedName("position")
-        var position: Double?,
+        var position: Double,
         var isSelected: Boolean = false
 ) : Parcelable {
     constructor() : this(
             null,
             null,
             null,
-            null,
-            null,
-            null,
-            null,
-            null
+            "",
+            0,
+            false,
+            false,
+            5.0
     )
-    constructor(title: String?) : this(
+    constructor(title: String) : this(
             null,
             null,
             null,
             title,
-            null,
-            null,
-            null,
-            null
+            0,
+            false,
+            false,
+            5.0
     )
     constructor(cursor: Cursor) : this(
         cursor.getLong(0),
@@ -51,10 +51,10 @@ data class Category (
         cursor.getInt(4),
         cursor.getInt(5) != 0,
         cursor.getInt(6) != 0,
-        cursor.getDouble(7)
+        if (cursor.getDouble(7) == 0.0) 5.0 else cursor.getDouble(7)
     )
 
     override fun toString(): String {
-        return title ?: ""
+        return title
     }
 }

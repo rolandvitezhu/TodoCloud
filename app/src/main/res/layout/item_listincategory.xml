@@ -6,26 +6,28 @@
 
     <data>
         <variable
-            name="categoryAdapter"
-            type="com.rolandvitezhu.todocloud.ui.activity.main.adapter.CategoryAdapter" />
+            name="list"
+            type="com.rolandvitezhu.todocloud.data.List" />
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/activatedBackgroundIndicator">
+        android:background="?android:attr/activatedBackgroundIndicator"
+        app:listSelected="@{list}">
 
         <ImageView
             android:id="@+id/imageview_listincategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/baseline_list_24"
-            android:tint="@color/navigationViewItemIconTint"
+            app:tint="@color/navigationViewItemIconTint"
             android:layout_marginLeft="@dimen/margin_activity_horizontal_double"
             android:layout_marginStart="@dimen/margin_activity_horizontal_double"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
             android:id="@+id/textview_itemlistincategory_actiontext"
@@ -44,7 +46,8 @@
             app:layout_constraintStart_toEndOf="@id/imageview_listincategory"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="@{list.title}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

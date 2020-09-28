@@ -5,11 +5,11 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class PredefinedList (
-        var title: String?,
-        var selectFromDB: String?
+        var title: String,
+        var selectFromDB: String
 ) : Parcelable {
     constructor() : this(
-            null,
-            null
+            "",
+            ""
     )
 }

@@ -1,10 +1,8 @@
 package com.rolandvitezhu.todocloud.ui.activity.main
 
-import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -13,8 +11,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
@@ -22,14 +20,11 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnac
 import com.rolandvitezhu.todocloud.data.List
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.data.Todo
-import com.rolandvitezhu.todocloud.data.User
 import com.rolandvitezhu.todocloud.databinding.ActivityMainBinding
 import com.rolandvitezhu.todocloud.databinding.NavigationdrawerHeaderBinding
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import com.rolandvitezhu.todocloud.datastorage.DbLoader
-import com.rolandvitezhu.todocloud.datastorage.asynctask.UpdateViewModelTask
-import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
 import com.rolandvitezhu.todocloud.helper.SessionManager
+import com.rolandvitezhu.todocloud.helper.hideSoftInput
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.LogoutUserDialogFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.*
@@ -42,21 +37,30 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.layout_appbar.*
 import kotlinx.android.synthetic.main.layout_appbar.view.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener {
 
     @Inject
     lateinit var dbLoader: DbLoader
-
     @Inject
     lateinit var sessionManager: SessionManager
 
     private var actionBarDrawerToggle: ActionBarDrawerToggle? = null
-    private var userViewModel: UserViewModel? = null
-    private var todosViewModel: TodosViewModel? = null
-    private var predefinedListsViewModel: PredefinedListsViewModel? = null
-    private var listsViewModel: ListsViewModel? = null
+
+    private val userViewModel by lazy {
+        ViewModelProvider(this).get(UserViewModel::class.java)
+    }
+    private val todosViewModel by lazy {
+        ViewModelProvider(this).get(TodosViewModel::class.java)
+    }
+    private val predefinedListsViewModel by lazy {
+        ViewModelProvider(this).get(PredefinedListsViewModel::class.java)
+    }
+    private val listsViewModel by lazy {
+        ViewModelProvider(this).get(ListsViewModel::class.java)
+    }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         (application as AppController).appComponent.inject(this)
@@ -65,38 +69,36 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val activityMainBinding: ActivityMainBinding =
                 DataBindingUtil.setContentView(this, R.layout.activity_main)
         val navigationdrawerHeaderViewBinding: NavigationdrawerHeaderBinding =
-                DataBindingUtil.inflate(
+                NavigationdrawerHeaderBinding.inflate(
                         layoutInflater,
-                        R.layout.navigationdrawer_header,
                         activityMainBinding.mainlistNavigationview,
                         false)
         activityMainBinding.mainlistNavigationview.addHeaderView(navigationdrawerHeaderViewBinding.root)
         val view: View = activityMainBinding.root
+
         activityMainBinding.mainActivity = this
-
-        userViewModel = ViewModelProviders.of(this).get(UserViewModel::class.java)
-        todosViewModel = ViewModelProviders.of(this).get(TodosViewModel::class.java)
-        predefinedListsViewModel = ViewModelProviders.of(this).get(PredefinedListsViewModel::class.java)
-        listsViewModel = ViewModelProviders.of(this).get(ListsViewModel::class.java)
-
-        navigationdrawerHeaderViewBinding.userViewModel = userViewModel
-        navigationdrawerHeaderViewBinding.lifecycleOwner = this  // Set it, so the as we update
-        // the data in the userViewModel, the UI will update automatically.
+        activityMainBinding.executePendingBindings()
 
         setSupportActionBar(view.toolbar_main)
         prepareNavigationView(view)
+
+        navigationdrawerHeaderViewBinding.lifecycleOwner = this  // Set it, so as we update
+        // the data in the userViewModel, the UI will update automatically.
+        navigationdrawerHeaderViewBinding.userViewModel = userViewModel
+        navigationdrawerHeaderViewBinding.executePendingBindings()
+
         if (view.framelayout_main != null) {
             if (savedInstanceState != null) {
                 // Prevent Fragment overlapping
                 return
             }
-            if (sessionManager!!.isLoggedIn) {
+            if (sessionManager.isLoggedIn) {
                 val id = intent.getLongExtra("id", -1)
                 val wasMainActivityStartedFromLauncherIcon = id == -1L
                 if (wasMainActivityStartedFromLauncherIcon) {
                     openMainListFragment(view)
                 } else if (wasMainActivityStartedFromNotification(id)) {
-                    todosViewModel!!.todo = getNotificationRelatedTodo(id)
+                    todosViewModel.todo = getNotificationRelatedTodo(id)
                     openMainListFragment(view)
                     val todoListFragment = TodoListFragment()
                     openAllPredefinedList(todoListFragment, view)
@@ -116,15 +118,20 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun openAllPredefinedList(todoListFragment: TodoListFragment, view: View) {
-        val allPredefinedListWhere = dbLoader!!.prepareAllPredefinedListWhere()
+        val allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere()
         val predefinedList = PredefinedList(getString(R.string.all_all), allPredefinedListWhere)
-        todosViewModel!!.setIsPredefinedList(true)
-        predefinedListsViewModel!!.predefinedList = predefinedList
+        predefinedListsViewModel.predefinedList = predefinedList
+        lifecycleScope.launch {
+            todosViewModel.updateTodosViewModelByWhereCondition(
+                    predefinedList.title,
+                    predefinedList.selectFromDB
+            )
+        }
         openTodoListFragment(todoListFragment, view)
     }
 
     private fun getNotificationRelatedTodo(id: Long): Todo {
-        return dbLoader!!.getTodo(id)
+        return dbLoader.getTodo(id)
     }
 
     private fun prepareActionBarNavigationHandler() {
@@ -167,7 +174,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun enableActionBarBackNavigation() {
-        actionBarDrawerToggle!!.toolbarNavigationClickListener = View.OnClickListener {
+        actionBarDrawerToggle?.toolbarNavigationClickListener = View.OnClickListener {
             onBackPressed()
             hideSoftInput()
         }
@@ -175,30 +182,29 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
 
     private fun enableDrawer(view: View?) {
         if (view != null)
-            view.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+            view.mainlist_drawerlayout?.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
         else
-            this.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-        actionBarDrawerToggle!!.isDrawerIndicatorEnabled = true
-        actionBarDrawerToggle!!.syncState()
+            this.mainlist_drawerlayout?.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+        actionBarDrawerToggle?.isDrawerIndicatorEnabled = true
+        actionBarDrawerToggle?.syncState()
     }
 
     private fun disableDrawer(view: View?) {
         if (view != null)
-            view.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+            view.mainlist_drawerlayout?.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         else
-            this.mainlist_drawerlayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        actionBarDrawerToggle!!.isDrawerIndicatorEnabled = false
-        actionBarDrawerToggle!!.syncState()
+            this.mainlist_drawerlayout?.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        actionBarDrawerToggle?.isDrawerIndicatorEnabled = false
+        actionBarDrawerToggle?.syncState()
     }
 
     private fun prepareNavigationView(view: View) {
-        view.mainlist_navigationview!!.setNavigationItemSelectedListener { menuItem ->
-            val menuItemId = menuItem.itemId
-            when (menuItemId) {
+        view.mainlist_navigationview?.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
                 R.id.menuitem_navigationdrawer_settings -> openSettingsPreferenceFragment(view)
                 R.id.menuitem_navigationdrawer_logout -> openLogoutUserDialogFragment()
             }
-            view.mainlist_drawerlayout!!.closeDrawers()
+            view.mainlist_drawerlayout?.closeDrawers()
             true
         }
         actionBarDrawerToggle = ActionBarDrawerToggle(
@@ -208,8 +214,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
                 R.string.actionbardrawertoggle_opendrawer,
                 R.string.actionbardrawertoggle_closedrawer
         )
-        view.mainlist_drawerlayout!!.addDrawerListener(actionBarDrawerToggle!!)
-        actionBarDrawerToggle!!.syncState()
+        actionBarDrawerToggle?.let { view.mainlist_drawerlayout?.addDrawerListener(it) }
+        actionBarDrawerToggle?.syncState()
     }
 
     private fun openLogoutUserDialogFragment() {
@@ -218,8 +224,9 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     fun onPrepareNavigationHeader() {
-        val user = dbLoader!!.user
-        (userViewModel!!.user as MutableLiveData<User>).value = user
+        lifecycleScope.launch {
+            userViewModel.updateUserViewModel()
+        }
     }
 
     fun onSearchActionItemClick() {
@@ -227,7 +234,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun openSearchFragment() {
-        todosViewModel!!.clearTodos()
+        todosViewModel.todos.value?.clear()
         val searchFragment = SearchFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
@@ -248,23 +255,12 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         return super.onOptionsItemSelected(item)
     }
 
-    private fun hideSoftInput() {
-        val inputMethodManager = getSystemService(
-                Context.INPUT_METHOD_SERVICE
-        ) as InputMethodManager
-        val currentlyFocusedView = currentFocus
-        if (currentlyFocusedView != null) {
-            val windowToken = currentlyFocusedView.windowToken
-            inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
-        }
-    }
-
     override fun onBackPressed() {
         val fragmentManager = supportFragmentManager
         val modifyTodoFragment = fragmentManager.findFragmentByTag(
                 "ModifyTodoFragment"
         ) as ModifyTodoFragment?
-        if (modifyTodoFragment != null && modifyTodoFragment.isShouldNavigateBack) {
+        if (modifyTodoFragment != null && todosViewModel.shouldNavigateBack) {
             super.onBackPressed()
         } else if (modifyTodoFragment != null) {
             modifyTodoFragment.handleModifyTodo()
@@ -272,8 +268,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
             navigateBackToLoginUserFragment()
         } else if (fragmentManager.findFragmentByTag("ResetPasswordFragment") != null) {
             navigateBackToLoginUserFragment()
-        } else if (this.mainlist_drawerlayout!!.isDrawerOpen(GravityCompat.START)) {
-            this.mainlist_drawerlayout!!.closeDrawers()
+        } else if (this.mainlist_drawerlayout?.isDrawerOpen(GravityCompat.START) == true) {
+            this.mainlist_drawerlayout?.closeDrawers()
         } else {
             super.onBackPressed()
         }
@@ -284,20 +280,29 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         onSetActionBarTitle(getString(R.string.all_login))
     }
 
-    fun onClickPredefinedList(predefinedList: PredefinedList?) {
-        todosViewModel!!.setIsPredefinedList(true)
-        predefinedListsViewModel!!.predefinedList = predefinedList
+    fun onClickPredefinedList(predefinedList: PredefinedList) {
+        lifecycleScope.launch {
+            todosViewModel.updateTodosViewModelByWhereCondition(
+                    predefinedList.title,
+                    predefinedList.selectFromDB
+            )
+        }
         openTodoListFragment()
     }
 
-    fun onClickList(list: List?) {
-        todosViewModel!!.setIsPredefinedList(false)
-        listsViewModel!!.list = list
+    fun onClickList(list: List) {
+        lifecycleScope.launch {
+            list.listOnlineId?.let {
+                todosViewModel.updateTodosViewModelByListOnlineId(
+                        list.title,
+                        it
+                )
+            }
+        }
         openTodoListFragment()
     }
 
     private fun openTodoListFragment() {
-        todosViewModel!!.clearTodos()
         val todoListFragment = TodoListFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
@@ -316,15 +321,15 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
 
     fun onLogout() {
         cancelReminders()
-        sessionManager!!.setLogin(false)
+        sessionManager.setLogin(false)
         val fragmentManager = supportFragmentManager
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         openLoginUserFragment(null)
-        dbLoader!!.reCreateDb()
+        dbLoader.reCreateDb()
     }
 
     private fun cancelReminders() {
-        val todosWithReminder = dbLoader!!.todosWithReminder
+        val todosWithReminder = dbLoader.todosWithReminder
         for (todoWithReminder in todosWithReminder) {
             ReminderSetter.cancelReminderService(todoWithReminder)
         }
@@ -453,29 +458,28 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     fun onSetActionBarTitle(title: String?) {
-        if (supportActionBar != null)
-            supportActionBar!!.title = title
+        supportActionBar?.title = title
         setDrawerEnabled(title == "Todo Cloud", null)
     }
 
     fun onStartActionMode(callback: ActionMode.Callback?) {
-        startSupportActionMode(callback!!)
+        callback?.let { startSupportActionMode(it) }
     }
 
     fun openModifyTodoFragment(targetFragment: Fragment?, view: View?) {
         val modifyTodoFragment = ModifyTodoFragment()
         modifyTodoFragment.setTargetFragment(targetFragment, 0)
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
+
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
         if (view != null)
             fragmentTransaction.replace(
-                    view.framelayout_main!!.id,
+                    view.framelayout_main.id,
                     modifyTodoFragment,
                     "ModifyTodoFragment"
             )
         else
             fragmentTransaction.replace(
-                    this.framelayout_main!!.id,
+                    this.framelayout_main.id,
                     modifyTodoFragment,
                     "ModifyTodoFragment"
             )
@@ -486,48 +490,36 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     fun onOpenCreateTodoFragment(targetFragment: TodoListFragment?) {
         val createTodoFragment = CreateTodoFragment()
         createTodoFragment.setTargetFragment(targetFragment, 0)
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(this.framelayout_main!!.id, createTodoFragment)
+
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction.replace(this.framelayout_main.id, createTodoFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
 
     fun openSettingsPreferenceFragment(view: View) {
         val settingsPreferenceFragment = SettingsPreferenceFragment()
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(view.framelayout_main!!.id, settingsPreferenceFragment)
+
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction.replace(view.framelayout_main.id, settingsPreferenceFragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
 
-    fun ModifyTodo() {
-        val todo = todosViewModel!!.todo
-        dbLoader!!.updateTodo(todo)
-        dbLoader!!.fixTodoPositions(null)
-        updateTodosViewModel()
-        if (isSetReminder(todo)) {
-            if (shouldCreateReminderService(todo)) {
-                ReminderSetter.createReminderService(todo)
+    fun onModifyTodo() {
+        lifecycleScope.launch {
+            dbLoader.updateTodo(todosViewModel.todo)
+            dbLoader.fixTodoPositions(null)
+            todosViewModel.updateTodosViewModel()
+        }
+
+        if (isSetReminder(todosViewModel.todo)) {
+            if (shouldCreateReminderService(todosViewModel.todo)) {
+                ReminderSetter.createReminderService(todosViewModel.todo)
             }
         } else {
-            ReminderSetter.cancelReminderService(todo)
+            ReminderSetter.cancelReminderService(todosViewModel.todo)
         }
-    }
-
-    fun CreateTodo() {
-        val todo = todosViewModel!!.todo
-        createTodoInLocalDatabase(todo)
-        updateTodosViewModel()
-        if (isSetReminder(todo) && isNotCompleted(todo)) {
-            ReminderSetter.createReminderService(todo)
-        }
-    }
-
-    private fun updateTodosViewModel() {
-        val updateViewModelTask = UpdateViewModelTask(todosViewModel, this)
-        updateViewModelTask.execute()
     }
 
     private fun isSetReminder(todo: Todo): Boolean {
@@ -539,51 +531,10 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun isNotCompleted(todo: Todo): Boolean {
-        return !todo.completed!!
+        return todo.completed?.not() ?: true
     }
 
     private fun isNotDeleted(todo: Todo): Boolean {
-        return !todo.deleted!!
+        return todo.deleted?.not() ?: true
     }
-
-    private fun createTodoInLocalDatabase(todoToCreate: Todo) {
-        val listOnlineId = listsViewModel!!.list.listOnlineId
-        if (isPredefinedListCompleted) {
-            todoToCreate.completed = true
-        }
-        if (!todosViewModel!!.isPredefinedList) {
-            todoToCreate.listOnlineId = listOnlineId
-        }
-        todoToCreate.userOnlineId = dbLoader!!.userOnlineId
-        todoToCreate._id = dbLoader!!.createTodo(todoToCreate)
-        val todoOnlineId = OnlineIdGenerator.generateOnlineId(
-                DbConstants.Todo.DATABASE_TABLE,
-                todoToCreate._id!!,
-                dbLoader!!.apiKey
-        )
-        todoToCreate.todoOnlineId = todoOnlineId
-        dbLoader!!.updateTodo(todoToCreate)
-        dbLoader!!.fixTodoPositions(null)
-    }
-
-    private val isPredefinedListCompleted: Boolean
-        private get() {
-            if (todosViewModel!!.isPredefinedList) {
-                val selectPredefinedListCompleted = DbConstants.Todo.KEY_COMPLETED +
-                        "=" +
-                        1 +
-                        " AND " +
-                        DbConstants.Todo.KEY_USER_ONLINE_ID +
-                        "='" +
-                        dbLoader!!.userOnlineId +
-                        "'" +
-                        " AND " +
-                        DbConstants.Todo.KEY_DELETED +
-                        "=" +
-                        0
-                return predefinedListsViewModel!!.predefinedList
-                        .selectFromDB == selectPredefinedListCompleted
-            }
-            return false
-        }
 }
