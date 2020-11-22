@@ -2,8 +2,6 @@ package com.rolandvitezhu.todocloud.helper;
 
 import android.util.Base64;
 
-import com.rolandvitezhu.todocloud.datastorage.DbConstants;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -11,7 +9,7 @@ public class OnlineIdGenerator {
 
   public static String generateUserOnlineId(long _id) {
     String installationId = InstallationIdHelper.getInstallationId();
-    String table = DbConstants.User.DATABASE_TABLE;
+    String table = "user";
     String onlineIdBase = installationId + table + _id;
     byte[] onlineIdBaseBytes = onlineIdBase.getBytes();
     MessageDigest messageDigest = null;

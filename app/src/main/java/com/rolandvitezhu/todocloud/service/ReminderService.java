@@ -9,12 +9,13 @@ import android.content.IntentFilter;
 
 import com.rolandvitezhu.todocloud.app.AppController;
 import com.rolandvitezhu.todocloud.data.Todo;
-import com.rolandvitezhu.todocloud.datastorage.DbLoader;
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao;
 import com.rolandvitezhu.todocloud.receiver.ReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 import javax.inject.Inject;
 
@@ -28,7 +29,7 @@ public class ReminderService extends IntentService {
   public static final String CANCEL = "CANCEL";
 
   @Inject
-  DbLoader dbLoader;
+  TodoCloudDatabaseDao todoCloudDatabaseDao;
 
   private IntentFilter intentFilter;
 
@@ -92,7 +93,14 @@ public class ReminderService extends IntentService {
   }
 
   private void handleReminders(String action) {
-    ArrayList<Todo> todos = dbLoader.getTodosWithReminder();
+    ArrayList<Todo> todos = null;
+    try {
+      todos = todoCloudDatabaseDao.getTodosWithReminderJava().get();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     for (Todo todo:todos) {
       Intent receiverIntent = prepareReceiverIntent(todo);
       int id = Objects.requireNonNull(todo.get_id()).intValue();

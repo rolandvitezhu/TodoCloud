@@ -2,30 +2,45 @@ package com.rolandvitezhu.todocloud.data
 
 import android.database.Cursor
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
+@Entity(tableName = "list")
 @Parcelize
 data class List (
+        @PrimaryKey(autoGenerate = true)
         var _id: Long?,
+        @ColumnInfo(name = "list_online_id")
         @SerializedName("list_online_id")
         var listOnlineId: String?,
+        @ColumnInfo(name = "user_online_id")
         @SerializedName("user_online_id")
         var userOnlineId: String?,
+        @ColumnInfo(name = "category_online_id")
         @SerializedName("category_online_id")
         var categoryOnlineId: String?,
+        @ColumnInfo(name = "title")
         @SerializedName("title")
-        var title: String,
+        var title: String = "",
+        @ColumnInfo(name = "row_version")
         @SerializedName("row_version")
-        var rowVersion: Int,
+        var rowVersion: Int = 0,
+        @ColumnInfo(name = "deleted")
         @SerializedName("deleted")
-        var deleted: Boolean?,
-        var dirty: Boolean,
+        var deleted: Boolean? = false,
+        @ColumnInfo(name = "dirty")
+        var dirty: Boolean = false,
+        @ColumnInfo(name = "position")
         @SerializedName("position")
-        var position: Double,
+        var position: Double = 5.0,
+        @Ignore
         var isSelected: Boolean = false
 ) : Parcelable {
-    constructor() : this(
+    constructor() : this (
             null,
             null,
             null,

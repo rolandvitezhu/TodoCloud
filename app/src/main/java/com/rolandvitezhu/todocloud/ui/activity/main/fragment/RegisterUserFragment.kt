@@ -15,8 +15,9 @@ import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabase
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentRegisteruserBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.*
 import com.rolandvitezhu.todocloud.helper.GeneralHelper.validateField
 import com.rolandvitezhu.todocloud.network.ApiService
@@ -24,7 +25,9 @@ import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.UserViewModel
 import kotlinx.android.synthetic.main.fragment_registeruser.*
 import kotlinx.android.synthetic.main.fragment_registeruser.view.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import javax.inject.Inject
 
@@ -36,7 +39,9 @@ class RegisterUserFragment : Fragment() {
     @Inject
     lateinit var sessionManager: SessionManager
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
+    @Inject
+    lateinit var todoCloudDatabase: TodoCloudDatabase
     @Inject
     lateinit var retrofit: Retrofit
 
@@ -99,13 +104,15 @@ class RegisterUserFragment : Fragment() {
                 and validateEmail()
                 and validatePassword()
                 and validateConfirmPassword()) {
-            dbLoader.reCreateDb()
-
-            userViewModel.user.value?._id = dbLoader.createUser(userViewModel.user.value)
-            userViewModel.user.value?.userOnlineId =
-                    OnlineIdGenerator.generateUserOnlineId(userViewModel.user.value?._id as Long)
-
-            handleRegisterUserRequest()
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) { todoCloudDatabase.clearAllTables() }
+                userViewModel.user.value?._id = userViewModel.user.value?.let{
+                    todoCloudDatabaseDao.insertUser(it)
+                }
+                userViewModel.user.value?.userOnlineId =
+                        OnlineIdGenerator.generateUserOnlineId(userViewModel.user.value?._id as Long)
+                handleRegisterUserRequest()
+            }
         }
     }
 

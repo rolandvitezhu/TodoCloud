@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.data.Category
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.DialogMovelistBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.setSoftInputMode
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
@@ -22,7 +22,7 @@ import javax.inject.Inject
 class MoveListDialogFragment : AppCompatDialogFragment() {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val listsViewModel by lazy {
         ViewModelProvider(requireActivity()).get(ListsViewModel::class.java)

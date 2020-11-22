@@ -1,11 +1,13 @@
 package com.rolandvitezhu.todocloud.di.module
 
 import com.google.gson.GsonBuilder
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.app.AppController
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabase
 import com.rolandvitezhu.todocloud.helper.BooleanTypeAdapter
 import com.rolandvitezhu.todocloud.network.ApiService
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -41,7 +43,12 @@ class NetworkModule {
         clientBuilder.addInterceptor { chain ->
             val original = chain.request()
             val requestBuilder = original.newBuilder()
-            val apiKey = DbLoader.getInstance().apiKey
+            var apiKey: String?
+            runBlocking {
+                apiKey = TodoCloudDatabase.
+                getInstance(AppController.appContext.applicationContext).
+                todoCloudDatabaseDao.getCurrentApiKey()
+            }
             val headersBuilder = Headers.Builder()
 
             // Add Authorization header
@@ -81,7 +88,11 @@ class NetworkModule {
         clientBuilder.addInterceptor { chain ->
             val original = chain.request()
             val requestBuilder = original.newBuilder()
-            val apiKey = DbLoader.getInstance().apiKey
+            var apiKey: String?
+            runBlocking {
+                apiKey = TodoCloudDatabase.getInstance(AppController.appContext.applicationContext).
+                todoCloudDatabaseDao.getCurrentApiKey()
+            }
             val headersBuilder = Headers.Builder()
 
             // Add the authorization header

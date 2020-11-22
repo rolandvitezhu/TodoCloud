@@ -7,14 +7,14 @@ import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController.Companion.appContext
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.PredefinedList
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import java.util.*
 import javax.inject.Inject
 
 class PredefinedListsViewModel : ViewModel() {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val _predefinedLists = MutableLiveData<List<PredefinedList>>()
     val predefinedLists: LiveData<List<PredefinedList>>
@@ -24,27 +24,24 @@ class PredefinedListsViewModel : ViewModel() {
     /**
      * Set the list of predefined lists.
      */
-    fun updatePredefinedListsViewModel() {
-        if (appContext != null)
-        {
-            val todayPredefinedListWhere: String = dbLoader.prepareTodayPredefinedListWhere()
-            val next7DaysPredefinedListWhere: String = dbLoader.prepareNext7DaysPredefinedListWhere()
-            val allPredefinedListWhere: String = dbLoader.prepareAllPredefinedListWhere()
-            val completedPredefinedListWhere: String = dbLoader.prepareCompletedPredefinedListWhere()
+    suspend fun updatePredefinedListsViewModel() {
+        val todayPredefinedListWhere: String = todoCloudDatabaseDao.prepareTodayPredefinedListWhere()
+        val next7DaysPredefinedListWhere: String = todoCloudDatabaseDao.prepareNext7DaysPredefinedListWhere()
+        val allPredefinedListWhere: String = todoCloudDatabaseDao.prepareAllPredefinedListWhere()
+        val completedPredefinedListWhere: String = todoCloudDatabaseDao.prepareCompletedPredefinedListWhere()
 
-            val predefinedLists = ArrayList<PredefinedList>()
+        val predefinedLists = ArrayList<PredefinedList>()
 
-            predefinedLists.add(
-                    PredefinedList(appContext!!.getString(R.string.all_today), todayPredefinedListWhere))
-            predefinedLists.add(
-                    PredefinedList(appContext!!.getString(R.string.all_next7days), next7DaysPredefinedListWhere))
-            predefinedLists.add(
-                    PredefinedList(appContext!!.getString(R.string.all_all), allPredefinedListWhere))
-            predefinedLists.add(
-                    PredefinedList(appContext!!.getString(R.string.all_completed), completedPredefinedListWhere))
+        predefinedLists.add(
+                PredefinedList(appContext.getString(R.string.all_today), todayPredefinedListWhere))
+        predefinedLists.add(
+                PredefinedList(appContext.getString(R.string.all_next7days), next7DaysPredefinedListWhere))
+        predefinedLists.add(
+                PredefinedList(appContext.getString(R.string.all_all), allPredefinedListWhere))
+        predefinedLists.add(
+                PredefinedList(appContext.getString(R.string.all_completed), completedPredefinedListWhere))
 
-            _predefinedLists.value = predefinedLists
-        }
+        _predefinedLists.value = predefinedLists
     }
 
     init {

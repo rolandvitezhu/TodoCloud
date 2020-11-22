@@ -2,30 +2,41 @@ package com.rolandvitezhu.todocloud.data
 
 import android.database.Cursor
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import com.rolandvitezhu.todocloud.network.api.user.dto.LoginUserResponse
 import kotlinx.android.parcel.Parcelize
 
+@Entity(tableName = "user")
 @Parcelize
 data class User(
+    @PrimaryKey(autoGenerate = true)
     var _id: Long?,
+    @ColumnInfo(name = "user_online_id")
     @SerializedName("user_online_id")
     var userOnlineId: String?,
+    @ColumnInfo(name = "name")
     @SerializedName("name")
-    var name: String,
+    var name: String = "",
+    @ColumnInfo(name = "email")
     @SerializedName("email")
-    var email: String,
+    var email: String = "",
+    @ColumnInfo(name = "api_key")
     @SerializedName("api_key")
     var apiKey: String?,
+    @Ignore
     @SerializedName("password")
-    var password: String
+    var password: String = ""
 ) : Parcelable {
     constructor() : this(
             null,
             null,
             "",
             "",
-            null,
+            "",
             ""
     )
     constructor(cursor: Cursor) : this(

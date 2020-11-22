@@ -15,8 +15,8 @@ import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentModifypasswordBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.GeneralHelper.validateField
 import com.rolandvitezhu.todocloud.helper.applyOrientationFullSensor
 import com.rolandvitezhu.todocloud.helper.applyOrientationPortrait
@@ -36,7 +36,7 @@ class ModifyPasswordFragment : Fragment() {
     private lateinit var apiService: ApiService
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var retrofit: Retrofit
 

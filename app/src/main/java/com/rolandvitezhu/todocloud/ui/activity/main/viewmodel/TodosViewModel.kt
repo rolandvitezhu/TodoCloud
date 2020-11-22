@@ -8,8 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.rolandvitezhu.todocloud.BR
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.Todo
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
 import com.rolandvitezhu.todocloud.helper.SharedPreferencesHelper
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter
@@ -25,7 +24,7 @@ class TodosViewModel : ObservableViewModel() {
     @Inject
     lateinit var todoRepository: TodoRepository
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val _todos = MutableLiveData<ArrayList<Todo>>()
     val todos: LiveData<ArrayList<Todo>>
@@ -36,7 +35,7 @@ class TodosViewModel : ObservableViewModel() {
     var listOnlineId: String = ""
     var isPredefinedList = false
     val onCompletedPredefinedList: Boolean
-        get() = whereCondition.contains("completed=1")
+        get() = whereCondition.contains("completed = 1")
     var todoTitle
         @Bindable
         get() = todo.title
@@ -95,7 +94,7 @@ class TodosViewModel : ObservableViewModel() {
         initTodosViewModel(true)
         this.todosTitle = title
         this.whereCondition = whereCondition
-        _todos.value = dbLoader.getTodosByWhereCondition(whereCondition)
+        _todos.value = todoCloudDatabaseDao.getTodosByWhereCondition(whereCondition)
     }
 
     /**
@@ -106,7 +105,7 @@ class TodosViewModel : ObservableViewModel() {
         initTodosViewModel(false)
         this.todosTitle = title
         this.listOnlineId = listOnlineId
-        _todos.value = dbLoader.getTodosByListOnlineId(listOnlineId)
+        _todos.value = todoCloudDatabaseDao.getTodosByListOnlineId(listOnlineId)
     }
 
     /**
@@ -136,7 +135,7 @@ class TodosViewModel : ObservableViewModel() {
         viewModelScope.launch {
             if (todos != null) {
                 for (todoToSoftDelete in todos) {
-                    dbLoader.softDeleteTodo(todoToSoftDelete)
+                    todoCloudDatabaseDao.softDeleteTodo(todoToSoftDelete)
                     ReminderSetter.cancelReminderService(todoToSoftDelete)
                 }
             }
@@ -153,17 +152,15 @@ class TodosViewModel : ObservableViewModel() {
      * Mark the todo as deleted in the local database and update the todos.
      */
     fun onSoftDelete(onlineId: String?, targetFragment: Fragment?) {
-        val todo = dbLoader.getTodo(onlineId)
-
         viewModelScope.launch {
-            dbLoader.softDeleteTodo(todo)
+            val todo = todoCloudDatabaseDao.getTodo(onlineId)
+            todo?.let{ todoCloudDatabaseDao.softDeleteTodo(it) }
             updateTodosViewModel()
-        }
-
-        ReminderSetter.cancelReminderService(todo)
-        when (targetFragment) {
-            is TodoListFragment? -> targetFragment?.finishActionMode()
-            is SearchFragment? -> targetFragment?.finishActionMode()
+            ReminderSetter.cancelReminderService(todo)
+            when (targetFragment) {
+                is TodoListFragment? -> targetFragment?.finishActionMode()
+                is SearchFragment? -> targetFragment?.finishActionMode()
+            }
         }
     }
 
@@ -177,7 +174,9 @@ class TodosViewModel : ObservableViewModel() {
         if (listOnlineId.isNotEmpty())
             todo.listOnlineId = listOnlineId
         todo.completed = onCompletedPredefinedList
-        todo.position = dbLoader.nextFirstTodoPosition
+        viewModelScope.launch {
+            todo.position = todoCloudDatabaseDao.getNextFirstTodoPosition()
+        }
 
         initTodoDueDate()
         setTodoReminderDateTime(null)
@@ -191,7 +190,12 @@ class TodosViewModel : ObservableViewModel() {
         viewModelScope.launch {
             createTodoInLocalDatabase()
             updateTodosViewModel()
+            createReminderService()
         }
+    }
+
+    // Todo: Remove the suspend modifier, if it is not necessary.
+    private fun createReminderService() {
         if (isSetReminder() && isNotCompleted()) {
             ReminderSetter.createReminderService(todo)
         }
@@ -203,34 +207,34 @@ class TodosViewModel : ObservableViewModel() {
     fun onModifyTodo() {
         shouldNavigateBack = true
         viewModelScope.launch {
-            dbLoader.updateTodo(todo)
-            dbLoader.fixTodoPositions(null)
+            todoCloudDatabaseDao.updateTodo(todo)
+            todoCloudDatabaseDao.fixTodoPositions()
             updateTodosViewModel()
-        }
 
-        if (isSetReminder()) {
-            if (shouldCreateReminderService()) {
-                ReminderSetter.createReminderService(todo)
+            if (isSetReminder()) {
+                if (shouldCreateReminderService()) {
+                    ReminderSetter.createReminderService(todo)
+                }
+            } else {
+                ReminderSetter.cancelReminderService(todo)
             }
-        } else {
-            ReminderSetter.cancelReminderService(todo)
         }
     }
 
     /**
      * Create a todo and insert it into the local database.
      */
-    private fun createTodoInLocalDatabase() {
-        todo.userOnlineId = dbLoader.userOnlineId
-        todo._id = dbLoader.createTodo(todo)
+    private suspend fun createTodoInLocalDatabase() {
+        todo.userOnlineId = todoCloudDatabaseDao.getCurrentUserOnlineId()
+        todo._id = todoCloudDatabaseDao.insertTodo(todo)
         val todoOnlineId = OnlineIdGenerator.generateOnlineId(
-                DbConstants.Todo.DATABASE_TABLE,
+                "todo",
                 todo._id!!,
-                dbLoader.apiKey
+                todoCloudDatabaseDao.getCurrentApiKey()
         )
         todo.todoOnlineId = todoOnlineId
-        dbLoader.updateTodo(todo)
-        dbLoader.fixTodoPositions(null)
+        todoCloudDatabaseDao.updateTodo(todo)
+        todoCloudDatabaseDao.fixTodoPositions()
     }
 
     /**
@@ -382,11 +386,11 @@ class TodosViewModel : ObservableViewModel() {
                 val correctPosition = originalTodos[i].position
                 it[i].position = correctPosition
 
-                dbLoader.updateTodo(it[i])
+                todoCloudDatabaseDao.updateTodo(it[i])
             }
         }
 
-        dbLoader.fixTodoPositions(null)
+        todoCloudDatabaseDao.fixTodoPositions()
     }
 
     /**

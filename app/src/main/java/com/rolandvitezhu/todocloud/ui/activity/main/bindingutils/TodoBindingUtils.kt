@@ -14,6 +14,9 @@ import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.SearchFragment
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.TodoListFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @BindingAdapter("todoSelectedState")
 fun ConstraintLayout.setTodoSelectedState(todo: Todo) {
@@ -61,7 +64,8 @@ fun AppCompatCheckBox.setCheckBoxTodoCompletedOnTouchListener(
     setOnTouchListener { v, event ->
         if (todoAdapter.shouldHandleCheckBoxTouchEvent(event, itemViewHolder)) {
             todoAdapter.toggleCompleted(todo)
-            todoAdapter.updateTodo(todo)
+            val scope = CoroutineScope(Dispatchers.IO)
+            scope.launch { todoAdapter.updateTodo(todo) }
             todoAdapter.removeTodoFromAdapter(itemViewHolder.adapterPosition)
             todoAdapter.handleReminderService(todo)
         }

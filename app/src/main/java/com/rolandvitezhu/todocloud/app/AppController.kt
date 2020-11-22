@@ -4,11 +4,11 @@ import android.app.Application
 import android.graphics.Color
 import android.widget.TextView
 import androidx.appcompat.view.ActionMode
-import com.google.android.material.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.jakewharton.threetenabp.AndroidThreeTen
+import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.di.component.AppComponent
 import com.rolandvitezhu.todocloud.di.component.DaggerAppComponent
 
@@ -43,7 +43,7 @@ open class AppController : Application() {
             return actionMode != null
         }
 
-        var appContext: Application? = null
+        lateinit var appContext: Application
 
         fun showWhiteTextSnackbar(snackbar: Snackbar) {
             val snackbarTextView = snackbar.view

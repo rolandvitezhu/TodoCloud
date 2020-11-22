@@ -20,9 +20,10 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnac
 import com.rolandvitezhu.todocloud.data.List
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabase
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.ActivityMainBinding
 import com.rolandvitezhu.todocloud.databinding.NavigationdrawerHeaderBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.SessionManager
 import com.rolandvitezhu.todocloud.helper.hideSoftInput
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter
@@ -37,13 +38,17 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.layout_appbar.*
 import kotlinx.android.synthetic.main.layout_appbar.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
+    @Inject
+    lateinit var todoCloudDatabase: TodoCloudDatabase
     @Inject
     lateinit var sessionManager: SessionManager
 
@@ -98,7 +103,9 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
                 if (wasMainActivityStartedFromLauncherIcon) {
                     openMainListFragment(view)
                 } else if (wasMainActivityStartedFromNotification(id)) {
-                    todosViewModel.todo = getNotificationRelatedTodo(id)
+                    lifecycleScope.launch {
+                        todosViewModel.todo = getNotificationRelatedTodo(id)
+                    }
                     openMainListFragment(view)
                     val todoListFragment = TodoListFragment()
                     openAllPredefinedList(todoListFragment, view)
@@ -118,10 +125,10 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun openAllPredefinedList(todoListFragment: TodoListFragment, view: View) {
-        val allPredefinedListWhere = dbLoader.prepareAllPredefinedListWhere()
-        val predefinedList = PredefinedList(getString(R.string.all_all), allPredefinedListWhere)
-        predefinedListsViewModel.predefinedList = predefinedList
         lifecycleScope.launch {
+            val allPredefinedListWhere = todoCloudDatabaseDao.prepareAllPredefinedListWhere()
+            val predefinedList = PredefinedList(getString(R.string.all_all), allPredefinedListWhere)
+            predefinedListsViewModel.predefinedList = predefinedList
             todosViewModel.updateTodosViewModelByWhereCondition(
                     predefinedList.title,
                     predefinedList.selectFromDB
@@ -130,8 +137,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         openTodoListFragment(todoListFragment, view)
     }
 
-    private fun getNotificationRelatedTodo(id: Long): Todo {
-        return dbLoader.getTodo(id)
+    private suspend fun getNotificationRelatedTodo(id: Long): Todo {
+        return todoCloudDatabaseDao.getTodo(id)?: Todo()
     }
 
     private fun prepareActionBarNavigationHandler() {
@@ -325,13 +332,15 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         val fragmentManager = supportFragmentManager
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         openLoginUserFragment(null)
-        dbLoader.reCreateDb()
+        GlobalScope.launch(Dispatchers.IO) { todoCloudDatabase.clearAllTables() }
     }
 
     private fun cancelReminders() {
-        val todosWithReminder = dbLoader.todosWithReminder
-        for (todoWithReminder in todosWithReminder) {
-            ReminderSetter.cancelReminderService(todoWithReminder)
+        lifecycleScope.launch {
+            val todosWithReminder = todoCloudDatabaseDao.getTodosWithReminder()
+            for (todoWithReminder in todosWithReminder) {
+                ReminderSetter.cancelReminderService(todoWithReminder)
+            }
         }
     }
 
@@ -508,8 +517,8 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
 
     fun onModifyTodo() {
         lifecycleScope.launch {
-            dbLoader.updateTodo(todosViewModel.todo)
-            dbLoader.fixTodoPositions(null)
+            todoCloudDatabaseDao.updateTodo(todosViewModel.todo)
+            todoCloudDatabaseDao.fixTodoPositions()
             todosViewModel.updateTodosViewModel()
         }
 

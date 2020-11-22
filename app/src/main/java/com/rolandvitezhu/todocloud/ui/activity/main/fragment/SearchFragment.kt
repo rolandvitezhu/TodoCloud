@@ -21,8 +21,8 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.app.AppController.Companion.isDraggingEnabled
 import com.rolandvitezhu.todocloud.data.PredefinedList
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentSearchBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.hideSoftInput
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter
@@ -38,7 +38,7 @@ import javax.inject.Inject
 class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var todoAdapter: TodoAdapter
 
@@ -346,9 +346,11 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
             }
 
             private fun showSearchResults(newText: String) {
-                val whereCondition = dbLoader.prepareSearchWhereCondition(newText)
-                predefinedListsViewModel?.predefinedList = PredefinedList("0", whereCondition)
                 lifecycleScope.launch {
+                    val whereCondition =
+                            todoCloudDatabaseDao.prepareSearchWhereCondition(newText)
+                    predefinedListsViewModel?.predefinedList =
+                            PredefinedList("0", whereCondition)
                     todosViewModel?.updateTodosViewModelByWhereCondition(
                             "",
                             whereCondition

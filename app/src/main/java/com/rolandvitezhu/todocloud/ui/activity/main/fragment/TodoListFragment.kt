@@ -16,8 +16,8 @@ import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.app.AppController.Companion.isDraggingEnabled
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentTodolistBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.ui.activity.main.MainActivity
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter
 import com.rolandvitezhu.todocloud.ui.activity.main.dialogfragment.ConfirmDeleteDialogFragment
@@ -26,16 +26,14 @@ import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.ListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.PredefinedListsViewModel
 import com.rolandvitezhu.todocloud.ui.activity.main.viewmodel.TodosViewModel
 import kotlinx.android.synthetic.main.layout_recyclerview_todolist.view.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 
 class TodoListFragment : Fragment(), DialogInterface.OnDismissListener {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var todoAdapter: TodoAdapter
 
@@ -186,11 +184,9 @@ class TodoListFragment : Fragment(), DialogInterface.OnDismissListener {
      * of the positions if there are.
      */
     private suspend fun persistSwappedItems(todoFrom: Todo?, todoTo: Todo?) {
-        withContext(Dispatchers.IO) {
-            dbLoader.updateTodo(todoFrom)
-            dbLoader.updateTodo(todoTo)
-            dbLoader.fixTodoPositions(null)
-        }
+        todoFrom?.let{ todoCloudDatabaseDao.updateTodo(it) }
+        todoTo?.let{ todoCloudDatabaseDao.updateTodo(it) }
+        todoCloudDatabaseDao.fixTodoPositions()
     }
 
     private fun getSwipedTodo(viewHolder: RecyclerView.ViewHolder): Todo {

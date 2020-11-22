@@ -12,8 +12,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentLoginuserBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.helper.GeneralHelper.validateField
 import com.rolandvitezhu.todocloud.helper.SessionManager
 import com.rolandvitezhu.todocloud.helper.applyOrientationFullSensor
@@ -36,7 +36,7 @@ class LoginUserFragment : Fragment() {
     @Inject
     lateinit var sessionManager: SessionManager
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var retrofit: Retrofit
 

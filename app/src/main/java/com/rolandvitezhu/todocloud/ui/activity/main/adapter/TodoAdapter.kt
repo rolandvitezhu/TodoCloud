@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.app.AppController.Companion.isActionMode
 import com.rolandvitezhu.todocloud.data.Todo
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.ItemTodoBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.di.FragmentScope
 import com.rolandvitezhu.todocloud.receiver.ReminderSetter
 import com.rolandvitezhu.todocloud.ui.activity.main.adapter.TodoAdapter.ItemViewHolder
@@ -21,7 +21,7 @@ import kotlin.collections.ArrayList
 class TodoAdapter @Inject constructor() : RecyclerView.Adapter<ItemViewHolder>() {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val todos: MutableList<Todo>
     var itemTouchHelper: ItemTouchHelper? = null
@@ -112,10 +112,10 @@ class TodoAdapter @Inject constructor() : RecyclerView.Adapter<ItemViewHolder>()
         return !todos[position].isSelected
     }
 
-    fun updateTodo(todo: Todo) {
+    suspend fun updateTodo(todo: Todo) {
         todo.dirty = true
-        dbLoader.updateTodo(todo)
-        dbLoader.fixTodoPositions(null)
+        todoCloudDatabaseDao.updateTodo(todo)
+        todoCloudDatabaseDao.fixTodoPositions()
     }
 
     fun shouldHandleCheckBoxTouchEvent(event: MotionEvent, holder: ItemViewHolder): Boolean {

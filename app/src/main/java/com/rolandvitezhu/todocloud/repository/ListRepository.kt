@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.repository
 
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.List
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +13,7 @@ class ListRepository @Inject constructor() : BaseRepository() {
     private var listsToInsert: ArrayList<List>? = null
 
     suspend fun syncListData() {
-        val response = apiService.getLists(dbLoader.lastListRowVersion)
+        val response = apiService.getLists(todoCloudDatabaseDao.getLastListRowVersion())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response
             updateListsInLocalDatabase(response.lists)
@@ -27,12 +26,13 @@ class ListRepository @Inject constructor() : BaseRepository() {
     }
 
     private suspend fun updateAndOrInsertLists() {
-        val response = apiService.getNextRowVersion(DbConstants.List.DATABASE_TABLE, dbLoader.apiKey)
+        val response =
+                apiService.getNextRowVersion("list", todoCloudDatabaseDao.getCurrentApiKey())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response
             nextRowVersion = response.nextRowVersion ?: 0
-            listsToUpdate = dbLoader.listsToUpdate
-            listsToInsert = dbLoader.listsToInsert
+            listsToUpdate = todoCloudDatabaseDao.getListsToUpdate()
+            listsToInsert = todoCloudDatabaseDao.getListsToInsert()
 
             setRowVersionsForLists(listsToUpdate)
             setRowVersionsForLists(listsToInsert)
@@ -45,14 +45,14 @@ class ListRepository @Inject constructor() : BaseRepository() {
         }
     }
 
-    private fun updateListsInLocalDatabase(lists: ArrayList<List?>?) {
+    private suspend fun updateListsInLocalDatabase(lists: ArrayList<List?>?) {
         if (!lists.isNullOrEmpty()) {
             for (list in lists) {
-                val exists = dbLoader.isListExists(list!!.listOnlineId)
-                if (!exists) {
-                    dbLoader.createList(list)
+                val exists = list!!.listOnlineId?.let { todoCloudDatabaseDao.isListExists(it) }
+                if (exists == true) {
+                    todoCloudDatabaseDao.updateList(list)
                 } else {
-                    dbLoader.updateList(list)
+                    todoCloudDatabaseDao.insertList(list)
                 }
             }
         }
@@ -100,9 +100,9 @@ class ListRepository @Inject constructor() : BaseRepository() {
         }
     }
 
-    private fun makeListUpToDate(listToUpdate: List) {
+    private suspend fun makeListUpToDate(listToUpdate: List) {
         listToUpdate.dirty = false
-        dbLoader.updateList(listToUpdate)
+        todoCloudDatabaseDao.updateList(listToUpdate)
     }
 
     companion object {

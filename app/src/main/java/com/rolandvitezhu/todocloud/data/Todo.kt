@@ -3,39 +3,59 @@ package com.rolandvitezhu.todocloud.data
 import android.database.Cursor
 import android.os.Parcelable
 import android.text.format.DateUtils
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController.Companion.appContext
 import kotlinx.android.parcel.Parcelize
 
+@Entity(tableName = "todo")
 @Parcelize
 data class Todo (
+        @PrimaryKey(autoGenerate = true)
         var _id: Long?,
+        @ColumnInfo(name = "todo_online_id")
         @SerializedName("todo_online_id")
         var todoOnlineId: String?,
+        @ColumnInfo(name = "user_online_id")
         @SerializedName("user_online_id")
         var userOnlineId: String?,
+        @ColumnInfo(name = "list_online_id")
         @SerializedName("list_online_id")
         var listOnlineId: String?,
+        @ColumnInfo(name = "title")
         @SerializedName("title")
         var title: String?,
+        @ColumnInfo(name = "priority")
         @SerializedName("priority")
-        var priority: Boolean?,
+        var priority: Boolean? = false,
+        @ColumnInfo(name = "due_date")
         @SerializedName("due_date")
-        var dueDate: Long,
+        var dueDate: Long = 0,
+        @ColumnInfo(name = "reminder_date_time")
         @SerializedName("reminder_date_time")
-        var reminderDateTime: Long,
+        var reminderDateTime: Long = 0,
+        @ColumnInfo(name = "description")
         @SerializedName("description")
         var description: String?,
+        @ColumnInfo(name = "completed")
         @SerializedName("completed")
-        var completed: Boolean?,
+        var completed: Boolean? = false,
+        @ColumnInfo(name = "row_version")
         @SerializedName("row_version")
-        var rowVersion: Int,
+        var rowVersion: Int = 0,
+        @ColumnInfo(name = "deleted")
         @SerializedName("deleted")
-        var deleted: Boolean?,
-        var dirty: Boolean,
+        var deleted: Boolean? = false,
+        @ColumnInfo(name = "dirty")
+        var dirty: Boolean = false,
+        @ColumnInfo(name = "position")
         @SerializedName("position")
-        var position: Double,
+        var position: Double = 5.0,
+        @Ignore
         var isSelected: Boolean = false
 ) : Parcelable {
     constructor() : this(
@@ -52,7 +72,8 @@ data class Todo (
             0,
             false,
             false,
-            5.0
+            5.0,
+            false
     )
     constructor(cursor: Cursor) : this(
             cursor.getLong(0),

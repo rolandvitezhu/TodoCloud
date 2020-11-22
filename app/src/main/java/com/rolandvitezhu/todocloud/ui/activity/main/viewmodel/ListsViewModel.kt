@@ -5,14 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
 import com.rolandvitezhu.todocloud.repository.ListRepository
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 
@@ -21,7 +18,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
     @Inject
     lateinit var listRepository: ListRepository
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val _lists = MutableLiveData<List<com.rolandvitezhu.todocloud.data.List>>()
     val lists: LiveData<List<com.rolandvitezhu.todocloud.data.List>>
@@ -39,12 +36,8 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
      * the adapter to show these lists on the UI.
      */
     suspend fun updateListsViewModel() {
-        withContext(Dispatchers.IO) {
-            val listsNotInCategory = dbLoader.listsNotInCategory
-            withContext(Dispatchers.Main) {
-                _lists.value = listsNotInCategory
-            }
-        }
+        val listsNotInCategory = todoCloudDatabaseDao.getListsNotInCategory()
+        _lists.value = listsNotInCategory
     }
 
     /**
@@ -77,16 +70,16 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
     /**
      * Set the online id values of the list and insert it into the local database.
      */
-    private fun createListInLocalDatabase() {
-        list.userOnlineId = dbLoader.userOnlineId
-        list._id = dbLoader.createList(list)
+    private suspend fun createListInLocalDatabase() {
+        list.userOnlineId = todoCloudDatabaseDao.getCurrentUserOnlineId()
+        list._id = todoCloudDatabaseDao.insertList(list)
         val listOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.List.DATABASE_TABLE,
+                "list",
                 list._id!!,
-                dbLoader.apiKey
+                todoCloudDatabaseDao.getCurrentApiKey()
         )
         list.listOnlineId = listOnlineId
-        dbLoader.updateList(list)
+        todoCloudDatabaseDao.updateList(list)
     }
 
     /**
@@ -97,7 +90,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
         list.dirty = true
 
         viewModelScope.launch {
-            dbLoader.updateList(list)
+            todoCloudDatabaseDao.updateList(list)
             if (isInCategory)
                 categoriesViewModel?.updateCategoriesViewModel()
             else
@@ -119,18 +112,18 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
     /**
      * Create a list which is in a category and insert it into the local database.
      */
-    private fun createListInCategoryInLocalDatabase() {
-        list.userOnlineId = dbLoader.userOnlineId
+    private suspend fun createListInCategoryInLocalDatabase() {
+        list.userOnlineId = todoCloudDatabaseDao.getCurrentUserOnlineId()
         list.categoryOnlineId = categoriesViewModel?.category?.categoryOnlineId
         list.dirty = true
-        list._id = dbLoader.createList(list)
+        list._id = todoCloudDatabaseDao.insertList(list)
         val listOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.List.DATABASE_TABLE,
+                "list",
                 list._id!!,
-                dbLoader.apiKey
+                todoCloudDatabaseDao.getCurrentApiKey()
         )
         list.listOnlineId = listOnlineId
-        dbLoader.updateList(list)
+        todoCloudDatabaseDao.updateList(list)
     }
 
     /**
@@ -170,7 +163,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
         list.dirty = true
 
         viewModelScope.launch {
-            dbLoader.updateList(list)
+            todoCloudDatabaseDao.updateList(list)
             updateListsViewModel()
             categoriesViewModel?.updateCategoriesViewModel()
         }
@@ -184,7 +177,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
         list.dirty = true
 
         viewModelScope.launch {
-            dbLoader.updateList(list)
+            todoCloudDatabaseDao.updateList(list)
             categoriesViewModel?.updateCategoriesViewModel()
         }
     }
@@ -198,7 +191,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
         list.dirty = true
 
         viewModelScope.launch {
-            dbLoader.updateList(list)
+            todoCloudDatabaseDao.updateList(list)
             categoriesViewModel?.updateCategoriesViewModel()
             updateListsViewModel()
         }
@@ -213,7 +206,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
 
         viewModelScope.launch {
             for (list: com.rolandvitezhu.todocloud.data.List in lists) {
-                dbLoader.softDeleteListAndRelatedTodos(list.listOnlineId)
+                todoCloudDatabaseDao.softDeleteListAndRelatedTodos(list.listOnlineId)
             }
             if (isInCategory)
                 categoriesViewModel?.updateCategoriesViewModel()
@@ -231,7 +224,7 @@ class ListsViewModel(val categoriesViewModel: CategoriesViewModel?) : Observable
      */
     fun onSoftDelete(onlineId: String?, targetFragment: Fragment?) {
         viewModelScope.launch {
-            dbLoader.softDeleteListAndRelatedTodos(onlineId)
+            todoCloudDatabaseDao.softDeleteListAndRelatedTodos(onlineId)
             if (isInCategory)
                 categoriesViewModel?.updateCategoriesViewModel()
             else

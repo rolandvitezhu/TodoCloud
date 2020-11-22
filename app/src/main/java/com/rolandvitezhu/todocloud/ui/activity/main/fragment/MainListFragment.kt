@@ -25,8 +25,8 @@ import com.rolandvitezhu.todocloud.app.AppController.Companion.isActionModeEnabl
 import com.rolandvitezhu.todocloud.app.AppController.Companion.showWhiteTextSnackbar
 import com.rolandvitezhu.todocloud.data.Category
 import com.rolandvitezhu.todocloud.data.PredefinedList
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.databinding.FragmentMainlistBinding
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
 import com.rolandvitezhu.todocloud.repository.CategoryRepository
 import com.rolandvitezhu.todocloud.repository.ListRepository
 import com.rolandvitezhu.todocloud.repository.TodoRepository
@@ -51,7 +51,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener {
     private val TAG: String = javaClass.simpleName
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var todoRepository: TodoRepository
     @Inject
@@ -470,9 +470,14 @@ class MainListFragment() : ListFragment(), OnRefreshListener {
     }
 
     private fun openMoveListInCategoryDialog() {
-        val list: com.rolandvitezhu.todocloud.data.List = selectedListsInCategory.get(0)
-        categoriesViewModel?.category = dbLoader.getCategoryByCategoryOnlineId(list.categoryOnlineId)
-        listsViewModel?.list = list
+        lifecycleScope.launch {
+            val list: com.rolandvitezhu.todocloud.data.List = selectedListsInCategory.get(0)
+            categoriesViewModel?.category =
+                    list.categoryOnlineId?.let{
+                        todoCloudDatabaseDao.getCategoryByCategoryOnlineId(it)
+                    }?: Category()
+            listsViewModel?.list = list
+        }
         openMoveListDialogFragment()
     }
 

@@ -9,14 +9,12 @@ import com.rolandvitezhu.todocloud.R
 import com.rolandvitezhu.todocloud.app.AppController.Companion.appContext
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.Category
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.helper.OnlineIdGenerator
 import com.rolandvitezhu.todocloud.repository.CategoryRepository
 import com.rolandvitezhu.todocloud.ui.activity.main.fragment.MainListFragment
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import javax.inject.Inject
 
@@ -25,7 +23,7 @@ class CategoriesViewModel : ViewModel() {
     @Inject
     lateinit var categoryRepository: CategoryRepository
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
     private val _lhmCategories =
             MutableLiveData<LinkedHashMap<Category, List<com.rolandvitezhu.todocloud.data.List>>>()
@@ -83,12 +81,9 @@ class CategoriesViewModel : ViewModel() {
      * categories from the local database and update the adapter to show them on the UI.
      */
     suspend fun updateCategoriesViewModel() {
-        withContext(Dispatchers.IO) {
-            val categoriesAndLists = dbLoader.categoriesAndLists
-            withContext(Dispatchers.Main) {
-                _lhmCategories.value = categoriesAndLists
-            }
-        }
+        val categoriesAndLists =
+                todoCloudDatabaseDao.getCategoriesAndLists()
+        _lhmCategories.value = categoriesAndLists
     }
 
     /**
@@ -106,7 +101,7 @@ class CategoriesViewModel : ViewModel() {
     fun onModifyCategory() {
         category.dirty = true
         viewModelScope.launch {
-            dbLoader.updateCategory(category)
+            todoCloudDatabaseDao.updateCategory(category)
             updateCategoriesViewModel()
         }
     }
@@ -132,16 +127,16 @@ class CategoriesViewModel : ViewModel() {
     /**
      * Set the online id values of the category and insert the category into the local database.
      */
-    private fun createCategoryInLocalDatabase(category: Category) {
-        category.userOnlineId = dbLoader.userOnlineId
-        category._id = dbLoader.createCategory(category)
+    private suspend fun createCategoryInLocalDatabase(category: Category) {
+        category.userOnlineId = todoCloudDatabaseDao.getCurrentUserOnlineId()
+        category._id = todoCloudDatabaseDao.insertCategory(category)
         val categoryOnlineId: String = OnlineIdGenerator.generateOnlineId(
-                DbConstants.Category.DATABASE_TABLE,
+                "category",
                 category._id!!,
-                dbLoader.apiKey
+                todoCloudDatabaseDao.getCurrentApiKey()
         )
         category.categoryOnlineId = categoryOnlineId
-        dbLoader.updateCategory(category)
+        todoCloudDatabaseDao.updateCategory(category)
     }
 
     /**
@@ -152,7 +147,9 @@ class CategoriesViewModel : ViewModel() {
 
         viewModelScope.launch {
             for (category: Category in categories) {
-                dbLoader.softDeleteCategoryAndListsAndTodos(category.categoryOnlineId)
+                category.categoryOnlineId?.let {
+                    todoCloudDatabaseDao.softDeleteCategoryAndListsAndTodos(it)
+                }
             }
             updateCategoriesViewModel()
         }
@@ -167,7 +164,7 @@ class CategoriesViewModel : ViewModel() {
      */
     fun onSoftDelete(onlineId: String?, targetFragment: Fragment?) {
         viewModelScope.launch {
-            dbLoader.softDeleteCategoryAndListsAndTodos(onlineId)
+            onlineId?.let{ todoCloudDatabaseDao.softDeleteCategoryAndListsAndTodos(it) }
             updateCategoriesViewModel()
         }
 
@@ -180,15 +177,16 @@ class CategoriesViewModel : ViewModel() {
      * Add an "Outside category" item and all the categories to the array which the spinner will use.
      */
     fun initializeCategoriesForSpinner() {
-        categoriesForSpinner.clear()
-        val outsideCategory = Category(
-                appContext?.getString(R.string.movelist_spinneritemlistnotincategory) ?:
-                "Outside category"
-        )
-        val categoriesFromDatabase = dbLoader.categories
+        runBlocking {
+            categoriesForSpinner.clear()
+            val outsideCategory = Category(
+                    appContext.getString(R.string.movelist_spinneritemlistnotincategory)
+            )
+            val categoriesFromDatabase = todoCloudDatabaseDao.getCategories()
 
-        categoriesForSpinner.add(outsideCategory)
-        categoriesForSpinner.addAll(categoriesFromDatabase)
+            categoriesForSpinner.add(outsideCategory)
+            categoriesForSpinner.addAll(categoriesFromDatabase)
+        }
     }
 
     init {

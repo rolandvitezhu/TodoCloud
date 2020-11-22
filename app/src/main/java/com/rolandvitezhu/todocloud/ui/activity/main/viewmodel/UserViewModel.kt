@@ -6,9 +6,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.User
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabase
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.network.api.user.dto.ModifyPasswordRequest
 import com.rolandvitezhu.todocloud.repository.UserRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class UserViewModel : ViewModel() {
@@ -16,7 +19,9 @@ class UserViewModel : ViewModel() {
     @Inject
     lateinit var userRepository: UserRepository
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
+    @Inject
+    lateinit var todoCloudDatabase: TodoCloudDatabase
 
     private val _user = MutableLiveData(User())
     val user: LiveData<User>
@@ -39,7 +44,7 @@ class UserViewModel : ViewModel() {
      * Set the user.
      */
     suspend fun updateUserViewModel() {
-        _user.value = dbLoader.user
+        _user.value = todoCloudDatabaseDao.getCurrentUser()
     }
 
     /**
@@ -73,10 +78,10 @@ class UserViewModel : ViewModel() {
      * save it into the local database.
      */
     suspend fun onLoginUser() {
-        dbLoader.reCreateDb()
+        withContext(Dispatchers.IO) { todoCloudDatabase.clearAllTables() }
         password.value?.let { user.value?.password = it }
         _user.value = user.value?.let { userRepository.loginUser(it) }
-        dbLoader.createUser(_user.value)
+        _user.value?.let { todoCloudDatabaseDao.insertUser(it) }
     }
 
     /**

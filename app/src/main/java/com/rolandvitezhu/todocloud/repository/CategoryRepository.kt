@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.repository
 
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.Category
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,7 +19,8 @@ class CategoryRepository @Inject constructor() : BaseRepository() {
      * to the remote database.
      */
     suspend fun syncCategoryData() {
-        val response = apiService.getCategories(dbLoader.lastCategoryRowVersion)
+        val response =
+                apiService.getCategories(todoCloudDatabaseDao.getLastCategoryRowVersion())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response.
             persistCategoriesInLocalDatabase(response.categories)
@@ -38,12 +38,13 @@ class CategoryRepository @Inject constructor() : BaseRepository() {
      * in the remote database which are already exists.
      */
     private suspend fun persistCategoriesInRemoteDatabase() {
-        val response = apiService.getNextRowVersion(DbConstants.Category.DATABASE_TABLE, dbLoader.apiKey)
+        val response =
+                apiService.getNextRowVersion("category", todoCloudDatabaseDao.getCurrentApiKey())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response
             nextRowVersion = response.nextRowVersion ?: 0
-            categoriesToUpdate = dbLoader.categoriesToUpdate
-            categoriesToInsert = dbLoader.categoriesToInsert
+            categoriesToUpdate = todoCloudDatabaseDao.getCategoriesToUpdate()
+            categoriesToInsert = todoCloudDatabaseDao.getCategoriesToInsert()
 
             setRowVersionsForCategories(categoriesToUpdate)
             setRowVersionsForCategories(categoriesToInsert)
@@ -102,22 +103,23 @@ class CategoryRepository @Inject constructor() : BaseRepository() {
      * Creates the categories in the local database which are not exists. Updates the categories
      * in the local database which are already exists.
      */
-    private fun persistCategoriesInLocalDatabase(categories: ArrayList<Category?>?) {
+    private suspend fun persistCategoriesInLocalDatabase(categories: ArrayList<Category?>?) {
         if (!categories.isNullOrEmpty()) {
             for (category in categories) {
-                val exists = dbLoader.isCategoryExists(category!!.categoryOnlineId)
-                if (!exists) {
-                    dbLoader.createCategory(category)
+                val exists =
+                        category!!.categoryOnlineId?.let { todoCloudDatabaseDao.isCategoryExists(it) }
+                if (exists == true) {
+                    todoCloudDatabaseDao.updateCategory(category)
                 } else {
-                    dbLoader.updateCategory(category)
+                    todoCloudDatabaseDao.insertCategory(category)
                 }
             }
         }
     }
 
-    private fun makeCategoryUpToDate(categoryToUpdate: Category) {
+    private suspend fun makeCategoryUpToDate(categoryToUpdate: Category) {
         categoryToUpdate.dirty = false
-        dbLoader.updateCategory(categoryToUpdate)
+        todoCloudDatabaseDao.updateCategory(categoryToUpdate)
     }
 
     companion object {

@@ -1,7 +1,7 @@
 package com.rolandvitezhu.todocloud.repository
 
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
-import com.rolandvitezhu.todocloud.datastorage.DbLoader
+import com.rolandvitezhu.todocloud.database.TodoCloudDatabaseDao
 import com.rolandvitezhu.todocloud.network.ApiService
 import java.util.*
 import javax.inject.Inject
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 open class BaseRepository @Inject constructor() {
 
     @Inject
-    lateinit var dbLoader: DbLoader
+    lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
     @Inject
     lateinit var apiService: ApiService
 

@@ -16,21 +16,11 @@ import org.threeten.bp.LocalDateTime
 
 class ReminderDatePickerDialogFragment : AppCompatDialogFragment(), OnDateSetListener {
 
-    /*private var year = 0
-    private var month = 0
-    private var day = 0
-    private var date: LocalDateTime? = null*/
     private val todosViewModel by lazy {
         ViewModelProvider(requireActivity()).get(TodosViewModel::class.java)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        /*val thereIsNoDateTime = requireArguments()[Constant.REMINDER_DATE_TIME] == null
-        date =
-                if (thereIsNoDateTime)
-                    LocalDateTime.now()
-                else
-                    requireArguments()[Constant.REMINDER_DATE_TIME] as LocalDateTime?*/
         if (todosViewModel.ldtReminderDateTime == null)
             todosViewModel.ldtReminderDateTime = LocalDateTime.now()
 
@@ -58,7 +48,6 @@ class ReminderDatePickerDialogFragment : AppCompatDialogFragment(), OnDateSetLis
     }
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
-        /*date = LocalDateTime.of(year, month + 1, day, date?.hour as Int, date?.minute as Int)*/
         todosViewModel.ldtReminderDateTime =
                 LocalDateTime.of(
                         year,
@@ -68,10 +57,9 @@ class ReminderDatePickerDialogFragment : AppCompatDialogFragment(), OnDateSetLis
                         todosViewModel.ldtReminderDateTime?.minute ?: 0)
 
         if (targetFragment is CreateTodoFragment?)
-            /*date?.let { */(targetFragment as CreateTodoFragment?)?.onSelectReminderDate(/*it*/)/* }*/
+            (targetFragment as CreateTodoFragment?)?.onSelectReminderDate()
         else if (targetFragment is ModifyTodoFragment?)
-            /*todosViewModel.ldtReminderDateTime?.let {*/
-                (targetFragment as ModifyTodoFragment?)?.onSelectReminderDate(/*it*/)/* }*/    // NEXT
+            (targetFragment as ModifyTodoFragment?)?.onSelectReminderDate()
 
         dismiss()
     }

@@ -2,7 +2,6 @@ package com.rolandvitezhu.todocloud.repository
 
 import com.rolandvitezhu.todocloud.app.AppController.Companion.instance
 import com.rolandvitezhu.todocloud.data.Todo
-import com.rolandvitezhu.todocloud.datastorage.DbConstants
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +13,7 @@ class TodoRepository @Inject constructor() : BaseRepository() {
     private var todosToInsert: ArrayList<Todo>? = null
 
     suspend fun syncTodoData() {
-        val response = apiService.getTodos(dbLoader.lastTodoRowVersion)
+        val response = apiService.getTodos(todoCloudDatabaseDao.getLastTodoRowVersion())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response
             updateTodosInLocalDatabase(response.todos)
@@ -57,10 +56,10 @@ class TodoRepository @Inject constructor() : BaseRepository() {
         }
     }
 
-    private fun makeTodoUpToDate(todoToUpdate: Todo) {
+    private suspend fun makeTodoUpToDate(todoToUpdate: Todo) {
         todoToUpdate.dirty = false
-        dbLoader.updateTodo(todoToUpdate)
-        dbLoader.fixTodoPositions(null)
+        todoCloudDatabaseDao.updateTodo(todoToUpdate)
+        todoCloudDatabaseDao.fixTodoPositions()
     }
 
     private suspend fun insertTodos() {
@@ -80,27 +79,28 @@ class TodoRepository @Inject constructor() : BaseRepository() {
         }
     }
 
-    private fun updateTodosInLocalDatabase(todos: ArrayList<Todo?>?) {
+    private suspend fun updateTodosInLocalDatabase(todos: ArrayList<Todo?>?) {
         if (!todos.isNullOrEmpty()) {
             for (todo in todos) {
-                val exists = dbLoader.isTodoExists(todo!!.todoOnlineId)
-                if (!exists) {
-                    dbLoader.createTodo(todo)
+                val exists = todo!!.todoOnlineId?.let { todoCloudDatabaseDao.isTodoExists(it) }
+                if (exists == true) {
+                    todoCloudDatabaseDao.updateTodo(todo)
+                    todoCloudDatabaseDao.fixTodoPositions()
                 } else {
-                    dbLoader.updateTodo(todo)
-                    dbLoader.fixTodoPositions(null)
+                    todoCloudDatabaseDao.insertTodo(todo)
                 }
             }
         }
     }
 
     private suspend fun updateAndOrInsertTodos() {
-        val response = apiService.getNextRowVersion(DbConstants.Todo.DATABASE_TABLE, dbLoader.apiKey)
+        val response =
+                apiService.getNextRowVersion("todo", todoCloudDatabaseDao.getCurrentApiKey())
         if (response.error.toUpperCase(Locale.getDefault()).equals("FALSE")) {
             // Process the response
             nextRowVersion = response.nextRowVersion ?: 0
-            todosToUpdate = dbLoader.todosToUpdate
-            todosToInsert = dbLoader.todosToInsert
+            todosToUpdate = todoCloudDatabaseDao.getTodosToUpdate()
+            todosToInsert = todoCloudDatabaseDao.getTodosToInsert()
 
             setRowVersionsForTodos(todosToUpdate)
             setRowVersionsForTodos(todosToInsert)
