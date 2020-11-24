@@ -26,8 +26,8 @@ class TodosViewModel : ObservableViewModel() {
     @Inject
     lateinit var todoCloudDatabaseDao: TodoCloudDatabaseDao
 
-    private val _todos = MutableLiveData<ArrayList<Todo>>()
-    val todos: LiveData<ArrayList<Todo>>
+    private val _todos = MutableLiveData<List<Todo>>()
+    val todos: LiveData<List<Todo>>
         get() = _todos
     var todo: Todo = Todo()
     var todosTitle: String = ""
@@ -78,7 +78,7 @@ class TodosViewModel : ObservableViewModel() {
      * which list is open at the moment using these 3 variables.
      */
     private fun initTodosViewModel(isPredifinedList: Boolean) {
-        _todos.value?.clear()
+        _todos.value = listOf()
         this.isPredefinedList = isPredifinedList
         if (isPredefinedList)
             listOnlineId = "";
@@ -426,8 +426,8 @@ class TodosViewModel : ObservableViewModel() {
 
     /**
      * Sort todos by priority or by not priority.
-      */
-    private fun sortTodosByPriority(todos: ArrayList<Todo>, isPriority: Boolean) {
+     */
+    private fun sortTodosByPriority(todos: List<Todo>, isPriority: Boolean) {
         val todosToSort: MutableList<Todo> = ArrayList()
         todosToSort.addAll(todos)
         if (isPriority)
@@ -441,7 +441,7 @@ class TodosViewModel : ObservableViewModel() {
     /**
      * Sort todos by due date in ascending or descending order.
      */
-    private fun sortTodosByDueDate(todos: ArrayList<Todo>, isAscending: Boolean) {
+    private fun sortTodosByDueDate(todos: List<Todo>, isAscending: Boolean) {
         val todosToSort: MutableList<Todo> = ArrayList()
         todosToSort.addAll(todos)
         if (isAscending)
@@ -450,6 +450,10 @@ class TodosViewModel : ObservableViewModel() {
             todosToSort.sortByDescending { todo -> todo.dueDate }
 
         _todos.value = ArrayList(todosToSort)
+    }
+
+    fun clearTodos() {
+        _todos.value = listOf()
     }
 
     init {

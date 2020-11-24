@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     }
 
     private fun openSearchFragment() {
-        todosViewModel.todos.value?.clear()
+        todosViewModel.clearTodos()
         val searchFragment = SearchFragment()
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()

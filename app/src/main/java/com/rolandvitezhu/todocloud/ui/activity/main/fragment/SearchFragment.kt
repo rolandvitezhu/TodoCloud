@@ -70,7 +70,7 @@ class SearchFragment : Fragment(), DialogInterface.OnDismissListener {
         todosViewModel?.todos?.observe(
                 this,
                 Observer { todos ->
-                    todoAdapter.update(todos)
+                    todos?.let { todoAdapter.update(it.toMutableList()) }
                     todoAdapter.notifyDataSetChanged()
                 }
         )
