@@ -63,7 +63,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.user.email}"
                         app:emptyFieldValidator="@{@string/registeruser_enteremailhint}" />
@@ -85,7 +85,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:imeOptions="actionDone"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.password}"
                         app:emptyFieldValidator="@{@string/registeruser_enterpasswordhint}"
@@ -109,7 +109,7 @@
                     android:layout_marginTop="20dip"
                     android:background="@null"
                     android:text="@string/loginuser_linktoregisterbutton"
-                    android:textColor="@color/textColorSecondary"
+                    android:textColor="@android:color/black"
                     android:textSize="15sp"
                     app:layout_constraintTop_toBottomOf="@id/button_loginuser_login"
                     android:onClick="@{(view) -> loginUserFragment.onButtonLinkToRegisterClick()}" />
@@ -121,7 +121,7 @@
                     android:layout_marginTop="0dip"
                     android:background="@null"
                     android:text="@string/loginuser_linktoresetpasswordbutton"
-                    android:textColor="@color/textColorSecondary"
+                    android:textColor="@android:color/black"
                     android:textSize="15sp"
                     app:layout_constraintTop_toBottomOf="@id/button_loginuser_linktoregister"
                     android:onClick="@{(view) -> loginUserFragment.onButtonLinkToResetPasswordClick()}" />

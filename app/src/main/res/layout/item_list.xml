@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/baseline_list_24"
-            app:tint="@color/navigationViewItemIconTint"
+            app:dynamicTint="@{list.selected ? @color/colorAccentDark : @color/navigationViewItemIconTint}"
             android:layout_marginLeft="@dimen/margin_activity_horizontal"
             android:layout_marginStart="@dimen/margin_activity_horizontal"
             app:layout_constraintTop_toTopOf="parent"
@@ -31,7 +31,7 @@
         <TextView
             android:id="@+id/textview_itemlist_actiontext"
             android:textSize="18sp"
-            android:textColor="@android:color/black"
+            android:textColor="@{list.selected ? @android:color/white : @android:color/black}"
             android:layout_width="0dp"
             android:layout_height="@dimen/height_item"
             android:layout_marginLeft="@dimen/margin_activity_horizontal"

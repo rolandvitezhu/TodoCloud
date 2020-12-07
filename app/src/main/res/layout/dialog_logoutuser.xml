@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <variable
@@ -37,8 +38,9 @@
                 android:text="@string/all_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> logoutUserDialogFragment.onButtonCancelClick(view)}" />
+                style="@style/MyBorderlessButtonStyle"
+                android:onClick="@{(view) -> logoutUserDialogFragment.onButtonCancelClick(view)}"
+                tools:text="@string/all_cancel" />
             <Button
                 android:id="@+id/button_logoutuser_ok"
                 android:text="@string/all_ok"
@@ -46,8 +48,9 @@
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/button_logoutuser_cancel"
                 android:layout_toRightOf="@+id/button_logoutuser_cancel"
-                style="?attr/borderlessButtonStyle"
-                android:onClick="@{(view) -> logoutUserDialogFragment.onButtonOkClick(view)}" />
+                style="@style/MyBorderlessButtonStyle"
+                android:onClick="@{(view) -> logoutUserDialogFragment.onButtonOkClick(view)}"
+                tools:text="@string/all_ok" />
 
         </RelativeLayout>
 

@@ -39,6 +39,7 @@
             android:layout_marginRight="8dp"
             android:text="@string/dialog_sort_by_due_date_title"
             android:textSize="18sp"
+            android:textColor="@android:color/black"
             android:onClick="@{() -> sortTodoListDialog.onSortByDueDateClicked()}" />
 
         <TextView
@@ -53,6 +54,7 @@
             android:layout_marginBottom="16dp"
             android:text="@string/dialog_sort_by_priority_title"
             android:textSize="18sp"
+            android:textColor="@android:color/black"
             android:onClick="@{() -> sortTodoListDialog.onSortByPriorityClicked()}"  />
     </LinearLayout>
 </layout>

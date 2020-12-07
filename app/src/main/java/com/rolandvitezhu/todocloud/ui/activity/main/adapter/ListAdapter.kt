@@ -64,6 +64,22 @@ class ListAdapter @Inject constructor() : BaseAdapter() {
         notifyDataSetChanged()
     }
 
+    fun toggleSelection(position: Int) {
+        lists[position].isSelected = isNotSelected(position)
+        notifyDataSetChanged()
+    }
+
+    fun clearSelection() {
+        for (list in lists) {
+            list.isSelected = false
+        }
+        notifyDataSetChanged()
+    }
+
+    private fun isNotSelected(position: Int): Boolean {
+        return !lists[position].isSelected
+    }
+
     init {
         lists = ArrayList()
     }

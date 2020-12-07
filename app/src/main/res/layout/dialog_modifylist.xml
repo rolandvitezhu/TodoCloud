@@ -39,7 +39,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:textColor="@color/textColorSecondary"
+                    android:textColor="@android:color/black"
                     android:theme="@style/MyEditTextTheme"
                     android:text="@={listsViewModel.list.title}" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -57,7 +57,7 @@
                 android:text="@string/all_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="?attr/borderlessButtonStyle"
+                style="@style/MyBorderlessButtonStyle"
                 android:onClick="@{(view) -> modifyListDialogFragment.onButtonCancelClick(view)}" />
             <Button
                 android:id="@+id/button_modifylist_ok"
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/button_modifylist_cancel"
                 android:layout_toRightOf="@+id/button_modifylist_cancel"
-                style="?attr/borderlessButtonStyle"
+                style="@style/MyBorderlessButtonStyle"
                 android:onClick="@{(view) -> modifyListDialogFragment.onButtonOkClick(view)}" />
 
         </RelativeLayout>

@@ -1,16 +1,21 @@
 package com.rolandvitezhu.todocloud.ui.activity.main.bindingutils
 
+import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.rolandvitezhu.todocloud.R
+
 
 @BindingAdapter("textChangedListener")
 fun TextInputEditText.addTextChangedListener(fragmentActivity: FragmentActivity) {
@@ -75,4 +80,13 @@ fun TextInputEditText.addDoneButtonListener(button: Button) {
                 }
                 false
             })
+}
+
+@BindingAdapter("dynamicTint")
+fun ImageView.setDynamicTint(color: Int) = setColorFilter(color)
+
+@SuppressLint("RestrictedApi")
+@BindingAdapter("dynamicButtonTint")
+fun AppCompatCheckBox.setDynamicButtonTint(color: Int) {
+    supportButtonTintList = ColorStateList.valueOf(color)
 }

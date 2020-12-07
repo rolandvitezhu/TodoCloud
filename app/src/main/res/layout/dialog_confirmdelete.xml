@@ -37,7 +37,7 @@
                 android:text="@string/all_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="?attr/borderlessButtonStyle"
+                style="@style/MyBorderlessButtonStyle"
                 android:onClick="@{(view) -> confirmDeleteDialogFragment.onButtonCancelClick(view)}" />
             <Button
                 android:id="@+id/button_confirmdelete_ok"
@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/button_confirmdelete_cancel"
                 android:layout_toRightOf="@+id/button_confirmdelete_cancel"
-                style="?attr/borderlessButtonStyle"
+                style="@style/MyBorderlessButtonStyle"
                 android:onClick="@{(view) -> confirmDeleteDialogFragment.onButtonOkClick(view)}" />
 
         </RelativeLayout>

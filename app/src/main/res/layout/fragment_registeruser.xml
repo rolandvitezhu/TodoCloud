@@ -63,7 +63,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPersonName"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.user.name}" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -83,7 +83,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.user.email}" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -103,7 +103,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.password}" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -124,7 +124,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:imeOptions="actionDone"
-                        android:textColor="@color/textColorSecondary"
+                        android:textColor="@android:color/black"
                         android:theme="@style/MyEditTextTheme"
                         android:text="@={userViewModel.confirmPassword}"
                         app:doneButtonListener="@{buttonRegisteruser}" />

@@ -46,7 +46,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:textColor="@color/textColorSecondary"
+                    android:textColor="@android:color/black"
                     android:theme="@style/MyEditTextTheme"
                     android:text="@={todosViewModel.todoTitle}" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -158,7 +158,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
-                    android:textColor="@color/textColorSecondary"
+                    android:textColor="@android:color/black"
                     android:theme="@style/MyEditTextTheme"
                     android:text="@={todosViewModel.todo.description}" />
             </com.google.android.material.textfield.TextInputLayout>

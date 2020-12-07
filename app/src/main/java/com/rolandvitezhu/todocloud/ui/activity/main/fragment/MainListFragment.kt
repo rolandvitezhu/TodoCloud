@@ -229,6 +229,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener {
             selectedCategories.clear()
             selectedListsInCategory.clear()
             selectedLists.clear()
+            listAdapter.clearSelection()
             isActionModeEnabled = false
             view?.expandableheightexpandablelistview_mainlist_category?.choiceMode =
                     AbsListView.CHOICE_MODE_NONE
@@ -629,11 +630,14 @@ class MainListFragment() : ListFragment(), OnRefreshListener {
             // the changes only.
             if (view?.expandableheightlistview_mainlist_list?.isItemChecked(position) == true) {
                 selectedLists.add(clickedList)
+                listAdapter.toggleSelection(position)
             } else {
                 selectedLists.remove(clickedList)
+                listAdapter.toggleSelection(position)
             }
             if (isNoSelectedItems) {
                 actionMode?.finish()
+                listAdapter.clearSelection()
             } else {
                 actionMode?.invalidate()
             }
@@ -644,6 +648,7 @@ class MainListFragment() : ListFragment(), OnRefreshListener {
                 Boolean {
             if (!isActionModeEnabled) {
                 startActionMode(position)
+                listAdapter.toggleSelection(position)
             }
 
             return true
