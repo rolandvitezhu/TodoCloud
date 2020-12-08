@@ -29,8 +29,8 @@ android {
         applicationId "com.rolandvitezhu.todocloud"
         minSdkVersion 15
         targetSdkVersion 30
-        versionCode 8
-        versionName "1.0.7"
+        versionCode 9
+        versionName "1.0.8"
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.release
         multiDexEnabled true
