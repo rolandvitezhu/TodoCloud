@@ -1,4 +1,5 @@
-<resources>
+<resources
+    xmlns:tools="http://schemas.android.com/tools">
 
     <style name="MyMaterialTheme" parent="MyMaterialTheme.Base">
 
@@ -22,6 +23,7 @@
         <item name="actionBarSize">@dimen/height_toolbar</item>
         <item name="actionModeStyle">@style/MyActionModeStyle</item>
         <item name="actionModeCloseButtonStyle">@style/MyCloseButton</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
     </style>
 
     <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog">
