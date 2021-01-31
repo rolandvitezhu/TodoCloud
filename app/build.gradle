@@ -29,8 +29,8 @@ android {
         applicationId "com.rolandvitezhu.todocloud"
         minSdkVersion 15
         targetSdkVersion 30
-        versionCode 9
-        versionName "1.0.8"
+        versionCode 10
+        versionName "1.0.9"
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.release
         multiDexEnabled true
@@ -50,7 +50,6 @@ android {
     }
     buildTypes {
         debug {
-            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }
